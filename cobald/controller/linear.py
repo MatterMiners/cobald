@@ -17,10 +17,10 @@ class LinearController(object):
 
     def control(self):
         if self.adapter.utilisation < self.low_utilisation:
-            print('-', end=' ')
+            print('-', end='')
             self.adapter.decrease_resources()
         elif self.adapter.exhaustion > self.low_exhaustion:
-            print('+', end=' ')
+            print('+', end='')
             self.adapter.increase_resources()
         else:
-            print('=', end=' ')
+            print('=', end='')
