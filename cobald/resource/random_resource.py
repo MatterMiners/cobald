@@ -6,28 +6,32 @@ from .adapter import ResourceAdapter
 class RandomResource(ResourceAdapter):
     @property
     def utilisation(self):
-        return min(1.0, self.demand / self._count)
+        return min(self.demand / resource for resource in self._resources)
 
     @property
     def exhaustion(self):
-        return min(1.0, self.demand / self._count)
+        return max(self.demand / resource for resource in self._resources)
 
-    def __init__(self, demand=4000, drift_rate=40):
+    def __init__(self, demand=4000, dimensions=2, drift_rate=40):
         self.demand = demand
         self.drift_rate = drift_rate
-        self._count = demand
+        self._resources = [demand for _ in range(dimensions)]
 
     def increase_resources(self):
-        self._count += 1
+        self._resources = [value + 1 for value in self._resources]
 
     def decrease_resources(self):
-        self._count -= 1
+        self._resources = [value + -1 for value in self._resources]
 
     async def coroutine(self):
         while True:
-            self._count += self.drift_rate * (-1 if random.random() > 0.5 else 1)
-            print('target %d, current %d, util %.2f%% exh %.2f%%' % (
-                self.demand, self._count, self.utilisation, self.exhaustion))
+            self._resources = [
+                value - (0 if random.randint(0, 1) else int(4 * self.drift_rate * random.random()))
+                for value in self._resources
+            ]
+            print('\ttarget %d, low %d, high %d, avg %d, util %.2f exh %.2f' % (
+                self.demand, min(self._resources), max(self._resources), sum(self._resources) / len(self._resources),
+                self.utilisation, self.exhaustion))
             await asyncio.sleep(1)
 
 
