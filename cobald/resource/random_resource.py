@@ -10,7 +10,7 @@ class RandomResource(ResourceAdapter):
 
     @property
     def exhaustion(self):
-        return min(1.0, self._count / self.demand)
+        return min(1.0, self.demand / self._count)
 
     def __init__(self, demand=4000, drift_rate=40):
         self.demand = demand
@@ -33,8 +33,8 @@ class RandomResource(ResourceAdapter):
 
 if __name__ == '__main__':
     from ..controller.linear import LinearController
-    resource = RandomResource()
-    controller = LinearController(0.1, 0.5, 0.75, resource)
+    resource = RandomResource(drift_rate=40)
+    controller = LinearController(0.1, 0.9, 0.9, resource)
     loop = asyncio.get_event_loop()
     loop.create_task(resource.coroutine())
     loop.create_task(controller.coroutine())

@@ -13,10 +13,14 @@ class LinearController(object):
     async def coroutine(self):
         while True:
             self.control()
-            await asyncio.sleep(1)
+            await asyncio.sleep(self.interval)
 
     def control(self):
         if self.adapter.utilisation < self.low_utilisation:
+            print('-', end=' ')
             self.adapter.decrease_resources()
         elif self.adapter.exhaustion > self.low_exhaustion:
+            print('+', end=' ')
             self.adapter.increase_resources()
+        else:
+            print('=', end=' ')
