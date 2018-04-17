@@ -37,8 +37,8 @@ class RandomResource(ResourceAdapter):
 
 if __name__ == '__main__':
     from ..controller.linear import LinearController
-    resource = RandomResource(drift_rate=40)
-    controller = LinearController(0.1, 0.9, 0.9, resource)
+    resource = RandomResource(drift_rate=10)
+    controller = LinearController(0.05, 0.95, 0.975, resource)
     loop = asyncio.get_event_loop()
     loop.create_task(resource.coroutine())
     loop.create_task(controller.coroutine())
