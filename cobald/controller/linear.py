@@ -5,6 +5,14 @@ from cobald.interfaces.actor import Actor
 
 
 class LinearController(Actor):
+    """
+    Controller that linearly increases or decreases demand
+
+    :param target: the pool to manage
+    :param low_utilisation: pool utilisation below which resources are decreased
+    :param high_consumption: pool consumption above which resources are increased
+    :param rate: maximum change of demand in resources per second
+    """
     @property
     def rate(self):
         return 1 / self._interval
