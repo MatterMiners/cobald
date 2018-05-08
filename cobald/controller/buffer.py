@@ -4,8 +4,7 @@ from cobald.interfaces.pool import ProxyPool, Pool
 from cobald.interfaces.actor import Actor
 
 
-@Actor.register
-class Buffer(ProxyPool):
+class Buffer(ProxyPool, Actor):
     """
     A timed buffer for changes to a pool
 
@@ -25,4 +24,5 @@ class Buffer(ProxyPool):
     async def run(self):
         while True:
             self.target.demand = self.demand
+            self.demand = self.target.demand
             await asyncio.sleep(self.window)
