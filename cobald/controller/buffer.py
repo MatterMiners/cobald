@@ -5,7 +5,7 @@ from cobald.interfaces.actor import Actor
 
 
 @Actor.register
-class BufferedController(ProxyPool):
+class Buffer(ProxyPool):
     demand = 0.0
 
     def __init__(self, target: Pool, window=10):
