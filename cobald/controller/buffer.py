@@ -1,13 +1,13 @@
 import asyncio
 
-from cobald.interfaces.parasite import ParaSite
+from cobald.interfaces.pool import Pool
 from cobald.interfaces.actor import Actor
 
 
-@ParaSite.register
+@Pool.register
 @Actor.register
 class BufferedController(object):
-    def __init__(self, target: ParaSite, interval=10):
+    def __init__(self, target: Pool, interval=10):
         self.interval = interval
         self.demand = target.demand
 

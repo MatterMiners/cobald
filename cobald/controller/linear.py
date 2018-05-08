@@ -1,6 +1,6 @@
 import asyncio
 
-from cobald.interfaces.parasite import ParaSite
+from cobald.interfaces.pool import Pool
 from cobald.interfaces.actor import Actor
 
 
@@ -13,7 +13,7 @@ class LinearController(Actor):
     def rate(self, value):
         self._interval = 1 / value
 
-    def __init__(self, target: ParaSite, low_utilisation=0.5, high_consumption=0.5, rate=1):
+    def __init__(self, target: Pool, low_utilisation=0.5, high_consumption=0.5, rate=1):
         self._interval = None
         self.rate = rate
         self.target = target

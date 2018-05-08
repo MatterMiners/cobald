@@ -1,7 +1,7 @@
 import abc
 
 
-class ParaSite(abc.ABC):
+class Pool(abc.ABC):
     """
     Individual provider for a number of indistinguishable resources
     """

@@ -1,9 +1,9 @@
-from ...interfaces.parasite import ParaSite
+from ...interfaces.pool import Pool
 
 from .adapter import ConcurrencyConstraintView, ConcurrencyUsageView
 
 
-@ParaSite.register
+@Pool.register
 class ConcurrencyLimit(object):
     @property
     def supply(self):
