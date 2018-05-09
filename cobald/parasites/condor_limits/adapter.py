@@ -104,7 +104,7 @@ class ConcurrencyUsageView(object):
         return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
 
 
-class PoolResourceView(object):
+class PoolResources(object):
     def __init__(self, pool: str = None, max_age: float = 30.):
         self.pool = pool
         self.max_age = max_age
@@ -143,6 +143,21 @@ class PoolResourceView(object):
 
     def __repr__(self):
         return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
+
+
+class PoolResourceView(object):
+    def __init__(self, resource, pool_resources):
+        self._resource = resource
+        self._pool_resources = pool_resources
+
+    def __int__(self):
+        return int(self._pool_resources[self._resource])
+
+    def __float__(self):
+        return float(self._pool_resources[self._resource])
+
+    def __sub__(self, other):
+        return float(self) - other
 
 
 __all__ = [ConcurrencyConstraintView.__name__, ConcurrencyUsageView.__name__, PoolResourceView.__name__]
