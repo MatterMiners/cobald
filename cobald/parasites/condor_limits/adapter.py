@@ -104,4 +104,45 @@ class ConcurrencyUsageView(object):
         return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
 
 
-__all__ = [ConcurrencyConstraintView.__name__, ConcurrencyUsageView.__name__]
+class PoolResourceView(object):
+    def __init__(self, pool: str = None, max_age: float = 30.):
+        self.pool = pool
+        self.max_age = max_age
+        self._valid_date = 0
+        self._data = {}
+
+    def __getitem__(self, resource: str) -> float:
+        if self._valid_date < time.time():
+            self._query_data()
+        return self._data[resource]
+
+    def _query_data(self):
+        query_command = ['condor_status']
+        if self.pool:
+            query_command.extend(('-pool', str(self.pool)))
+        query_command.extend((
+            "-startd",
+            "-constraint", 'SlotType!="Dynamic"',
+            "-af", "TotalSlotCpus", "TotalSlotMemory", "TotalSlotDisk", "Machine"
+        ))
+        data = {'cpus': 0, 'memory': 0, 'disk': 0, 'machines': 0}
+        machines = set()
+        for machine_info in subprocess.check_output(query_command, universal_newlines=True):
+            try:
+                cpus, memory, disk, machine = machine_info.split()
+            except ValueError:
+                continue
+            else:
+                data['cpus'] += float(cpus)
+                data['memory'] += float(memory)
+                data['disk'] += float(disk)
+                machines.add(machine)
+        data['machines'] = len(machines)
+        self._valid_date = self.max_age + time.time()
+        self._data = data
+
+    def __repr__(self):
+        return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
+
+
+__all__ = [ConcurrencyConstraintView.__name__, ConcurrencyUsageView.__name__, PoolResourceView.__name__]
