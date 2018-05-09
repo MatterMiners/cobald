@@ -1,5 +1,8 @@
 import argparse
 import asyncio
+import logging
+import platform
+import sys
 
 from ...interfaces.actor import Actor
 
@@ -69,6 +72,14 @@ def main():
     event_loop = asyncio.get_event_loop()
     components = []
     options = CLI.parse_args()
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)-15s (%(process)d) %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    logging.critical('COBalD: condor_limits')
+    logging.critical('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
+    logging.warning('configuring components')
     if options.opponent or options.total:
         if not options.opponent or not options.total:
             raise RuntimeError('both opponent and total must be set together')
@@ -94,9 +105,11 @@ def main():
         low_utilisation=options.decrease, high_consumption=options.increase,
         rate=options.max_rate
     ))
+    logging.warning('registering components')
     for component in components:
         if isinstance(component, Actor):
             component.mount(event_loop)
+    logging.warning('launching event loop...')
     event_loop.run_forever()
 
 
