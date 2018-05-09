@@ -21,8 +21,9 @@ class Buffer(ProxyPool, Actor):
         self.window = window
         self.demand = target.demand
 
-    async def run(self):
+    @asyncio.coroutine
+    def run(self):
         while True:
             self.target.demand = self.demand
             self.demand = self.target.demand
-            await asyncio.sleep(self.window)
+            yield from asyncio.sleep(self.window)
