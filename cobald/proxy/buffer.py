@@ -1,6 +1,7 @@
 import asyncio
 
-from cobald.interfaces.pool import ProxyPool, Pool
+from cobald.interfaces.pool import Pool
+from cobald.interfaces.proxy import ProxyPool
 from cobald.interfaces.actor import Actor
 
 

@@ -1,6 +1,7 @@
 import logging
 
-from cobald.interfaces.pool import Pool, ProxyPool
+from cobald.interfaces.pool import Pool
+from cobald.interfaces.proxy import ProxyPool
 
 
 class Logger(ProxyPool):

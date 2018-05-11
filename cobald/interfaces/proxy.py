@@ -1,35 +1,33 @@
 import abc
 
+from .pool import Pool
 
-class Pool(abc.ABC):
-    """
-    Individual provider for a number of indistinguishable resources
-    """
+
+@Pool.register
+class ProxyPool(abc.ABC):
     @property
-    @abc.abstractmethod
     def supply(self):
         """The volume of resources that is provided by this site"""
-        raise NotImplementedError
+        return self.target.supply
 
     @property
-    @abc.abstractmethod
     def demand(self):
         """The volume of resources to be provided by this site"""
-        raise NotImplementedError
+        return self.target.demand
 
     @demand.setter
-    @abc.abstractmethod
     def demand(self, value):
-        raise NotImplementedError
+        self.target.demand = value
 
     @property
-    @abc.abstractmethod
     def utilisation(self) -> float:
         """Fraction of the provided resources which is actively used"""
-        raise NotImplementedError
+        return self.target.utilisation
 
     @property
-    @abc.abstractmethod
     def consumption(self) -> float:
         """Fraction of the provided resources which is assigned for usage"""
-        raise NotImplementedError
+        return self.target.consumption
+
+    def __init__(self, target: Pool):
+        self.target = target
