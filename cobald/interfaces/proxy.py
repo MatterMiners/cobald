@@ -1,10 +1,15 @@
 import abc
 
 from .pool import Pool
+from .controller import Controller
 
 
+@Controller.register
 @Pool.register
 class ProxyPool(abc.ABC):
+    """
+    A pool that controls another pool to provide resources
+    """
     @property
     def supply(self):
         """The volume of resources that is provided by this site"""
