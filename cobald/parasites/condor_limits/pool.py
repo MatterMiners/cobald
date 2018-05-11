@@ -5,8 +5,7 @@ from ...interfaces.pool import Pool
 from .adapter import ConcurrencyConstraintView, ConcurrencyUsageView, PoolResources
 
 
-@Pool.register
-class ConcurrencyLimit(object):
+class ConcurrencyLimit(Pool):
     @property
     def supply(self):
         return self._constraints[self.resource]
@@ -32,8 +31,7 @@ class ConcurrencyLimit(object):
         self._usage = ConcurrencyUsageView(pool=pool)
 
 
-@Pool.register
-class ConcurrencyAntiLimit(object):
+class ConcurrencyAntiLimit(Pool):
     @property
     def supply(self):
         return self.total - self._constraints[self.opponent]
