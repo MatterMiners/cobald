@@ -4,8 +4,6 @@ import logging
 import platform
 import sys
 
-from ...interfaces.actor import Actor
-
 from .pool import ConcurrencyLimit, ConcurrencyAntiLimit
 
 from ...controller.linear import LinearController
@@ -13,6 +11,8 @@ from ...proxy.buffer import Buffer
 from ...proxy.logger import Logger
 from ...proxy.limiter import Limiter
 from ...proxy.coarser import Coarser
+from ...utility import schedule_pipelines
+
 
 CLI = argparse.ArgumentParser('HTCondor Concurrency Limit Balancer')
 CLI_resource = CLI.add_argument_group('Resource Definition')
@@ -70,7 +70,6 @@ CLI_controller.add_argument(
 
 def main():
     event_loop = asyncio.get_event_loop()
-    components = []
     options = CLI.parse_args()
     logging.basicConfig(
         level=logging.INFO,
@@ -87,28 +86,26 @@ def main():
             total = float(options.total)
         except ValueError:
             total = options.total
-        components.append(ConcurrencyAntiLimit(
+        pool = ConcurrencyAntiLimit(
             resource=options.resource,
             opponent=options.opponent,
             total=total,
             pool=options.pool,
-        ))
+        )
     else:
-        components.append(ConcurrencyLimit(resource=options.resource, pool=options.pool))
-    components.append(Logger(components[-1], identifier='htcondor.limits'))
-    components.append(Buffer(components[-1], window=30))
+        pool = ConcurrencyLimit(resource=options.resource, pool=options.pool)
+    pool = Logger(pool, identifier='htcondor.limits')
+    pool = Buffer(pool, window=30)
     if options.granularity != 1:
-        components.append(Coarser(components[-1], granularity=options.granularity))
-    components.append(Limiter(components[-1], minimum=options.granularity, maximum=options.limit))
-    components.append(LinearController(
-        components[-1],
+        pool = Coarser(pool, granularity=options.granularity)
+    pool = Limiter(pool, minimum=options.granularity, maximum=options.limit)
+    pool = LinearController(
+        pool,
         low_utilisation=options.decrease, high_consumption=options.increase,
         rate=options.max_rate
-    ))
+    )
     logging.warning('registering components')
-    for component in components:
-        if isinstance(component, Actor):
-            component.mount(event_loop)
+    schedule_pipelines(event_loop, pool)
     logging.warning('launching event loop...')
     event_loop.run_forever()
 
