@@ -1,7 +1,7 @@
 import abc
 
 
-class Pool(abc.ABC):
+class Pool(metaclass=abc.ABCMeta):
     """
     Individual provider for a number of indistinguishable resources
     """

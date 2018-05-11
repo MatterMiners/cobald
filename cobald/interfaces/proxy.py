@@ -1,12 +1,8 @@
-import abc
-
 from .pool import Pool
 from .controller import Controller
 
 
-@Controller.register
-@Pool.register
-class ProxyPool(abc.ABC):
+class ProxyPool(Controller, Pool):
     """
     A pool that controls another pool to provide resources
     """
@@ -35,4 +31,4 @@ class ProxyPool(abc.ABC):
         return self.target.consumption
 
     def __init__(self, target: Pool):
-        self.target = target
+        super().__init__(target=target)

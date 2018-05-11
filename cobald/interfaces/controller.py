@@ -3,7 +3,7 @@ import abc
 from .pool import Pool
 
 
-class Controller(abc.ABC):
+class Controller(metaclass=abc.ABCMeta):
     """
     Controller for the demand in a pool
     """

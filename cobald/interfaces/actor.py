@@ -2,7 +2,7 @@ import abc
 import asyncio
 
 
-class Actor(abc.ABC):
+class Actor(metaclass=abc.ABCMeta):
     """
     An active component capable of concurrently performing work
     """
