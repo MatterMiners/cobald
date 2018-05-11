@@ -1,10 +1,11 @@
 import asyncio
 
 from cobald.interfaces.pool import Pool
+from cobald.interfaces.controller import Controller
 from cobald.interfaces.actor import Actor
 
 
-class LinearController(Actor):
+class LinearController(Controller, Actor):
     """
     Controller that linearly increases or decreases demand
 
@@ -22,9 +23,9 @@ class LinearController(Actor):
         self._interval = 1 / value
 
     def __init__(self, target: Pool, low_utilisation=0.5, high_consumption=0.5, rate=1):
+        super().__init__(target=target)
         self._interval = None
         self.rate = rate
-        self.target = target
         self.low_utilisation = low_utilisation
         self.high_consumption = high_consumption
 
