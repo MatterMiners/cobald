@@ -14,7 +14,10 @@ def query_limits(query_command, key_transform):
         except ValueError:
             continue
         else:
-            resource_limits[resource] = float(value)
+            try:
+                resource_limits[resource] = float(value)
+            except ValueError:
+                pass
     return resource_limits
 
 
