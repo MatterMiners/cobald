@@ -48,7 +48,7 @@ class ConcurrencyAntiLimit(Pool):
 
     @demand.setter
     def demand(self, value):
-        self._constraints[self.resource] = self.total - value
+        self._constraints[self.opponent] = self.total - value
 
     def __init__(self, resource: str, opponent: str, total: Union[str, float], pool: str = None):
         self.resource = resource
