@@ -6,6 +6,8 @@ import subprocess
 def query_limits(query_command, key_transform):
     resource_limits = {}
     for item in subprocess.check_output(query_command, universal_newlines=True):
+        if '=' not in item:
+            continue
         key, _, value = (value.strip() for value in item.partition('='))
         try:
             resource = key_transform(key)
