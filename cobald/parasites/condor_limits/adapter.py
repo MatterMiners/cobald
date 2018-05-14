@@ -88,8 +88,8 @@ class ConcurrencyUsageView(object):
 
     @staticmethod
     def _key_to_resource(key: str) -> str:
-        if key.startswith('ConcurrencyLimit'):
-            return key[16:]
+        if key.startswith('ConcurrencyLimit_'):
+            return key[17:]
         raise ValueError
 
     def _query_usage(self):
