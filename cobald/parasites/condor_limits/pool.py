@@ -44,7 +44,7 @@ class ConcurrencyAntiLimit(Pool):
 
     @property
     def demand(self):
-        return self.total - self._constraints[self.resource]
+        return self.total - self._constraints[self.opponent]
 
     @demand.setter
     def demand(self, value):
