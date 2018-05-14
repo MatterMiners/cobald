@@ -132,7 +132,7 @@ class PoolResources(object):
         ))
         data = {'cpus': 0, 'memory': 0, 'disk': 0, 'machines': 0}
         machines = set()
-        for machine_info in subprocess.check_output(query_command, universal_newlines=True):
+        for machine_info in subprocess.check_output(query_command, universal_newlines=True).splitlines():
             try:
                 cpus, memory, disk, machine = machine_info.split()
             except ValueError:
