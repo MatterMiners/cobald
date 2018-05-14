@@ -41,7 +41,7 @@ class ConcurrencyConstraintView(object):
 
     @staticmethod
     def _key_to_resource(key: str) -> str:
-        if key.lower[-6:] == '_limit':
+        if key.lower()[-6:] == '_limit':
             return key[:-6]
         raise ValueError
 
