@@ -6,3 +6,4 @@ __version__ = '0.0.1'
 __author__ = 'Eileen Kuehn, Max Fischer'
 __email__ = 'maxfischer2781@gmail.com'
 __copyright__ = '2018 %s' % __author__
+__keywords__ = 'opportunistic scheduling scheduler demand feedback loop asyncio'
