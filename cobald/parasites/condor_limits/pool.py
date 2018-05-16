@@ -2,7 +2,7 @@ from typing import Union
 
 from ...interfaces.pool import Pool
 
-from .adapter import ConcurrencyConstraintView, ConcurrencyUsageView, PoolResources
+from .adapter import ConcurrencyConstraintView, ConcurrencyUsageView, PoolResources, PoolResourceView
 
 
 class ConcurrencyLimit(Pool):
@@ -56,7 +56,7 @@ class ConcurrencyAntiLimit(Pool):
         self.pool = pool
         if isinstance(total, str):
             pool_resources = PoolResources(pool=pool)
-            self.total = pool_resources[total]
+            self.total = PoolResourceView(total, pool_resources)
         else:
             self.total = total
         self._constraints = ConcurrencyConstraintView(pool=pool)
