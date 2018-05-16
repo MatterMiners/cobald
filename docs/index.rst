@@ -3,8 +3,10 @@ COBalD - the Opportunistic Balancing Daemon
 ===========================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 1
+    :caption: Contents:
+
+    Module Index <source/api/modules>
 
 The ``cobald`` library provides a framework for balancing opportunistic resources.
 
