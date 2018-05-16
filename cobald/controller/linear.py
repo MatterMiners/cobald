@@ -32,8 +32,11 @@ class LinearController(Controller, Actor):
     @asyncio.coroutine
     def run(self):
         while True:
-            if self.target.utilisation <= self.low_utilisation:
-                self.target.demand -= 1
-            elif self.target.consumption >= self.high_consumption:
-                self.target.demand += 1
+            self.regulate_demand()
             yield from asyncio.sleep(self._interval)
+
+    def regulate_demand(self):
+        if self.target.utilisation <= self.low_utilisation:
+            self.target.demand -= 1
+        elif self.target.consumption >= self.high_consumption:
+            self.target.demand += 1
