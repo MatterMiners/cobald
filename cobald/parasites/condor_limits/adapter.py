@@ -58,11 +58,14 @@ class ConcurrencyConstraintView(object):
 
     def _set_constraint(self, resource: str, constraint: float):
         reconfig_command = ['condor_config_val', '-negotiator']
+        flush_command = ['condor_reconfig', '-negotiator']
         if self.pool:
             reconfig_command.extend(('-pool', str(self.pool)))
+            flush_command.extend(('-pool', str(self.pool)))
         reconfig_command.extend(('-rset', '%s_LIMIT = %s' % (resource, int(constraint))))
         try:
             subprocess.check_call(reconfig_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+            subprocess.check_call(flush_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as err:
             self._logger.error('failed to constraint %r to %r', resource, constraint, exc_info=err)
         else:
