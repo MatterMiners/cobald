@@ -11,7 +11,7 @@ class LinearController(Controller, Actor):
 
     :param target: the pool to manage
     :param low_utilisation: pool utilisation below which resources are decreased
-    :param high_consumption: pool consumption above which resources are increased
+    :param high_allocation: pool allocation above which resources are increased
     :param rate: maximum change of demand in resources per second
     """
     @property
@@ -22,12 +22,12 @@ class LinearController(Controller, Actor):
     def rate(self, value):
         self._interval = 1 / value
 
-    def __init__(self, target: Pool, low_utilisation=0.5, high_consumption=0.5, rate=1):
+    def __init__(self, target: Pool, low_utilisation=0.5, high_allocation=0.5, rate=1):
         super().__init__(target=target)
         self._interval = None
         self.rate = rate
         self.low_utilisation = low_utilisation
-        self.high_consumption = high_consumption
+        self.high_allocation = high_allocation
 
     @asyncio.coroutine
     def run(self):
@@ -38,5 +38,5 @@ class LinearController(Controller, Actor):
     def regulate_demand(self):
         if self.target.utilisation <= self.low_utilisation:
             self.target.demand -= 1
-        elif self.target.consumption >= self.high_consumption:
+        elif self.target.consumption >= self.high_allocation:
             self.target.demand += 1

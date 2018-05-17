@@ -106,7 +106,7 @@ def main():
     pool = Limiter(pool, minimum=options.granularity, maximum=options.limit)
     pool = LinearController(
         pool,
-        low_utilisation=options.decrease, high_consumption=options.increase,
+        low_utilisation=options.decrease, high_allocation=options.increase,
         rate=options.max_rate
     )
     logging.warning('registering components')
