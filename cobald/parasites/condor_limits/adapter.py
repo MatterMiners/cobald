@@ -127,7 +127,7 @@ class ConcurrencyUsageView(CondorQueryMapping):
             query_command.extend(('-pool', str(self.pool)))
         resource_usage = query_limits(query_command, key_transform=self._key_to_resource)
         self._valid_date = self.max_age + time.time()
-        self._usage = resource_usage
+        self._data = resource_usage
 
 
 class PoolResources(CondorQueryMapping):
