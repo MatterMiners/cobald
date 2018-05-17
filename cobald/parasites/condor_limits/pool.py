@@ -20,7 +20,7 @@ class ConcurrencyLimit(Pool):
     def utilisation(self):
         return self._usage[self.resource] / self._constraints[self.resource]
 
-    consumption = utilisation
+    allocation = utilisation
 
     @property
     def demand(self):
@@ -59,7 +59,7 @@ class ConcurrencyAntiLimit(Pool):
     def utilisation(self):
         return self._usage[self.resource] / self.supply
 
-    consumption = utilisation
+    allocation = utilisation
 
     @property
     def demand(self):
