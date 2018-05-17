@@ -2,6 +2,8 @@ import time
 import logging
 import subprocess
 
+from collections import abc
+
 
 def query_limits(query_command, key_transform):
     resource_limits = {}
@@ -21,26 +23,58 @@ def query_limits(query_command, key_transform):
     return resource_limits
 
 
-class ConcurrencyConstraintView(object):
-    def __init__(self, pool: str = None, max_age: float = 30.):
-        self._logger = logging.getLogger('condor_limits.constraints')
+class CondorQueryMapping(abc.Mapping):
+    def __init__(self, pool: str = None, max_age: float = 30):
+        self._logger = logging.getLogger('condor_limits.query')
         self.pool = pool
         self.max_age = max_age
         self._valid_date = 0
-        self._constraints = {}
+        self._data = {}
 
-    def __getitem__(self, resource: str) -> float:
+    def __len__(self):
         if self._valid_date < time.time():
-            self._query_constraints()
+            self._query_data()
+        return len(self._data)
+
+    def __iter__(self):
+        if self._valid_date < time.time():
+            self._query_data()
+        return iter(self._data)
+
+    def __getitem__(self, item):
+        if self._valid_date < time.time():
+            self._query_data()
+        return self._data[item]
+
+    @staticmethod
+    def _query_data():
+        pass
+
+    def __str__(self):
+        if self._valid_date < time.time():
+            self._query_data()
+        return str(self._data)
+
+    def __repr__(self):
+        return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
+
+
+class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
+    def __getitem__(self, resource: str) -> float:
         try:
-            return self._constraints[resource]
+            super().__getitem__(resource)
         except KeyError:
             if '.' in resource:
-                return self._constraints[resource.split('.')[0]]  # check parent group of resource
+                return self._data[resource.split('.')[0]]  # check parent group of resource
             raise
 
+    def __delitem__(self, key):
+        self._set_constraint(key, '')
+        self._valid_date = 0
+
     def __setitem__(self, key: str, value: float):
-        self._set_constraint(key, value)
+        self._set_constraint(key, str(int(value)))
+        self._valid_date = 0
 
     @staticmethod
     def _key_to_resource(key: str) -> str:
@@ -48,42 +82,37 @@ class ConcurrencyConstraintView(object):
             return key[:-6]
         raise ValueError
 
-    def _query_constraints(self):
+    def _query_data(self):
         query_command = ['condor_config_val', '-negotiator', '-dump', 'LIMIT']
         if self.pool:
             query_command.extend(('-pool', str(self.pool)))
         resource_limits = query_limits(query_command, key_transform=self._key_to_resource)
         self._valid_date = self.max_age + time.time()
-        self._constraints = resource_limits
+        self._data = resource_limits
 
-    def _set_constraint(self, resource: str, constraint: float):
+    def _set_constraint(self, resource: str, constraint: str):
         reconfig_command = ['condor_config_val', '-negotiator']
+        flush_command = ['condor_reconfig', '-negotiator']
         if self.pool:
             reconfig_command.extend(('-pool', str(self.pool)))
-        reconfig_command.extend(('-rset', '%s_LIMIT = %s' % (resource, int(constraint))))
+            flush_command.extend(('-pool', str(self.pool)))
+        reconfig_command.extend(('-rset', '%s_LIMIT = %s' % (resource, constraint)))
         try:
             subprocess.check_call(reconfig_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
+            subprocess.check_call(flush_command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=10)
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as err:
             self._logger.error('failed to constraint %r to %r', resource, constraint, exc_info=err)
         else:
-            self._constraints[resource] = constraint
+            self._valid_date = 0
 
 
-class ConcurrencyUsageView(object):
-    def __init__(self, pool: str = None, max_age: float = 30.):
-        self.pool = pool
-        self.max_age = max_age
-        self._valid_date = 0
-        self._usage = {}
-
+class ConcurrencyUsageView(CondorQueryMapping):
     def __getitem__(self, resource: str) -> float:
-        if self._valid_date < time.time():
-            self._query_usage()
         try:
-            return self._usage[resource.replace('.', '_')]
+            super().__getitem__(resource.replace('.', '_'))
         except KeyError:
             if '.' in resource:
-                return self._usage[resource.split('.')[0]]  # check parent group of resource
+                return self._data[resource.split('.')[0]]  # check parent group of resource
             raise
 
     @staticmethod
@@ -92,7 +121,7 @@ class ConcurrencyUsageView(object):
             return key[17:]
         raise ValueError
 
-    def _query_usage(self):
+    def _query_data(self):
         query_command = ['condor_userprio', '-negotiator', '-long']
         if self.pool:
             query_command.extend(('-pool', str(self.pool)))
@@ -100,34 +129,18 @@ class ConcurrencyUsageView(object):
         self._valid_date = self.max_age + time.time()
         self._usage = resource_usage
 
-    def __str__(self):
-        if self._valid_date < time.time():
-            self._query_usage()
-        return str(self._usage)
 
-    def __repr__(self):
-        return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
-
-
-class PoolResources(object):
-    def __init__(self, pool: str = None, max_age: float = 30.):
-        self.pool = pool
-        self.max_age = max_age
-        self._valid_date = 0
-        self._data = {}
-
-    def __getitem__(self, resource: str) -> float:
-        if self._valid_date < time.time():
-            self._query_data()
-        return self._data[resource]
-
+class PoolResources(CondorQueryMapping):
     def _query_data(self):
         query_command = ['condor_status']
         if self.pool:
             query_command.extend(('-pool', str(self.pool)))
         query_command.extend((
             "-startd",
-            "-constraint", 'SlotType!="Dynamic"',
+            "-constraint", ' && '.join((
+                'SlotType!="Dynamic"',  # Dynamic slots are part of entire machines which we already match
+                'State=!="Owner"',  # Owner machines are unavailable
+            )),
             "-af", "TotalSlotCpus", "TotalSlotMemory", "TotalSlotDisk", "Machine"
         ))
         data = {'cpus': 0, 'memory': 0, 'disk': 0, 'machines': 0}

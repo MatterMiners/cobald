@@ -2,10 +2,16 @@ from typing import Union
 
 from ...interfaces.pool import Pool
 
-from .adapter import ConcurrencyConstraintView, ConcurrencyUsageView, PoolResources
+from .adapter import ConcurrencyConstraintView, ConcurrencyUsageView, PoolResources, PoolResourceView
 
 
 class ConcurrencyLimit(Pool):
+    """
+    Volume of ConcurrencyLimit in a pool
+
+    :param resource: the name of the concurrency limit
+    :param pool: the name of the HTCondor pool in which the limit is used
+    """
     @property
     def supply(self):
         return self._constraints[self.resource]
@@ -32,6 +38,19 @@ class ConcurrencyLimit(Pool):
 
 
 class ConcurrencyAntiLimit(Pool):
+    """
+    Volume of ConcurrencyLimit in a pool, managed by adjusting an opposing limit
+
+    :param resource: the name of the concurrency limit
+    :param opponent: the name of the concurrency limit opposing ``resource``
+    :param total: the maximum sum of ``resource`` and ``opponent``
+    :param pool: the name of the HTCondor pool in which the limit is used
+
+    The parameter ``total`` can be either a fixed or query-able value.
+    A fixed value is any :py:class:`float` or :py:class:`int` value.
+    A query-able value is a string indicating which value to query from the pool;
+    any of ``"cpus"``, ``"memory"``, ``"disk"`` or ``"machines"`` is understood.
+    """
     @property
     def supply(self):
         return self.total - self._constraints[self.opponent]
@@ -56,7 +75,7 @@ class ConcurrencyAntiLimit(Pool):
         self.pool = pool
         if isinstance(total, str):
             pool_resources = PoolResources(pool=pool)
-            self.total = pool_resources[total]
+            self.total = PoolResourceView(total, pool_resources)
         else:
             self.total = total
         self._constraints = ConcurrencyConstraintView(pool=pool)
