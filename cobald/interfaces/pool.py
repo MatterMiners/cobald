@@ -25,11 +25,11 @@ class Pool(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def utilisation(self) -> float:
-        """Fraction of the provided resources which is actively used"""
+        """Fraction of the provided resources which are actively used"""
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def consumption(self) -> float:
-        """Fraction of the provided resources which is assigned for usage"""
+        """Fraction of the provided resources which are assigned for usage"""
         raise NotImplementedError
