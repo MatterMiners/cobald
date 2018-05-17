@@ -137,7 +137,10 @@ class PoolResources(CondorQueryMapping):
             query_command.extend(('-pool', str(self.pool)))
         query_command.extend((
             "-startd",
-            "-constraint", 'SlotType!="Dynamic"',
+            "-constraint", ' && '.join((
+                'SlotType!="Dynamic"',  # Dynamic slots are part of entire machines which we already match
+                'State=!="Owner"',  # Owner machines are unavailable
+            )),
             "-af", "TotalSlotCpus", "TotalSlotMemory", "TotalSlotDisk", "Machine"
         ))
         data = {'cpus': 0, 'memory': 0, 'disk': 0, 'machines': 0}
