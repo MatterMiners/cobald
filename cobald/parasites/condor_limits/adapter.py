@@ -62,7 +62,7 @@ class CondorQueryMapping(abc.Mapping):
 class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
     def __getitem__(self, resource: str) -> float:
         try:
-            super().__getitem__(resource)
+            return super().__getitem__(resource)
         except KeyError:
             if '.' in resource:
                 return self._data[resource.split('.')[0]]  # check parent group of resource
@@ -109,7 +109,7 @@ class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
 class ConcurrencyUsageView(CondorQueryMapping):
     def __getitem__(self, resource: str) -> float:
         try:
-            super().__getitem__(resource.replace('.', '_'))
+            return super().__getitem__(resource.replace('.', '_'))
         except KeyError:
             if '.' in resource:
                 return self._data[resource.split('.')[0]]  # check parent group of resource
