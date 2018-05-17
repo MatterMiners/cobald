@@ -26,6 +26,7 @@ class LinearController(Controller, Actor):
         super().__init__(target=target)
         self._interval = None
         self.rate = rate
+        assert low_utilisation <= high_allocation
         self.low_utilisation = low_utilisation
         self.high_allocation = high_allocation
 
@@ -36,7 +37,7 @@ class LinearController(Controller, Actor):
             yield from asyncio.sleep(self._interval)
 
     def regulate_demand(self):
-        if self.target.utilisation <= self.low_utilisation:
+        if self.target.utilisation < self.low_utilisation:
             self.target.demand -= 1
-        elif self.target.allocation >= self.high_allocation:
+        elif self.target.allocation > self.high_allocation:
             self.target.demand += 1
