@@ -24,11 +24,13 @@ CLI_resource.add_argument(
 CLI_resource.add_argument(
     'opponent',
     nargs='?',
+    type=str,
     help='name of any concurrent resource that conflicts with `resource`',
 )
 CLI_resource.add_argument(
     'total',
     nargs='?',
+    type=str,
     help='the total underlying resources shared by `resource` and `opponent`. "'
          '"Must be a number or any of "cpus", "memory", "disk" or "machines"',
 )
@@ -42,16 +44,19 @@ CLI_controller = CLI.add_argument_group('Resource Control')
 CLI_controller.add_argument(
     '--max-rate',
     default=8,
+    type=int,
     help='maximum increase or decrease of resources per second',
 )
 CLI_controller.add_argument(
     '--decrease',
     default=0.9,
+    type=float,
     help='utilisation below which resources are decreased',
 )
 CLI_controller.add_argument(
     '--increase',
     default=0.95,
+    type=float,
     help='utilisation above which resources are increased',
 )
 CLI_controller.add_argument(
