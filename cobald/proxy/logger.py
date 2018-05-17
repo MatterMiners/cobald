@@ -12,7 +12,7 @@ class Logger(ProxyPool):
     def demand(self, value):
         self._logger.log(
             self.level, 'demand = %s [demand=%s, supply=%s, utilisation=%.2f, consumption=%.2f]',
-            value, self.target.demand, self.target.supply, self.target.utilisation, self.target.consumption)
+            value, self.target.demand, self.target.supply, self.target.utilisation, self.target.allocation)
         self.target.demand = value
 
     @property

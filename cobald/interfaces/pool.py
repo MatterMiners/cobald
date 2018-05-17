@@ -30,6 +30,6 @@ class Pool(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def consumption(self) -> float:
+    def allocation(self) -> float:
         """Fraction of the provided resources which are assigned for usage"""
         raise NotImplementedError

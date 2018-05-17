@@ -38,5 +38,5 @@ class LinearController(Controller, Actor):
     def regulate_demand(self):
         if self.target.utilisation <= self.low_utilisation:
             self.target.demand -= 1
-        elif self.target.consumption >= self.high_allocation:
+        elif self.target.allocation >= self.high_allocation:
             self.target.demand += 1

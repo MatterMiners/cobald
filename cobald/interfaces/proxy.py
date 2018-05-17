@@ -26,9 +26,9 @@ class ProxyPool(Controller, Pool):
         return self.target.utilisation
 
     @property
-    def consumption(self) -> float:
+    def allocation(self) -> float:
         """Fraction of the provided resources which is assigned for usage"""
-        return self.target.consumption
+        return self.target.allocation
 
     def __init__(self, target: Pool):
         super().__init__(target=target)
