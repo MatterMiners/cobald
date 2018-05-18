@@ -92,4 +92,14 @@ class TestLinearController(object):
         assert(LinearController(target=pool, low_utilisation=.5, high_allocation=.5))
         assert(LinearController(target=pool, low_utilisation=.1, high_allocation=.9))
 
+    def test_rate(self):
+        pool = MockPool()
+        with pytest.raises(AssertionError):
+            LinearController(target=pool, rate=0)
+        controller = LinearController(target=pool, rate=1)
+        assert controller.rate == 1
+        controller = LinearController(target=pool, rate=2)
+        assert controller.rate == 2
+        controller = LinearController(target=pool, rate=1/3)
+        assert controller.rate == 1/3
 
