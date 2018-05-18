@@ -25,6 +25,7 @@ class LinearController(Controller, Actor):
     def __init__(self, target: Pool, low_utilisation=0.5, high_allocation=0.5, rate=1):
         super().__init__(target=target)
         self._interval = None
+        assert rate > 0
         self.rate = rate
         assert low_utilisation <= high_allocation
         self.low_utilisation = low_utilisation
