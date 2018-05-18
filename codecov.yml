@@ -1,0 +1,4 @@
+coverage:
+  ignore:
+    - cobald_tests
+    - cobald/__about__.py
