@@ -43,5 +43,7 @@ if __name__ == '__main__':
         ],
         keywords=package_about['__keywords__'],
         # unit tests
-        # test_suite='cobald_unittests',
+        setup_requires=['pytest-runner'],
+        test_suite='cobald_tests',
+        tests_require=['pytest'],
     )
