@@ -7,7 +7,7 @@ from collections import abc
 
 def query_limits(query_command, key_transform):
     resource_limits = {}
-    for item in subprocess.check_output(query_command, universal_newlines=True).splitlines():
+    for item in subprocess.check_output(query_command, timeout=10, universal_newlines=True).splitlines():
         if '=' not in item:
             continue
         key, _, value = (value.strip() for value in item.partition('='))
@@ -86,9 +86,13 @@ class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
         query_command = ['condor_config_val', '-negotiator', '-dump', 'LIMIT']
         if self.pool:
             query_command.extend(('-pool', str(self.pool)))
-        resource_limits = query_limits(query_command, key_transform=self._key_to_resource)
-        self._valid_date = self.max_age + time.time()
-        self._data = resource_limits
+        try:
+            resource_limits = query_limits(query_command, key_transform=self._key_to_resource)
+        except subprocess.CalledProcessError:
+            return
+        else:
+            self._valid_date = self.max_age + time.time()
+            self._data = resource_limits
 
     def _set_constraint(self, resource: str, constraint: str):
         reconfig_command = ['condor_config_val', '-negotiator']
@@ -125,9 +129,13 @@ class ConcurrencyUsageView(CondorQueryMapping):
         query_command = ['condor_userprio', '-negotiator', '-long']
         if self.pool:
             query_command.extend(('-pool', str(self.pool)))
-        resource_usage = query_limits(query_command, key_transform=self._key_to_resource)
-        self._valid_date = self.max_age + time.time()
-        self._data = resource_usage
+        try:
+            resource_usage = query_limits(query_command, key_transform=self._key_to_resource)
+        except subprocess.CalledProcessError:
+            return
+        else:
+            self._valid_date = self.max_age + time.time()
+            self._data = resource_usage
 
 
 class PoolResources(CondorQueryMapping):
@@ -145,19 +153,23 @@ class PoolResources(CondorQueryMapping):
         ))
         data = {'cpus': 0, 'memory': 0, 'disk': 0, 'machines': 0}
         machines = set()
-        for machine_info in subprocess.check_output(query_command, universal_newlines=True).splitlines():
-            try:
-                cpus, memory, disk, machine = machine_info.split()
-            except ValueError:
-                continue
-            else:
-                data['cpus'] += float(cpus)
-                data['memory'] += float(memory)
-                data['disk'] += float(disk)
-                machines.add(machine)
-        data['machines'] = len(machines)
-        self._valid_date = self.max_age + time.time()
-        self._data = data
+        try:
+            for machine_info in subprocess.check_output(query_command, universal_newlines=True).splitlines():
+                try:
+                    cpus, memory, disk, machine = machine_info.split()
+                except ValueError:
+                    continue
+                else:
+                    data['cpus'] += float(cpus)
+                    data['memory'] += float(memory)
+                    data['disk'] += float(disk)
+                    machines.add(machine)
+        except subprocess.CalledProcessError:
+            pass
+        else:
+            data['machines'] = len(machines)
+            self._valid_date = self.max_age + time.time()
+            self._data = data
 
     def __repr__(self):
         return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
