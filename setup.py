@@ -23,7 +23,7 @@ if __name__ == '__main__':
         url=package_about['__url__'],
         packages=find_packages(),
         # dependencies
-        install_requires=['typing'],
+        install_requires=['typing', 'pyyaml'],
         # metadata for package search
         license='MIT',
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
