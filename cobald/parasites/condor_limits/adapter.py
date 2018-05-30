@@ -25,7 +25,6 @@ def query_limits(query_command, key_transform):
 
 class CondorQueryMapping(abc.Mapping):
     def __init__(self, pool: str = None, max_age: float = 30):
-        self._logger = logging.getLogger('condor_limits.query')
         self.pool = pool
         self.max_age = max_age
         self._valid_date = 0
@@ -60,6 +59,10 @@ class CondorQueryMapping(abc.Mapping):
 
 
 class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
+    def __init__(self, pool: str = None, max_age: float = 30):
+        super().__init__(pool=pool, max_age=max_age)
+        self._logger = logging.getLogger('condor_limits.constraints.%s' % pool)
+
     def __getitem__(self, resource: str) -> float:
         try:
             return super().__getitem__(resource)
@@ -93,6 +96,7 @@ class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
         else:
             self._valid_date = self.max_age + time.time()
             self._data = resource_limits
+            self._logger.log('pool=%s, constraints=%r', self.pool, resource_limits)
 
     def _set_constraint(self, resource: str, constraint: str):
         reconfig_command = ['condor_config_val', '-negotiator']
@@ -111,6 +115,10 @@ class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
 
 
 class ConcurrencyUsageView(CondorQueryMapping):
+    def __init__(self, pool: str = None, max_age: float = 30):
+        super().__init__(pool=pool, max_age=max_age)
+        self._logger = logging.getLogger('condor_limits.usage.%s' % pool)
+
     def __getitem__(self, resource: str) -> float:
         try:
             return super().__getitem__(resource.replace('.', '_'))
@@ -136,9 +144,14 @@ class ConcurrencyUsageView(CondorQueryMapping):
         else:
             self._valid_date = self.max_age + time.time()
             self._data = resource_usage
+            self._logger.log('pool=%s, usage=%r', self.pool, resource_limits)
 
 
 class PoolResources(CondorQueryMapping):
+    def __init__(self, pool: str = None, max_age: float = 30):
+        super().__init__(pool=pool, max_age=max_age)
+        self._logger = logging.getLogger('condor_limits.resources.%s' % pool)
+
     def _query_data(self):
         query_command = ['condor_status']
         if self.pool:
@@ -170,6 +183,7 @@ class PoolResources(CondorQueryMapping):
             data['machines'] = len(machines)
             self._valid_date = self.max_age + time.time()
             self._data = data
+            self._logger.log('pool=%s, resources=%r', self.pool, data)
 
     def __repr__(self):
         return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
