@@ -144,7 +144,7 @@ class ConcurrencyUsageView(CondorQueryMapping):
         else:
             self._valid_date = self.max_age + time.time()
             self._data = resource_usage
-            self._logger.debug('pool=%s, usage=%r', self.pool, resource_limits)
+            self._logger.debug('pool=%s, usage=%r', self.pool, resource_usage)
 
 
 class PoolResources(CondorQueryMapping):
