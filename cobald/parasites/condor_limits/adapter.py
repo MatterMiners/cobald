@@ -96,7 +96,7 @@ class ConcurrencyConstraintView(CondorQueryMapping, abc.MutableMapping):
         else:
             self._valid_date = self.max_age + time.time()
             self._data = resource_limits
-            self._logger.log('pool=%s, constraints=%r', self.pool, resource_limits)
+            self._logger.debug('pool=%s, constraints=%r', self.pool, resource_limits)
 
     def _set_constraint(self, resource: str, constraint: str):
         reconfig_command = ['condor_config_val', '-negotiator']
@@ -144,7 +144,7 @@ class ConcurrencyUsageView(CondorQueryMapping):
         else:
             self._valid_date = self.max_age + time.time()
             self._data = resource_usage
-            self._logger.log('pool=%s, usage=%r', self.pool, resource_limits)
+            self._logger.debug('pool=%s, usage=%r', self.pool, resource_limits)
 
 
 class PoolResources(CondorQueryMapping):
@@ -183,7 +183,7 @@ class PoolResources(CondorQueryMapping):
             data['machines'] = len(machines)
             self._valid_date = self.max_age + time.time()
             self._data = data
-            self._logger.log('pool=%s, resources=%r', self.pool, data)
+            self._logger.debug('pool=%s, resources=%r', self.pool, data)
 
     def __repr__(self):
         return '%s(pool=%s, max_age=%s)' % (self.__class__.__name__, self.pool, self.max_age)
