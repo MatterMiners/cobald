@@ -1,14 +1,18 @@
 import logging
 
 from cobald.interfaces.pool import Pool
-from cobald.interfaces.proxy import ProxyPool
+from cobald.interfaces.proxy import PoolDecorator
 
 
-class Logger(ProxyPool):
+class Logger(PoolDecorator):
     """
     Proxy which logs all changes to ``target.demand``
     """
-    @ProxyPool.demand.setter
+    @property
+    def demand(self):
+        return self.target.demand
+
+    @demand.setter
     def demand(self, value):
         self._logger.log(
             self.level, 'demand = %s [demand=%s, supply=%s, utilisation=%.2f, consumption=%.2f]',

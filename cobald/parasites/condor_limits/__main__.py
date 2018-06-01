@@ -7,10 +7,10 @@ import sys
 from .pool import ConcurrencyLimit, ConcurrencyAntiLimit
 
 from ...controller.linear import LinearController
-from ...proxy.buffer import Buffer
-from ...proxy.logger import Logger
-from ...proxy.limiter import Limiter
-from ...proxy.coarser import Coarser
+from ...decorator.buffer import Buffer
+from ...decorator.logger import Logger
+from ...decorator.limiter import Limiter
+from ...decorator.coarser import Coarser
 from ...utility import schedule_pipelines
 
 

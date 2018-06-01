@@ -1,11 +1,13 @@
 from .pool import Pool
-from .controller import Controller
 
 
-class ProxyPool(Controller, Pool):
+class PoolDecorator(Pool):
     """
     A pool that controls another pool to provide resources
     """
+    def __init__(self, target: Pool):
+        self.target = target
+
     @property
     def supply(self):
         """The volume of resources that is provided by this site"""
@@ -29,6 +31,3 @@ class ProxyPool(Controller, Pool):
     def allocation(self) -> float:
         """Fraction of the provided resources which is assigned for usage"""
         return self.target.allocation
-
-    def __init__(self, target: Pool):
-        super().__init__(target=target)
