@@ -3,7 +3,7 @@ from .pool import Pool
 
 class PoolDecorator(Pool):
     """
-    A pool that controls another pool to provide resources
+    Decorator modifying how a pool provides resources
     """
     def __init__(self, target: Pool):
         self.target = target
