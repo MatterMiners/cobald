@@ -8,13 +8,13 @@ class Pool(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def supply(self):
-        """The volume of resources that is provided by this site"""
+        """The volume of resources that is provided by this pool"""
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
     def demand(self):
-        """The volume of resources to be provided by this site"""
+        """The volume of resources to be provided by this pool"""
         raise NotImplementedError
 
     @demand.setter
