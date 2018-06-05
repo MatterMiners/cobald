@@ -1,0 +1,39 @@
+from ..interfaces.pool import Pool
+from ..interfaces.composite import CompositePool
+
+
+class WeightedComposite(CompositePool):
+    children = []
+
+    @property
+    def demand(self):
+        return self._demand
+
+    @demand.setter
+    def demand(self, value):
+        self._demand = value
+        total_supply = self.supply
+        for pool in self.children:
+            pool.demand = value * pool.supply / total_supply
+
+    @property
+    def supply(self):
+        return sum(child.supply for child in self.children)
+
+    @property
+    def utilisation(self):
+        try:
+            return sum(child.utilisation * child.supply for child in self.children) / self.supply
+        except ZeroDivisionError:
+            return 1.
+
+    @property
+    def allocation(self):
+        try:
+            return sum(child.allocation * child.supply for child in self.children) / self.supply
+        except ZeroDivisionError:
+            return 1.
+
+    def __init__(self, *children: Pool):
+        self._demand = sum(child.demand for child in children)
+        self.children = list(children)
