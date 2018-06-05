@@ -1,7 +1,7 @@
-cobald\.proxy\.coarser module
+cobald\.daemon\.logger module
 =============================
 
-.. automodule:: cobald.proxy.coarser
+.. automodule:: cobald.daemon.logger
     :members:
     :undoc-members:
     :show-inheritance:
