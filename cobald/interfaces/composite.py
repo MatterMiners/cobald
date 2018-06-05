@@ -7,7 +7,7 @@ from .pool import Pool
 
 class CompositePool(Pool):
     """
-    Multiple providers for a number of indistinguishable resources
+    Concatenation of multiple providers for a number of indistinguishable resources
     """
     @property
     @abc.abstractmethod

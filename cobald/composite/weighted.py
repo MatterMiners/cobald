@@ -3,6 +3,9 @@ from ..interfaces.composite import CompositePool
 
 
 class WeightedComposite(CompositePool):
+    """
+    Weighted composition of several pools, with each pool weighted by its supply
+    """
     children = []
 
     @property

@@ -3,6 +3,9 @@ from ..interfaces.composite import CompositePool
 
 
 class UniformComposite(CompositePool):
+    """
+    Uniform composition of several pools, with each pool weighted the same
+    """
     children = []
 
     @property
