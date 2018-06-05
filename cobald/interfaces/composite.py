@@ -38,13 +38,13 @@ class CompositePool(Pool):
         """Fraction of the provided resources which are assigned for usage"""
         raise NotImplementedError
 
-    @abc.abstractmethod
     @property
+    @abc.abstractmethod
     def children(self) -> List[Pool]:
         """The individual resource providers making up this pool"""
         raise NotImplementedError
 
-    @abc.abstractmethod
     @children.setter
+    @abc.abstractmethod
     def children(self, value: List[Pool]):
         raise NotImplementedError
