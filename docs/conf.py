@@ -34,7 +34,9 @@ from cobald import __about__
 extensions = ['sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',
     'sphinx.ext.imgmath',
-    'sphinx.ext.viewcode',]
+    'sphinx.ext.viewcode',
+    'sphinx.ext.graphviz',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
