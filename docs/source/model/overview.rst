@@ -2,4 +2,13 @@
 Resource and Control Model
 ==========================
 
-The purpose of :py:mod:`cobald` is to simplify the control of :term:`opportunistic resources`.
+The goal of :py:mod:`cobald` is to simplify the provisioning of :term:`opportunistic resources`.
+This is achieved with a generic, composable model for resource provisioning.
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Contents:
+
+    pool_model
+    control_pool
+    compose_pools
