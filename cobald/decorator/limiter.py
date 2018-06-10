@@ -1,7 +1,7 @@
 from cobald.interfaces.pool import Pool
 from cobald.interfaces.proxy import PoolDecorator
 
-from ..utility import infinity
+from ..utility.primitives import infinity
 
 
 class Limiter(PoolDecorator):

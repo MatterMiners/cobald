@@ -5,9 +5,6 @@ from .interfaces.controller import Controller
 from .interfaces.actor import Actor
 
 
-infinity = float('inf')
-
-
 def schedule_pipelines(event_loop: asyncio.AbstractEventLoop, *leaves: Controller):
     seen = {None}  # type: typing.Set[typing.Optional[Controller]]
     for leave in leaves:

@@ -7,7 +7,6 @@ from .logger import initialise_logging
 from .config.yaml import load_configuration
 from .cli import CLI
 from .. import __about__
-from ..utility import schedule_pipelines
 
 
 def core(configuration: str, level: str, target: str, short_format: bool):
@@ -16,9 +15,8 @@ def core(configuration: str, level: str, target: str, short_format: bool):
     logger.info('COBalD %s', __about__.__version__)
     logger.info(__about__.__url__)
     logger.info('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
-    event_loop = asyncio.get_event_loop()
     pipeline = load_configuration(configuration)
-    schedule_pipelines(event_loop, pipeline[-1])
+    raise NotImplementedError('no event loop implementation')
     logger.info('Running main event loop...')
     event_loop.run_forever()
 
