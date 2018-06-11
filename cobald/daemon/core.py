@@ -1,4 +1,3 @@
-import asyncio
 import sys
 import logging
 import platform
@@ -6,6 +5,7 @@ import platform
 from .logger import initialise_logging
 from .config.yaml import load_configuration
 from .cli import CLI
+from . import runner
 from .. import __about__
 
 
@@ -16,9 +16,8 @@ def core(configuration: str, level: str, target: str, short_format: bool):
     logger.info(__about__.__url__)
     logger.info('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
     pipeline = load_configuration(configuration)
-    raise NotImplementedError('no event loop implementation')
     logger.info('Running main event loop...')
-    event_loop.run_forever()
+    runner.run()
 
 
 def main():

@@ -4,8 +4,10 @@ from cobald.interfaces.pool import Pool
 from cobald.interfaces.proxy import PoolDecorator
 from cobald.interfaces.actor import Actor
 
+from cobald.daemon import runner
 
-class Buffer(PoolDecorator, Actor):
+
+class Buffer(PoolDecorator):
     """
     A timed buffer for changes to a pool
 
@@ -21,6 +23,7 @@ class Buffer(PoolDecorator, Actor):
         super().__init__(target=target)
         self.window = window
         self.demand = target.demand
+        runner.register_subroutine(self.run)
 
     @asyncio.coroutine
     def run(self):
