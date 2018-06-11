@@ -10,7 +10,7 @@ class Actor(metaclass=abc.ABCMeta):
     def __new__(cls, *args, **kwargs):
         warnings.warn(FutureWarning(
             'Actor will be removed in the future. '
-            'Instances should autonomously register themselves with an appropriate event loop.'
+            '%s Instances should autonomously register themselves with `deamon.runner`.' % cls.__name__
         ))
         return super().__new__(cls)
 
