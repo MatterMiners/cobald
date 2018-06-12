@@ -1,8 +1,10 @@
-import asyncio
+import trio
 
 from cobald.interfaces.pool import Pool
 from cobald.interfaces.controller import Controller
 from cobald.interfaces.actor import Actor
+
+from cobald.daemon import runner
 
 
 class LinearController(Controller, Actor):
@@ -30,15 +32,16 @@ class LinearController(Controller, Actor):
         assert low_utilisation <= high_allocation
         self.low_utilisation = low_utilisation
         self.high_allocation = high_allocation
+        runner.register_coroutine(self.run)
 
-    @asyncio.coroutine
-    def run(self):
+    async def run(self):
         while True:
-            self.regulate_demand()
-            yield from asyncio.sleep(self._interval)
+            await self.regulate_demand()
+            await trio.sleep(self._interval)
 
-    def regulate_demand(self):
+    async def regulate_demand(self):
         if self.target.utilisation < self.low_utilisation:
             self.target.demand -= 1
         elif self.target.allocation > self.high_allocation:
             self.target.demand += 1
+        await trio.sleep(0)
