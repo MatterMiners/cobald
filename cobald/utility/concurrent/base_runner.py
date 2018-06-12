@@ -1,30 +1,32 @@
-class CoroutineRunner(object):
+import threading
+
+
+class BaseRunner(object):
     flavour = None
 
     def __init__(self):
-        self._coroutines = []
+        self._payloads = []
+        self._lock = threading.Lock()
+        self._running = threading.Event()
 
+    def run(self):
+        raise NotImplementedError
+
+    def stop(self):
+        self._running.clear()
+
+
+class CoroutineRunner(BaseRunner):
+    """
+    Base Runner to concurrently execute coroutines
+    """
     def register_coroutine(self, coroutine):
-        self._coroutines.append(coroutine)
-
-    def __bool__(self):
-        return bool(self._coroutines)
-
-    def run(self):
-        raise NotImplementedError
+        self._payloads.append(coroutine)
 
 
-class SubroutineRunner(object):
-    flavour = None
-
-    def __init__(self):
-        self._subroutines = []
-
+class SubroutineRunner(BaseRunner):
+    """
+    Base Runner to concurrently execute subroutines
+    """
     def register_subroutine(self, subroutine):
-        self._subroutines.append(subroutine)
-
-    def __bool__(self):
-        return bool(self._subroutines)
-
-    def run(self):
-        raise NotImplementedError
+        self._payloads.append(subroutine)
