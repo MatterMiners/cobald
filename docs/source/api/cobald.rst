@@ -17,6 +17,7 @@ Subpackages
     cobald.decorator
     cobald.interfaces
     cobald.parasites
+    cobald.utility
 
 Submodules
 ----------

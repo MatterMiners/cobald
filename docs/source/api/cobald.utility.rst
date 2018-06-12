@@ -1,7 +1,22 @@
-cobald\.utility module
-======================
+cobald\.utility package
+=======================
 
 .. automodule:: cobald.utility
     :members:
     :undoc-members:
     :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+
+    cobald.utility.concurrent
+
+Submodules
+----------
+
+.. toctree::
+
+   cobald.utility.primitives
+
