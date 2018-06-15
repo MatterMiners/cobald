@@ -50,6 +50,8 @@ class ThreadRunner(SubroutineRunner):
                 for thread in self._threads:
                     thread.join(timeout=0)
                 time.sleep(1)
+        except KeyboardInterrupt:
+            self._running.clear()
         except Exception:
             self._running.clear()
             raise
