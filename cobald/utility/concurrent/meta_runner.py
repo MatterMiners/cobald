@@ -2,17 +2,16 @@ import threading
 import trio
 
 
-from .base_runner import CoroutineRunner, SubroutineRunner
-try:
-    from . import *
-except ImportError:
-    pass
+from .trio_runner import TrioRunner
+from .asyncio_runner import AsyncioRunner
+from .thread_runner import ThreadRunner
 
 
 class MetaRunner(object):
-    runners = {
-        runner.flavour: runner for runner in CoroutineRunner.__subclasses__() + SubroutineRunner.__subclasses__()
-    }
+    def __init__(self):
+        self.runners = {
+            runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
+        }
 
     def register_coroutine(self, coroutine, flavour=trio):
         self.runners[flavour].register_coroutine(coroutine)
