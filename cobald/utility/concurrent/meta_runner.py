@@ -1,3 +1,4 @@
+import logging
 import threading
 import trio
 
@@ -7,16 +8,27 @@ from .asyncio_runner import AsyncioRunner
 from .thread_runner import ThreadRunner
 
 
+from ...utility.debug import NameRepr
+
+
 class MetaRunner(object):
+    """
+    Unified interface to schedule subroutines and coroutines for concurrent execution
+    """
     def __init__(self):
+        self._logger = logging.getLogger('cobald.runtime.runner.meta')
         self.runners = {
             runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
         }
 
     def register_coroutine(self, coroutine, flavour=trio):
+        """Queue a coroutine for execution after its runner is started"""
+        self._logger.debug('registering coroutine %s (%s)', NameRepr(coroutine), NameRepr(flavour))
         self.runners[flavour].register_coroutine(coroutine)
 
     def register_subroutine(self, subroutine, flavour=threading):
+        """Queue a subroutine for execution after its runner is started"""
+        self._logger.debug('registering subroutine %s (%s)', NameRepr(subroutine), NameRepr(flavour))
         self.runners[flavour].register_subroutine(subroutine)
 
     def run(self):
