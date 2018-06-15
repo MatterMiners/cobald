@@ -30,7 +30,7 @@ and :py:attr:`~cobald.interfaces.pool.Pool.demand`:
     The amount of resources a pool is expected to provide.
 
 Note that :py:attr:`~cobald.interfaces.pool.Pool.demand` is not derived by a :py:class:`~cobald.interfaces.pool.Pool`,
-but defined from the outside.
+but should be adjusted from the outside.
 The task of a :py:class:`~cobald.interfaces.pool.Pool` is only to adjust its supply to match demand.
 
 Allocation versus Utilisation
