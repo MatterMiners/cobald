@@ -29,3 +29,29 @@ class MetaRunner(object):
                 if runner is not thread_runner:
                     thread_runner.register_subroutine(runner.run)
             thread_runner.run()
+
+
+if __name__ == '__main__':
+    import time
+    import asyncio
+    runner = MetaRunner()
+
+    async def trio_sleeper():
+        for i in range(3):
+            print('trio\t', i)
+            await trio.sleep(0.1)
+    runner.register_coroutine(trio_sleeper)
+
+    async def asyncio_sleeper():
+        for i in range(3):
+            print('asyncio\t', i)
+            await asyncio.sleep(0.1)
+    runner.register_coroutine(asyncio_sleeper, flavour=asyncio)
+
+    def thread_sleeper():
+        for i in range(3):
+            print('thread\t', i)
+            time.sleep(0.1)
+    runner.register_subroutine(thread_sleeper, flavour=threading)
+
+    runner.run()
