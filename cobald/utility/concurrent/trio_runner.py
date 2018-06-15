@@ -5,6 +5,7 @@ from .base_runner import CoroutineRunner
 
 
 class TrioRunner(CoroutineRunner):
+    """Runner for coroutines of :py:mod:`trio`"""
     flavour = trio
 
     def __init__(self):
@@ -24,7 +25,7 @@ class TrioRunner(CoroutineRunner):
 
     async def _start_outstanding(self, nursery):
         with self._lock:
-            for subroutine in self._payloads:
-                nursery.start_soon(subroutine)
+            for coroutine in self._payloads:
+                nursery.start_soon(coroutine)
             self._payloads.clear()
         await trio.sleep(0)
