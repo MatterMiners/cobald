@@ -2,12 +2,11 @@ import trio
 
 from cobald.interfaces.pool import Pool
 from cobald.interfaces.controller import Controller
-from cobald.interfaces.actor import Actor
 
 from cobald.daemon import runner
 
 
-class LinearController(Controller, Actor):
+class LinearController(Controller):
     """
     Controller that linearly increases or decreases demand
 
