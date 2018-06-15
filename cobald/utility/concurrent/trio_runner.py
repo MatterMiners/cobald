@@ -16,7 +16,7 @@ class TrioRunner(CoroutineRunner):
 
     async def await_all(self):
         self._running.set()
-        with trio.open_nursery() as nursery:
+        async with trio.open_nursery() as nursery:
             while self._running.is_set():
                 await self._start_outstanding(nursery=nursery)
                 await trio.sleep(1)
