@@ -2,7 +2,15 @@ import threading
 import time
 
 
+from ..debug import NameRepr
 from .base_runner import SubroutineRunner
+
+
+class OrphanedReturn(Exception):
+    def __init__(self, who, value):
+        super().__init__('no caller to receive %s from %s' % (value, who))
+        self.who = who
+        self.value = value
 
 
 class CapturingThread(threading.Thread):
@@ -11,21 +19,23 @@ class CapturingThread(threading.Thread):
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs, daemon=True)
-        self._return_value = None
         self._exception = None
+        self._name = str(NameRepr(self._target))
 
     def join(self, timeout=None):
         super().join(timeout=timeout)
         if self._started.is_set() and not self.is_alive():
             if self._exception is not None:
                 raise self._exception
-            return self._return_value
+        return not self.is_alive()
 
     def run(self):
         """Modified ``run`` that captures return value and exceptions from ``target``"""
         try:
             if self._target:
-                self._return_value = self._target(*self._args, **self._kwargs)
+                return_value = self._target(*self._args, **self._kwargs)
+                if return_value is not None:
+                    self._exception = OrphanedReturn(self, return_value)
         except Exception as err:
             self._exception = err
         finally:
