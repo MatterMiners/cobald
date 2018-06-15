@@ -32,15 +32,17 @@ class MetaRunner(object):
         self.runners[flavour].register_subroutine(subroutine)
 
     def run(self):
-        runners = [runner for runner in self.runners.values() if runner]
-        if len(runners) == 1:
-            runners[0].run()
-        else:
+        """Run all runners until completion"""
+        self._logger.info('starting all runners...')
+        try:
             thread_runner = self.runners[threading]
-            for runner in runners:
+            for runner in self.runners:
                 if runner is not thread_runner:
                     thread_runner.register_subroutine(runner.run)
             thread_runner.run()
+        finally:
+            for runner in self.runners:
+                runner.close()
 
 
 if __name__ == '__main__':
