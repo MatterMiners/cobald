@@ -45,11 +45,12 @@ class CapturingThread(threading.Thread):
 
 
 class ThreadRunner(SubroutineRunner):
+    """Runner for subroutines with :py:mod:`threading`"""
     flavour = threading
 
     def __init__(self):
         super().__init__()
-        self._threads = []
+        self._threads = set()
 
     def run(self):
         with self._lock:
@@ -57,8 +58,9 @@ class ThreadRunner(SubroutineRunner):
         try:
             while self._running.is_set():
                 self._start_outstanding()
-                for thread in self._threads:
-                    thread.join(timeout=0)
+                for thread in self._threads.copy():
+                    if thread.join(timeout=0):
+                        self._threads.remove(thread)
                 time.sleep(1)
         except KeyboardInterrupt:
             self._running.clear()
@@ -71,5 +73,5 @@ class ThreadRunner(SubroutineRunner):
             for subroutine in self._payloads:
                 thread = CapturingThread(target=subroutine)
                 thread.start()
-                self._threads.append(thread)
+                self._threads.add(thread)
             self._payloads.clear()
