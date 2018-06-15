@@ -42,7 +42,7 @@ class MetaRunner(object):
             thread_runner.run()
         finally:
             for runner in self.runners.values():
-                runner.close()
+                runner.stop()
 
 
 if __name__ == '__main__':
