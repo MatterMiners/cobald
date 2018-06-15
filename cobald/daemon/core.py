@@ -2,6 +2,8 @@ import sys
 import logging
 import platform
 
+import cobald
+
 from .logger import initialise_logging
 from .config.yaml import load_configuration
 from .cli import CLI
@@ -15,6 +17,7 @@ def core(configuration: str, level: str, target: str, short_format: bool):
     logger.info('COBalD %s', __about__.__version__)
     logger.info(__about__.__url__)
     logger.info('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
+    logger.debug(cobald.__file__)
     pipeline = load_configuration(configuration)
     logger.info('Running main event loop...')
     runner.run()
