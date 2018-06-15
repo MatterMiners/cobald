@@ -36,12 +36,12 @@ class MetaRunner(object):
         self._logger.info('starting all runners...')
         try:
             thread_runner = self.runners[threading]
-            for runner in self.runners:
+            for runner in self.runners.values():
                 if runner is not thread_runner:
                     thread_runner.register_subroutine(runner.run)
             thread_runner.run()
         finally:
-            for runner in self.runners:
+            for runner in self.runners.values():
                 runner.close()
 
 
