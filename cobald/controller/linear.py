@@ -35,12 +35,11 @@ class LinearController(Controller):
 
     async def run(self):
         while True:
-            await self.regulate_demand()
+            self.regulate_demand()
             await trio.sleep(self._interval)
 
-    async def regulate_demand(self):
+    def regulate_demand(self):
         if self.target.utilisation < self.low_utilisation:
             self.target.demand -= 1
         elif self.target.allocation > self.high_allocation:
             self.target.demand += 1
-        await trio.sleep(0)
