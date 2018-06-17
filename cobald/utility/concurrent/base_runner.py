@@ -1,10 +1,14 @@
+import logging
 import threading
+
+from ...utility.debug import NameRepr
 
 
 class BaseRunner(object):
     flavour = None
 
     def __init__(self):
+        self._logger = logging.getLogger('cobald.runtime.runner.%s' % NameRepr(self.flavour))
         self._payloads = []
         self._lock = threading.Lock()
         self._running = threading.Event()
