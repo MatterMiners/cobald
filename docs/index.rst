@@ -26,8 +26,9 @@ COBalD - the Opportunistic Balancing Daemon
     :maxdepth: 1
     :caption: Contents:
 
-    source/model/overview
-    source/glossary
+    /source/model/overview
+    /source/daemon/overview
+    /source/glossary
     Module Index <source/api/modules>
 
 .. image:: images/cobald_logo.svg
