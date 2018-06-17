@@ -16,13 +16,7 @@ Subpackages
     cobald.daemon
     cobald.decorator
     cobald.interfaces
+    cobald.monitor
     cobald.parasites
     cobald.utility
-
-Submodules
-----------
-
-.. toctree::
-
-   cobald.utility
 

@@ -18,5 +18,6 @@ Submodules
 
 .. toctree::
 
+   cobald.utility.debug
    cobald.utility.primitives
 
