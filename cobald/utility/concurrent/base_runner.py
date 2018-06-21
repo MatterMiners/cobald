@@ -22,9 +22,11 @@ class BaseRunner(object):
             self._run()
         except Exception:
             self._logger.error('runner aborted: %s', self)
+            self._running.clear()
             raise
         else:
             self._logger.info('runner stopped: %s', self)
+            self._running.clear()
 
     def _run(self):
         raise NotImplementedError
