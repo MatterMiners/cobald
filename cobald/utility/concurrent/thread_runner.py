@@ -36,7 +36,7 @@ class CapturingThread(threading.Thread):
                 return_value = self._target(*self._args, **self._kwargs)
                 if return_value is not None:
                     self._exception = OrphanedReturn(self, return_value)
-        except Exception as err:
+        except BaseException as err:
             self._exception = err
         finally:
             # Avoid a refcycle if the thread is running a function with
