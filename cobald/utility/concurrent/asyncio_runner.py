@@ -6,11 +6,14 @@ from .base_runner import CoroutineRunner
 class AsyncioRunner(CoroutineRunner):
     flavour = asyncio
 
+    def __init__(self):
+        super().__init__()
+        self.event_loop = asyncio.new_event_loop()
+
     def _run(self):
-        event_loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(event_loop)
-        event_loop.create_task(self.await_all())
-        event_loop.run_forever()
+        asyncio.set_event_loop(self.event_loop)
+        self.event_loop.create_task(self.await_all())
+        self.event_loop.run_forever()
 
     async def await_all(self):
         self._running.set()
@@ -25,3 +28,7 @@ class AsyncioRunner(CoroutineRunner):
             self._payloads.clear()
         if coroutines:
             await asyncio.wait([coro() for coro in coroutines], return_when=asyncio.FIRST_EXCEPTION)
+
+    def stop(self):
+        super().stop()
+        self.event_loop.stop()
