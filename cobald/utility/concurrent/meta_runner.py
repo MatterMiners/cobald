@@ -40,6 +40,8 @@ class MetaRunner(object):
                 if runner is not thread_runner:
                     thread_runner.register_subroutine(runner.run)
             thread_runner.run()
+        except Exception as err:
+            self._logger.error('runner terminated: %s', err)
         finally:
             for runner in self.runners.values():
                 runner.stop()
