@@ -33,7 +33,7 @@ class MetaRunner(object):
 
     def run(self):
         """Run all runners until completion"""
-        self._logger.info('starting all runners...')
+        self._logger.info('starting all runners')
         try:
             thread_runner = self.runners[threading]
             for runner in self.runners.values():
@@ -45,6 +45,7 @@ class MetaRunner(object):
         finally:
             for runner in self.runners.values():
                 runner.stop()
+            self._logger.info('stopped all runners')
 
 
 if __name__ == '__main__':
