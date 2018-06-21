@@ -71,4 +71,9 @@ if __name__ == '__main__':
             time.sleep(0.1)
     runner.register_subroutine(thread_sleeper, flavour=threading)
 
+    async def teardown():
+        await trio.sleep(5)
+        raise SystemExit('Abort from trio runner')
+    runner.register_coroutine(teardown)
+
     runner.run()
