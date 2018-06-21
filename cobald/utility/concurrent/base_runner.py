@@ -14,6 +14,19 @@ class BaseRunner(object):
         self._running = threading.Event()
 
     def run(self):
+        with self._lock:
+            assert not self._running.set(), 'cannot re-run: %s' % self
+            self._running.set()
+        self._logger.info('runner started: %s', self)
+        try:
+            self._run()
+        except Exception:
+            self._logger.error('runner aborted: %s', self)
+            raise
+        else:
+            self._logger.info('runner stopped: %s', self)
+
+    def _run(self):
         raise NotImplementedError
 
     def stop(self):

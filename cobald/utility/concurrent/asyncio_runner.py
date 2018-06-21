@@ -6,7 +6,7 @@ from .base_runner import CoroutineRunner
 class AsyncioRunner(CoroutineRunner):
     flavour = asyncio
 
-    def run(self):
+    def _run(self):
         event_loop = asyncio.new_event_loop()
         asyncio.set_event_loop(event_loop)
         event_loop.create_task(self.await_all())

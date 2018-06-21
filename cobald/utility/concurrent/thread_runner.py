@@ -52,21 +52,13 @@ class ThreadRunner(SubroutineRunner):
         super().__init__()
         self._threads = set()
 
-    def run(self):
-        with self._lock:
-            self._running.set()
-        try:
-            while self._running.is_set():
-                self._start_outstanding()
-                for thread in self._threads.copy():
-                    if thread.join(timeout=0):
-                        self._threads.remove(thread)
-                time.sleep(1)
-        except KeyboardInterrupt:
-            self._running.clear()
-        except Exception:
-            self._running.clear()
-            raise
+    def _run(self):
+        while self._running.is_set():
+            self._start_outstanding()
+            for thread in self._threads.copy():
+                if thread.join(timeout=0):
+                    self._threads.remove(thread)
+            time.sleep(1)
 
     def _start_outstanding(self):
         with self._lock:
