@@ -2,7 +2,7 @@
 Standard Logging Facilities
 ===========================
 
-The :py:mod:`cobald` provides several separate :py:mod:`logging` channels.
+The :py:mod:`cobald.daemon` provides several separate :py:mod:`logging` channels.
 Each exposes information from a different view and for a different audience.
 Both core components and plugins should hook into these channels to supply appropriate information.
 
