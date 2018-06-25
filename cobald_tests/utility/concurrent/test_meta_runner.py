@@ -19,7 +19,7 @@ class TestMetaRunner(object):
 
         for flavour in (threading,):
             runner = MetaRunner()
-            runner.register_subroutine(subroutine=abort, flavour=flavour)
+            runner.register_subroutine(abort, flavour=flavour)
             with pytest.raises(TerminateRunner):
                 runner.run()
 
@@ -31,9 +31,8 @@ class TestMetaRunner(object):
                     time.sleep(0)
 
             runner = MetaRunner()
-            runner.register_subroutine(subroutine=noop, flavour=flavour)
-            runner.register_subroutine(subroutine=loop, flavour=flavour)
-            runner.register_subroutine(subroutine=abort, flavour=flavour)
+            runner.register_subroutine(noop, loop, flavour=flavour)
+            runner.register_subroutine(abort, flavour=flavour)
             with pytest.raises(TerminateRunner):
                 runner.run()
 
@@ -43,7 +42,7 @@ class TestMetaRunner(object):
 
         for flavour in (asyncio, trio):
             runner = MetaRunner()
-            runner.register_coroutine(coroutine=abort, flavour=flavour)
+            runner.register_coroutine(abort, flavour=flavour)
             with pytest.raises(TerminateRunner):
                 runner.run()
 
@@ -55,8 +54,7 @@ class TestMetaRunner(object):
                     await flavour.sleep(0)
             runner = MetaRunner()
 
-            runner.register_coroutine(coroutine=noop, flavour=flavour)
-            runner.register_coroutine(coroutine=loop, flavour=flavour)
-            runner.register_coroutine(coroutine=abort, flavour=flavour)
+            runner.register_coroutine(noop, loop, flavour=flavour)
+            runner.register_coroutine(abort, flavour=flavour)
             with pytest.raises(TerminateRunner):
                 runner.run()
