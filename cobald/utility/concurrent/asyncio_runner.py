@@ -1,4 +1,5 @@
 import asyncio
+import time
 
 from .base_runner import CoroutineRunner
 
@@ -32,3 +33,6 @@ class AsyncioRunner(CoroutineRunner):
     def stop(self):
         super().stop()
         self.event_loop.stop()
+        while self.event_loop.is_running():
+            time.sleep(0.1)
+        self.event_loop.close()
