@@ -49,7 +49,7 @@ class MetaRunner(object):
             self._logger.info('stopped all runners')
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
     import time
     import asyncio
