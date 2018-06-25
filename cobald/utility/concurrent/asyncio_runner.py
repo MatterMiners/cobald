@@ -10,25 +10,45 @@ class AsyncioRunner(CoroutineRunner):
     def __init__(self):
         super().__init__()
         self.event_loop = asyncio.new_event_loop()
+        self._tasks = set()
 
     def _run(self):
         asyncio.set_event_loop(self.event_loop)
-        self.event_loop.create_task(self.await_all())
-        self.event_loop.run_forever()
+        self.event_loop.run_until_complete(self.await_all())
 
     async def await_all(self):
-        self._running.set()
-        while self._running.is_set():
-            await self._start_outstanding()
-            await asyncio.sleep(1)
-        self._running.close()
+        try:
+            while self._running.is_set():
+                await self._start_outstanding()
+                await self._manage_running()
+                await asyncio.sleep(1)
+        except Exception:
+            await self._cancel_running()
+            raise
 
     async def _start_outstanding(self):
         with self._lock:
-            coroutines = self._payloads.copy()
+            for coroutine in self._payloads:
+                task = self.event_loop.create_task(coroutine())
+                self._tasks.add(task)
             self._payloads.clear()
-        if coroutines:
-            await asyncio.wait([coro() for coro in coroutines], return_when=asyncio.FIRST_EXCEPTION)
+        await asyncio.sleep(0)
+
+    async def _manage_running(self):
+        for task in self._tasks.copy():
+            if task.done():
+                self._tasks.remove(task)
+                if task.exception() is not None:
+                    raise task.exception()
+        await asyncio.sleep(0)
+
+    async def _cancel_running(self):
+        for task in self._tasks:
+            task.cancel()
+            await asyncio.sleep(0)
+        for task in self._tasks:
+            while not task.done():
+                await asyncio.sleep(0.1)
 
     def stop(self):
         super().stop()
