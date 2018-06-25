@@ -1,6 +1,7 @@
 import threading
 import pytest
 import time
+import asyncio
 
 import trio
 
@@ -35,7 +36,7 @@ class TestMetaRunner(object):
         async def abort():
             raise TerminateRunner
 
-        for flavour in (trio,):
+        for flavour in (asyncio, trio):
             runner = MetaRunner()
             runner.register_coroutine(coroutine=abort, flavour=flavour)
             with pytest.raises(TerminateRunner):
