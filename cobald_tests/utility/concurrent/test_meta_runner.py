@@ -1,5 +1,6 @@
 import threading
 import pytest
+import time
 
 import trio
 
@@ -21,6 +22,15 @@ class TestMetaRunner(object):
             with pytest.raises(TerminateRunner):
                 runner.run()
 
+            def noop():
+                while True:
+                    time.sleep(0)
+            runner = MetaRunner()
+            runner.register_subroutine(subroutine=noop, flavour=flavour)
+            runner.register_subroutine(subroutine=abort, flavour=flavour)
+            with pytest.raises(TerminateRunner):
+                runner.run()
+
     def test_abort_coroutine(self):
         async def abort():
             raise TerminateRunner
@@ -31,3 +41,11 @@ class TestMetaRunner(object):
             with pytest.raises(TerminateRunner):
                 runner.run()
 
+            async def noop():
+                while True:
+                    await flavour.sleep(0)
+            runner = MetaRunner()
+            runner.register_coroutine(coroutine=noop, flavour=flavour)
+            runner.register_coroutine(coroutine=abort, flavour=flavour)
+            with pytest.raises(TerminateRunner):
+                runner.run()
