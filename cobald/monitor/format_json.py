@@ -64,5 +64,5 @@ if __name__ == '__main__':
     import logging
     logger = logging.getLogger()
     logger.handlers = [logging.StreamHandler()]
-    logger.handlers[0].formatter = JsonFormatter()
-    logger.warning('foo')
+    logger.handlers[0].formatter = JsonFormatter({'latitude': 49, 'longitude': 8})
+    logger.warning('forecast', extra={'temperature': 298, 'humidity': 0.45})
