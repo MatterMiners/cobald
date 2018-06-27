@@ -1,4 +1,4 @@
-from .pool import Pool
+from ._pool import Pool
 
 
 class PoolDecorator(Pool):

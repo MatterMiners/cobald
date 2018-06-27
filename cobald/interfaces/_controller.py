@@ -1,6 +1,6 @@
 import abc
 
-from .pool import Pool
+from ._pool import Pool
 
 
 class Controller(metaclass=abc.ABCMeta):

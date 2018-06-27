@@ -2,7 +2,7 @@ import abc
 from typing import List
 
 
-from .pool import Pool
+from ._pool import Pool
 
 
 class CompositePool(Pool):
