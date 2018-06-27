@@ -1,4 +1,4 @@
-from cobald.interfaces.pool import Pool
+from cobald.interfaces import Pool
 
 
 class MockPool(Pool):
