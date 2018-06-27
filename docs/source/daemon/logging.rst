@@ -44,12 +44,17 @@ The specific output format is defined by the :py:class:`logging.Formatter` used 
 
 :py:class:`~cobald.monitor.format_line.LineProtocolFormatter`
     Formatter for the `InfluxDB Line Protocol`_, as used by InfluxDB and Telegraf.
+    This is a structured format, without access to the underlying report metadata.
+    The report message always acts as the measurement key.
+
     Supports adding default data as tags, e.g. as ``LineProtocolFormatter({'latitude': 49, 'longitude': 8})``.
 
     ``forecast,latitude=49,longitude=8 humidity=0.45,temperature=298``
 
 :py:class:`cobald.monitor.format_json.JsonFormatter`
     Formatter for the JSON format.
+    This is an unstructured format, with optional access to the underlying report metadata.
+
     Supports adding default data, e.g. as ``JsonFormatter({'latitude': 49, 'longitude': 8})``.
 
     ``{"latitude": 49, "longitude": 8, "temperature": 298, "humidity": 0.45, "message": "forecast"}``
