@@ -37,5 +37,21 @@ Each entry consists of an identifier and a dictionary of data:
 
     # get a separate logger in the 'cobald.monitor' channel
     logger = logging.getLogger('cobald.monitor.wheatherapi')
-    # message and args forms the identifier, `extras` contains data
-    logger.info('forecast.%s', location, extras={'temperature': 298, 'humidity': 0.45})
+    # message and args forms the identifier, `extra` contains data
+    logger.info('forecast.%s', location, extra={'temperature': 298, 'humidity': 0.45})
+
+The specific output format is defined by the :py:class:`logging.Formatter` used for a :py:class:`logging.Handler`.
+
+:py:class:`~cobald.monitor.format_line.LineProtocolFormatter`
+    Formatter for the `InfluxDB Line Protocol`_, as used by InfluxDB and Telegraf.
+    Supports adding default data as tags, e.g. as ``LineProtocolFormatter({'latitude': 49, 'longitude': 8})``.
+
+    ``forecast,latitude=49,longitude=8 humidity=0.45,temperature=298``
+
+:py:class:`cobald.monitor.format_json.JsonFormatter`
+    Formatter for the JSON format.
+    Supports adding default data, e.g. as ``JsonFormatter({'latitude': 49, 'longitude': 8})``.
+
+    ``{"latitude": 49, "longitude": 8, "temperature": 298, "humidity": 0.45, "message": "forecast"}``
+
+.. _InfluxDB Line Protocol: https://docs.influxdata.com/influxdb/v1.5/write_protocols/line_protocol_tutorial/

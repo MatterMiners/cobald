@@ -1,7 +1,7 @@
-cobald\.interfaces\.composite module
+cobald\.monitor\.format\_line module
 ====================================
 
-.. automodule:: cobald.interfaces.composite
+.. automodule:: cobald.monitor.format_line
     :members:
     :undoc-members:
     :show-inheritance:

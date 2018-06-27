@@ -12,4 +12,5 @@ Submodules
 .. toctree::
 
    cobald.monitor.format_json
+   cobald.monitor.format_line
 
