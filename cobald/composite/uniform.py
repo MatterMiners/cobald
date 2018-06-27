@@ -1,5 +1,4 @@
-from ..interfaces.pool import Pool
-from ..interfaces.composite import CompositePool
+from ..interfaces import Pool, CompositePool
 
 
 class UniformComposite(CompositePool):

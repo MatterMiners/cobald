@@ -1,7 +1,6 @@
 import asyncio
 
-from cobald.interfaces.pool import Pool
-from cobald.interfaces.proxy import PoolDecorator
+from cobald.interfaces import Pool, PoolDecorator
 
 from cobald.daemon import runner
 

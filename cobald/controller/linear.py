@@ -1,7 +1,6 @@
 import trio
 
-from cobald.interfaces.pool import Pool
-from cobald.interfaces.controller import Controller
+from cobald.interfaces import Pool, Controller
 
 from cobald.daemon import runner
 
