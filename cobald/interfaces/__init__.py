@@ -21,3 +21,7 @@ any number of :py:class:`~.proxy.PoolDecorator` may proceed it.
     }
 
 """
+from .composite import CompositePool
+from .controller import Controller
+from .pool import Pool
+from .proxy import PoolDecorator
