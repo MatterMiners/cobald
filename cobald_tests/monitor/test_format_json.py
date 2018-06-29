@@ -21,12 +21,23 @@ _test_index = 0
 _index_lock = threading.Lock()
 
 
+class ExtraLogger(logging.Logger):
+    def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None, sinfo=None):
+        """Replacement for Logger.makeRecord to overwrite fields via ``extra``"""
+        rv = super().makeRecord(name, level, fn, lno, msg, args, exc_info, func, None, sinfo)
+        if extra is not None:
+            for key in extra:
+                rv.__dict__[key] = extra[key]
+        return rv
+
+
 def make_test_logger(base_name: str = 'test_logger'):
     with _index_lock:
         global _test_index
         log_name = base_name + '.test%d' % _test_index
         _test_index += 1
     logger = logging.getLogger(log_name)
+    logger.__class__ = ExtraLogger
     handler = CapturingHandler()
     logger.handlers = [handler]
     return logger, handler
@@ -52,7 +63,7 @@ class TestFormatJson(object):
         payload = {'a': 'a', '1': 1, '2.2': 2.2}
         logger, handler = make_test_logger(__name__)
         handler.formatter = JsonFormatter()
-        logger.critical('message', payload, extra={'create': now})
+        logger.critical('message', payload, extra={'created': now})
         data = json.loads(handler.content)
         assert len(data) == len(payload) + 2
         # from Formatter and LogRecord
@@ -69,7 +80,7 @@ class TestFormatJson(object):
         payload = {'a': 'a', '1': 1, '2.2': 2.2}
         logger, handler = make_test_logger(__name__)
         handler.formatter = JsonFormatter(datefmt='%Y')
-        logger.critical('message', payload, extra={'create': now})
+        logger.critical('message', payload, extra={'created': now})
         data = json.loads(handler.content)
         assert len(data) == len(payload) + 2
         # from Formatter and LogRecord
@@ -82,7 +93,7 @@ class TestFormatJson(object):
         payload = {'a': 'a', '1': 1, '2.2': 2.2}
         logger, handler = make_test_logger(__name__)
         handler.formatter = JsonFormatter(datefmt='')
-        logger.critical('message', payload, extra={'create': now})
+        logger.critical('message', payload, extra={'created': now})
         data = json.loads(handler.content)
         assert len(data) == len(payload) + 1
         assert 'time' not in data
