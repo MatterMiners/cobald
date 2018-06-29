@@ -24,10 +24,18 @@ _index_lock = threading.Lock()
 class ExtraLogger(logging.Logger):
     def makeRecord(self, name, level, fn, lno, msg, args, exc_info, func=None, extra=None, sinfo=None):
         """Replacement for Logger.makeRecord to overwrite fields via ``extra``"""
+        try:
+            created = extra and extra.pop('created')
+        except KeyError:
+            created = None
         rv = super().makeRecord(name, level, fn, lno, msg, args, exc_info, func, None, sinfo)
         if extra is not None:
             for key in extra:
                 rv.__dict__[key] = extra[key]
+        if created:
+            rv.created = created
+            rv.msecs = (created - int(created)) * 1000
+            rv.relativeCreated = (created - logging._startTime) * 1000
         return rv
 
 
