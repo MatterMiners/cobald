@@ -2,10 +2,10 @@ import json
 import io
 import logging
 import threading
-import itertools
+import time
 
 
-from cobald.monitor.format_json import JsonFormatter, RECORD_ATTRIBUTES
+from cobald.monitor.format_json import JsonFormatter
 
 
 class CapturingHandler(logging.StreamHandler):
@@ -33,25 +33,57 @@ def make_test_logger(base_name: str = 'test_logger'):
 
 
 class TestFormatJson(object):
-    def test_record_attributes(self):
-        for attributes in itertools.product(RECORD_ATTRIBUTES, repeat=2):
-            attributes = set(attributes)
+    def test_payload(self):
+        for payload in (
+                {'a': 'a'},
+                {str(i): i for i in range(20)},
+        ):
             logger, handler = make_test_logger(__name__)
-            handler.formatter = JsonFormatter(record_attributes=attributes)
-            logger.critical('message')
+            handler.formatter = JsonFormatter()
+            logger.critical('message', payload)
             data = json.loads(handler.content)
-            for attribute in attributes:
-                assert attribute in data
-            assert len(data) == len(attributes)
+            assert len(data) == len(payload) + 2
+            assert data.pop('message') == 'message'
+            assert data.pop('time')
+            assert data == payload
 
-    def test_remap_attributes(self):
-        for attributes in itertools.product(RECORD_ATTRIBUTES, repeat=2):
-            attributes = {attr: key for attr, key in zip(attributes, 'abcdefg')}
-            logger, handler = make_test_logger(__name__)
-            handler.formatter = JsonFormatter(record_attributes=attributes)
-            logger.critical('message')
-            data = json.loads(handler.content)
-            for attribute, key in attributes.items():
-                assert key in data
-                assert attribute not in data
-            assert len(data) == len(attributes)
+    def test_default_timestamp(self):
+        now = time.time()
+        payload = {'a': 'a', '1': 1, '2.2': 2.2}
+        logger, handler = make_test_logger(__name__)
+        handler.formatter = JsonFormatter()
+        logger.critical('message', payload, extra={'create': now})
+        data = json.loads(handler.content)
+        assert len(data) == len(payload) + 2
+        # from Formatter and LogRecord
+        ct = time.localtime(now)
+        msecs = (now - int(now)) * 1000
+        default_time_string = logging.Formatter.default_msec_format % (
+            time.strftime(logging.Formatter.default_time_format, ct),
+            msecs
+        )
+        assert data.pop('time') == default_time_string
+
+    def test_explicit_timestamp(self):
+        now = time.time()
+        payload = {'a': 'a', '1': 1, '2.2': 2.2}
+        logger, handler = make_test_logger(__name__)
+        handler.formatter = JsonFormatter(datefmt='%Y')
+        logger.critical('message', payload, extra={'create': now})
+        data = json.loads(handler.content)
+        assert len(data) == len(payload) + 2
+        # from Formatter and LogRecord
+        ct = time.localtime(now)
+        default_time_string = time.strftime('%Y', ct)
+        assert data.pop('time') == default_time_string
+
+    def test_disabled_timestamp(self):
+        now = time.time()
+        payload = {'a': 'a', '1': 1, '2.2': 2.2}
+        logger, handler = make_test_logger(__name__)
+        handler.formatter = JsonFormatter(datefmt='')
+        logger.critical('message', payload, extra={'create': now})
+        data = json.loads(handler.content)
+        assert len(data) == len(payload) + 1
+        assert 'time' not in data
+

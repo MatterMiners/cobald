@@ -37,9 +37,10 @@ Each entry consists of an identifier and a dictionary of data:
 
     # get a separate logger in the 'cobald.monitor' channel
     logger = logging.getLogger('cobald.monitor.wheatherapi')
-    # message and args forms the identifier, `extra` contains data
-    logger.info('forecast.%s', location, extra={'temperature': 298, 'humidity': 0.45})
+    # `message` forms the identifier, `args` contains data
+    logger.info('forecast', {'temperature': 298, 'humidity': 0.45})
 
+Note that the message is *not* formatted with the content of `args``
 The specific output format is defined by the :py:class:`logging.Formatter` used for a :py:class:`logging.Handler`.
 
 :py:class:`~cobald.monitor.format_line.LineProtocolFormatter`
