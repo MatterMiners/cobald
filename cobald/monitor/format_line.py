@@ -53,11 +53,13 @@ class LineProtocolFormatter(Formatter):
         return data
 
     def format(self, record: LogRecord):
+        args = record.args
+        assert isinstance(args, Mapping), 'monitor record argument must be a mapping, not %r' % type(args)
         record.asctime = self.formatTime(record, self.datefmt)
         record.message = record.getMessage()
         tags = self._default_tags.copy()
-        tags.update({key: value for key, value in record.__dict__.items() if key in self._tags_whitelist})
-        fields = {key: value for key, value in record.__dict__.items() if key not in self._fields_blacklist}
+        tags.update({key: value for key, value in args.items() if key in self._tags_whitelist})
+        fields = {key: value for key, value in args.items() if key not in self._fields_blacklist}
         timestamp = record.created // self._resolution * self._resolution if self._resolution is not None else None
         return line_protocol(name=record.message, tags=tags, fields=fields, timestamp=timestamp)
 
@@ -67,4 +69,4 @@ if __name__ == '__main__':
     logger = logging.getLogger()
     logger.handlers = [logging.StreamHandler()]
     logger.handlers[0].formatter = LineProtocolFormatter({'latitude': 49, 'longitude': 8})
-    logger.warning('forecast', extra={'temperature': 298, 'humidity': 0.45})
+    logger.warning('forecast', {'temperature': 298, 'humidity': 0.45})
