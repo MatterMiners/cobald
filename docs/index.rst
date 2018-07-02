@@ -20,7 +20,7 @@ COBalD - the Opportunistic Balancing Daemon
 
 .. image:: https://img.shields.io/github/license/MaineKuehn/cobald.svg
     :alt: License
-    :target: https://github.com/MaineKuehn/cobald/blob/master/LICENSE
+    :target: https://github.com/MaineKuehn/cobald/blob/master/LICENSE.txt
 
 .. toctree::
     :maxdepth: 1
