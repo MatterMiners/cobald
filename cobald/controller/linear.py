@@ -30,7 +30,7 @@ class LinearController(Controller):
         assert low_utilisation <= high_allocation
         self.low_utilisation = low_utilisation
         self.high_allocation = high_allocation
-        runner.register_coroutine(self.run)
+        runner.register_payload(self.run)
 
     async def run(self):
         while True:

@@ -1,4 +1,4 @@
-import asyncio
+import trio
 
 from cobald.interfaces import Pool, PoolDecorator
 
@@ -21,11 +21,10 @@ class Buffer(PoolDecorator):
         super().__init__(target=target)
         self.window = window
         self.demand = target.demand
-        runner.register_subroutine(self.run)
+        runner.register_payload(self.run)
 
-    @asyncio.coroutine
-    def run(self):
+    async def run(self):
         while True:
             if self.demand != self.target.demand:
                 self.target.demand = self.demand
-            yield from asyncio.sleep(self.window)
+            await trio.sleep(self.window)
