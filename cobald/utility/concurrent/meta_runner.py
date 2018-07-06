@@ -2,6 +2,8 @@ import logging
 import threading
 import trio
 
+from types import ModuleType
+
 
 from .trio_runner import TrioRunner
 from .asyncio_runner import AsyncioRunner
@@ -21,7 +23,7 @@ class MetaRunner(object):
             runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
         }
 
-    def register_payload(self, *payloads, flavour=threading):
+    def register_payload(self, *payloads, flavour: ModuleType):
         """Queue one or more payload for execution after its runner is started"""
         for payload in payloads:
             self._logger.debug('registering payload %s (%s)', NameRepr(payload), NameRepr(flavour))
