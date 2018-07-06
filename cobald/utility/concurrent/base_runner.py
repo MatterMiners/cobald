@@ -13,6 +13,9 @@ class BaseRunner(object):
         self._lock = threading.Lock()
         self._running = threading.Event()
 
+    def register_payload(self, payload):
+        self._payloads.append(payload)
+
     def run(self):
         with self._lock:
             assert not self._running.set(), 'cannot re-run: %s' % self
