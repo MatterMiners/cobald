@@ -1,7 +1,14 @@
 import trio
 
 
-from .base_runner import CoroutineRunner
+from .base_runner import CoroutineRunner, OrphanedReturn
+
+
+async def return_trap(payload):
+    """Wrapper to raise exception on unhandled return values"""
+    value = await payload
+    if value is not None:
+        raise OrphanedReturn(payload, value)
 
 
 class TrioRunner(CoroutineRunner):
@@ -24,6 +31,6 @@ class TrioRunner(CoroutineRunner):
     async def _start_outstanding(self, nursery):
         with self._lock:
             for coroutine in self._payloads:
-                nursery.start_soon(coroutine)
+                nursery.start_soon(return_trap, coroutine())
             self._payloads.clear()
         await trio.sleep(0)
