@@ -21,7 +21,7 @@ class Buffer(PoolDecorator):
         super().__init__(target=target)
         self.window = window
         self.demand = target.demand
-        runner.register_payload(self.run)
+        runner.register_payload(self.run, flavour=trio)
 
     async def run(self):
         while True:
