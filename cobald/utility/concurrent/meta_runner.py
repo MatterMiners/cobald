@@ -21,17 +21,11 @@ class MetaRunner(object):
             runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
         }
 
-    def register_coroutine(self, *coroutines, flavour=trio):
-        """Queue one or more coroutine for execution after its runner is started"""
-        for coroutine in coroutines:
-            self._logger.debug('registering coroutine %s (%s)', NameRepr(coroutine), NameRepr(flavour))
-            self.runners[flavour].register_payload(coroutine)
-
-    def register_subroutine(self, *subroutines, flavour=threading):
-        """Queue one or more subroutine for execution after its runner is started"""
-        for subroutine in subroutines:
-            self._logger.debug('registering subroutine %s (%s)', NameRepr(subroutine), NameRepr(flavour))
-            self.runners[flavour].register_payload(subroutine)
+    def register_payload(self, *payloads, flavour=threading):
+        """Queue one or more payload for execution after its runner is started"""
+        for payload in payloads:
+            self._logger.debug('registering payload %s (%s)', NameRepr(payload), NameRepr(flavour))
+            self.runners[flavour].register_payload(payload)
 
     def run(self):
         """Run all runners until completion"""
