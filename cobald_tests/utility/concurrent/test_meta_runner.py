@@ -14,6 +14,7 @@ class TerminateRunner(Exception):
 
 class TestMetaRunner(object):
     def test_abort_subroutine(self):
+        """Test that failing subroutines abort runners"""
         def abort():
             raise TerminateRunner
 
@@ -37,6 +38,7 @@ class TestMetaRunner(object):
                 runner.run()
 
     def test_abort_coroutine(self):
+        """Test that failing coroutines abort runners"""
         async def abort():
             raise TerminateRunner
 
