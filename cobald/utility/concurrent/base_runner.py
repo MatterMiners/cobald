@@ -52,3 +52,11 @@ class SubroutineRunner(BaseRunner):
     """
     def register_subroutine(self, subroutine):
         self._payloads.append(subroutine)
+
+
+class OrphanedReturn(Exception):
+    """A runnable returned a value without anyone to receive it"""
+    def __init__(self, who, value):
+        super().__init__('no caller to receive %s from %s' % (value, who))
+        self.who = who
+        self.value = value

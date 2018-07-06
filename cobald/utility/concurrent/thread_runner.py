@@ -1,16 +1,8 @@
 import threading
 import time
 
-
 from ..debug import NameRepr
-from .base_runner import SubroutineRunner
-
-
-class OrphanedReturn(Exception):
-    def __init__(self, who, value):
-        super().__init__('no caller to receive %s from %s' % (value, who))
-        self.who = who
-        self.value = value
+from .base_runner import SubroutineRunner, OrphanedReturn
 
 
 class CapturingThread(threading.Thread):
