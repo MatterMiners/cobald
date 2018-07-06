@@ -57,23 +57,23 @@ if __name__ == "__main__":
         for i in range(3):
             print('trio\t', i)
             await trio.sleep(0.1)
-    runner.register_coroutine(trio_sleeper)
+    runner.register_payload(trio_sleeper, flavour=trio)
 
     async def asyncio_sleeper():
         for i in range(3):
             print('asyncio\t', i)
             await asyncio.sleep(0.1)
-    runner.register_coroutine(asyncio_sleeper, flavour=asyncio)
+    runner.register_payload(asyncio_sleeper, flavour=asyncio)
 
     def thread_sleeper():
         for i in range(3):
             print('thread\t', i)
             time.sleep(0.1)
-    runner.register_subroutine(thread_sleeper, flavour=threading)
+    runner.register_payload(thread_sleeper, flavour=threading)
 
     async def teardown():
         await trio.sleep(5)
         raise SystemExit('Abort from trio runner')
-    runner.register_coroutine(teardown)
+    runner.register_payload(teardown, flavour=trio)
 
     runner.run()
