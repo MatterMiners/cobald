@@ -25,13 +25,13 @@ class MetaRunner(object):
         """Queue one or more coroutine for execution after its runner is started"""
         for coroutine in coroutines:
             self._logger.debug('registering coroutine %s (%s)', NameRepr(coroutine), NameRepr(flavour))
-            self.runners[flavour].register_coroutine(coroutine)
+            self.runners[flavour].register_payload(coroutine)
 
     def register_subroutine(self, *subroutines, flavour=threading):
         """Queue one or more subroutine for execution after its runner is started"""
         for subroutine in subroutines:
             self._logger.debug('registering subroutine %s (%s)', NameRepr(subroutine), NameRepr(flavour))
-            self.runners[flavour].register_subroutine(subroutine)
+            self.runners[flavour].register_payload(subroutine)
 
     def run(self):
         """Run all runners until completion"""
