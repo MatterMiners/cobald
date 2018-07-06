@@ -5,6 +5,7 @@ import asyncio
 
 import trio
 
+from cobald.utility.concurrent.base_runner import OrphanedReturn
 from cobald.utility.concurrent.meta_runner import MetaRunner
 
 
@@ -13,6 +14,28 @@ class TerminateRunner(Exception):
 
 
 class TestMetaRunner(object):
+    def test_return_subroutine(self):
+        """Test that returning from subroutines aborts runners"""
+        def with_return():
+            return 'unhandled return value'
+
+        for flavour in (threading,):
+            runner = MetaRunner()
+            runner.register_payload(with_return, flavour=flavour)
+            with pytest.raises(OrphanedReturn):
+                runner.run()
+
+    def test_return_coroutine(self):
+        """Test that returning from subroutines aborts runners"""
+        async def with_return():
+            return 'unhandled return value'
+
+        for flavour in (asyncio, trio):
+            runner = MetaRunner()
+            runner.register_payload(with_return, flavour=flavour)
+            with pytest.raises(OrphanedReturn):
+                runner.run()
+
     def test_abort_subroutine(self):
         """Test that failing subroutines abort runners"""
         def abort():
