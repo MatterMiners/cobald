@@ -22,6 +22,8 @@ class MetaRunner(object):
         self.runners = {
             runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
         }
+        self.running = threading.Event()
+        self.running.clear()
 
     def register_payload(self, *payloads, flavour: ModuleType):
         """Queue one or more payload for execution after its runner is started"""
@@ -33,6 +35,7 @@ class MetaRunner(object):
         """Run all runners until completion"""
         self._logger.info('starting all runners')
         try:
+            self.running.set()
             thread_runner = self.runners[threading]
             for runner in self.runners.values():
                 if runner is not thread_runner:
@@ -45,6 +48,7 @@ class MetaRunner(object):
             for runner in self.runners.values():
                 runner.stop()
             self._logger.info('stopped all runners')
+            self.running.clear()
 
 
 if __name__ == "__main__":
