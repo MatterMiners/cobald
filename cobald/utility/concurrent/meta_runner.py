@@ -22,6 +22,7 @@ class MetaRunner(object):
         self.runners = {
             runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
         }
+        self._lock = threading.Lock()
         self.running = threading.Event()
         self.running.clear()
 
@@ -35,7 +36,9 @@ class MetaRunner(object):
         """Run all runners until completion"""
         self._logger.info('starting all runners')
         try:
-            self.running.set()
+            with self._lock:
+                assert not self.running.set(), 'cannot re-run: %s' % self
+                self.running.set()
             thread_runner = self.runners[threading]
             for runner in self.runners.values():
                 if runner is not thread_runner:
