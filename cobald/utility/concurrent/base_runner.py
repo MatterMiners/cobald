@@ -17,18 +17,18 @@ class BaseRunner(object):
         self._payloads.append(payload)
 
     def run(self):
-        with self._lock:
-            assert not self.running.set(), 'cannot re-run: %s' % self
-            self.running.set()
         self._logger.info('runner started: %s', self)
         try:
+            with self._lock:
+                assert not self.running.set(), 'cannot re-run: %s' % self
+                self.running.set()
             self._run()
         except Exception:
             self._logger.error('runner aborted: %s', self)
-            self.running.clear()
             raise
         else:
             self._logger.info('runner stopped: %s', self)
+        finally:
             self.running.clear()
 
     def _run(self):
