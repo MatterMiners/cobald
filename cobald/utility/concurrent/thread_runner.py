@@ -45,7 +45,7 @@ class ThreadRunner(SubroutineRunner):
         self._threads = set()
 
     def _run(self):
-        while self._running.is_set():
+        while self.running.is_set():
             self._start_outstanding()
             for thread in self._threads.copy():
                 if thread.join(timeout=0):

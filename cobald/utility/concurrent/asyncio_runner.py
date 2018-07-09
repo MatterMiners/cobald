@@ -25,7 +25,7 @@ class AsyncioRunner(CoroutineRunner):
 
     async def await_all(self):
         try:
-            while self._running.is_set():
+            while self.running.is_set():
                 await self._start_outstanding()
                 await self._manage_running()
                 await asyncio.sleep(1)

@@ -11,31 +11,31 @@ class BaseRunner(object):
         self._logger = logging.getLogger('cobald.runtime.runner.%s' % NameRepr(self.flavour))
         self._payloads = []
         self._lock = threading.Lock()
-        self._running = threading.Event()
+        self.running = threading.Event()
 
     def register_payload(self, payload):
         self._payloads.append(payload)
 
     def run(self):
         with self._lock:
-            assert not self._running.set(), 'cannot re-run: %s' % self
-            self._running.set()
+            assert not self.running.set(), 'cannot re-run: %s' % self
+            self.running.set()
         self._logger.info('runner started: %s', self)
         try:
             self._run()
         except Exception:
             self._logger.error('runner aborted: %s', self)
-            self._running.clear()
+            self.running.clear()
             raise
         else:
             self._logger.info('runner stopped: %s', self)
-            self._running.clear()
+            self.running.clear()
 
     def _run(self):
         raise NotImplementedError
 
     def stop(self):
-        self._running.clear()
+        self.running.clear()
 
 
 class CoroutineRunner(BaseRunner):
