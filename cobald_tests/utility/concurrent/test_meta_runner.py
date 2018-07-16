@@ -32,8 +32,9 @@ class TestMetaRunner(object):
         for flavour in (threading,):
             runner = MetaRunner()
             runner.register_payload(with_return, flavour=flavour)
-            with pytest.raises(OrphanedReturn):
+            with pytest.raises(RuntimeError) as exc:
                 runner.run()
+            assert isinstance(exc.value.__cause__, OrphanedReturn)
 
     def test_return_coroutine(self):
         """Test that returning from subroutines aborts runners"""
@@ -43,8 +44,9 @@ class TestMetaRunner(object):
         for flavour in (asyncio, trio):
             runner = MetaRunner()
             runner.register_payload(with_return, flavour=flavour)
-            with pytest.raises(OrphanedReturn):
+            with pytest.raises(RuntimeError) as exc:
                 runner.run()
+            assert isinstance(exc.value.__cause__, OrphanedReturn)
 
     def test_abort_subroutine(self):
         """Test that failing subroutines abort runners"""
@@ -54,8 +56,9 @@ class TestMetaRunner(object):
         for flavour in (threading,):
             runner = MetaRunner()
             runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(TerminateRunner):
+            with pytest.raises(RuntimeError) as exc:
                 runner.run()
+            assert isinstance(exc.value.__cause__, TerminateRunner)
 
             def noop():
                 return
@@ -67,8 +70,9 @@ class TestMetaRunner(object):
             runner = MetaRunner()
             runner.register_payload(noop, loop, flavour=flavour)
             runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(TerminateRunner):
+            with pytest.raises(RuntimeError) as exc:
                 runner.run()
+            assert isinstance(exc.value.__cause__, TerminateRunner)
 
     def test_abort_coroutine(self):
         """Test that failing coroutines abort runners"""
@@ -78,8 +82,9 @@ class TestMetaRunner(object):
         for flavour in (asyncio, trio):
             runner = MetaRunner()
             runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(TerminateRunner):
+            with pytest.raises(RuntimeError) as exc:
                 runner.run()
+            assert isinstance(exc.value.__cause__, TerminateRunner)
 
             async def noop():
                 return
@@ -91,5 +96,6 @@ class TestMetaRunner(object):
 
             runner.register_payload(noop, loop, flavour=flavour)
             runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(TerminateRunner):
+            with pytest.raises(RuntimeError) as exc:
                 runner.run()
+            assert isinstance(exc.value.__cause__, TerminateRunner)
