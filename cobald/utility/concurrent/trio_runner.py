@@ -3,7 +3,7 @@ from functools import partial
 
 
 from .base_runner import BaseRunner
-from .async_tools import return_trap
+from .async_tools import raise_return
 
 
 class TrioRunner(BaseRunner):
@@ -15,7 +15,7 @@ class TrioRunner(BaseRunner):
         super().__init__()
 
     def register_payload(self, payload):
-        super().register_payload(partial(return_trap, payload))
+        super().register_payload(partial(raise_return, payload))
 
     def _run(self):
         return trio.run(self.await_all)

@@ -3,7 +3,7 @@ import time
 from functools import partial
 
 from .base_runner import BaseRunner
-from .async_tools import return_trap
+from .async_tools import raise_return
 
 
 class AsyncioRunner(BaseRunner):
@@ -15,7 +15,7 @@ class AsyncioRunner(BaseRunner):
         self._tasks = set()
 
     def register_payload(self, payload):
-        super().register_payload(partial(return_trap, payload))
+        super().register_payload(partial(raise_return, payload))
 
     def _run(self):
         asyncio.set_event_loop(self.event_loop)

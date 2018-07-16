@@ -1,7 +1,7 @@
 from .base_runner import OrphanedReturn
 
 
-async def return_trap(payload):
+async def raise_return(payload):
     """Wrapper to raise exception on unhandled return values"""
     value = await payload()
     if value is not None:
