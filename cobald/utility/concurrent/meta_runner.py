@@ -4,7 +4,7 @@ import trio
 
 from types import ModuleType
 
-
+from .base_runner import BaseRunner
 from .trio_runner import TrioRunner
 from .asyncio_runner import AsyncioRunner
 from .thread_runner import ThreadRunner
@@ -21,7 +21,7 @@ class MetaRunner(object):
         self._logger = logging.getLogger('cobald.runtime.runner.meta')
         self.runners = {
             runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
-        }
+        }  # type: dict[ModuleType, BaseRunner]
         self._lock = threading.Lock()
         self.running = threading.Event()
         self.running.clear()
