@@ -36,7 +36,33 @@ COBalD - the Opportunistic Balancing Daemon
     :height: 150
     :align: left
 
-The ``cobald`` library provides a framework for balancing opportunistic resources.
+The ``cobald`` library provides a framework and runtime for balancing opportunistic resources.
+With its straightforward :doc:`model </source/model/overview>` for pools of resources and their composition,
+it is easy to define and manage a large number of opportunistic resources.
+At the heart of ``cobald`` is a minimal control model that condenses the desirable *and* feasible features
+to control resources in a scalable and dynamic way.
+
+Background
+==========
+
+The ``cobald`` project originates from research on providing Cloud resources for analysts of the LHC collaborations.
+It supersedes past work on the `ROCED`_ Cloud resource provider,
+generalising its goal of provisioning opportunistic resources.
+Furthermore, it integrates recent research on minimal, succinct semantics for provisioning resources.
+
+The major goal of ``cobald`` is to explicitly reflect our two main conclusions from past research:
+
+1. It is futile to categorize resources by their nature. The only feasible information is what is useful.
+2. It is futile to predict future usage and requirements. The only reliable information is what happens now.
+
+About
+=====
+
+The development of ``cobald`` is currently organized by the GridKa and CMS research groups at KIT.
+We openly encourage adoption and contributions outside of KIT, LHC and our current selection of opportunistic resources.
+Information on deployment as well as creating and publishing custom plugins will follow.
+
+Please contact us on `github`_ if you want to contribute already.
 
 Indices and tables
 ==================
@@ -44,3 +70,6 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. _github: https://github.com/MaineKuehn/cobald
+.. _ROCED: https://github.com/roced-scheduler/ROCED
