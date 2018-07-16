@@ -32,6 +32,10 @@ class MetaRunner(object):
             self._logger.debug('registering payload %s (%s)', NameRepr(payload), NameRepr(flavour))
             self.runners[flavour].register_payload(payload)
 
+    def run_payload(self, payload, *, flavour: ModuleType):
+        """Execute one payload after its runner is started and return its output"""
+        return self.runners[flavour].run_payload(payload)
+
     def run(self):
         """Run all runners until completion"""
         self._logger.info('starting all runners')

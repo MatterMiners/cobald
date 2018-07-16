@@ -16,6 +16,9 @@ class BaseRunner(object):
     def register_payload(self, payload):
         self._payloads.append(payload)
 
+    def run_payload(self, payload):
+        raise NotImplementedError
+
     def run(self):
         self._logger.info('runner started: %s', self)
         try:
