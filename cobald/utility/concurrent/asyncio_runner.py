@@ -2,14 +2,8 @@ import asyncio
 import time
 from functools import partial
 
-from .base_runner import BaseRunner, OrphanedReturn
-
-
-async def return_trap(payload):
-    """Wrapper to raise exception on unhandled return values"""
-    value = await payload()
-    if value is not None:
-        raise OrphanedReturn(payload, value)
+from .base_runner import BaseRunner
+from .async_tools import return_trap
 
 
 class AsyncioRunner(BaseRunner):
