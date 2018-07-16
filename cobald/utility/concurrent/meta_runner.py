@@ -53,6 +53,11 @@ class MetaRunner(object):
             self._logger.info('stopped all runners')
             self.running.clear()
 
+    def stop(self):
+        """Stop all runners"""
+        for runner in self.runners.values():
+            runner.stop()
+
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)
