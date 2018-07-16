@@ -1,12 +1,13 @@
 import asyncio
 import time
+from functools import partial
 
 from .base_runner import BaseRunner, OrphanedReturn
 
 
 async def return_trap(payload):
     """Wrapper to raise exception on unhandled return values"""
-    value = await payload
+    value = await payload()
     if value is not None:
         raise OrphanedReturn(payload, value)
 
@@ -18,6 +19,9 @@ class AsyncioRunner(BaseRunner):
         super().__init__()
         self.event_loop = asyncio.new_event_loop()
         self._tasks = set()
+
+    def register_payload(self, payload):
+        super().register_payload(partial(return_trap, payload))
 
     def _run(self):
         asyncio.set_event_loop(self.event_loop)
@@ -36,7 +40,7 @@ class AsyncioRunner(BaseRunner):
     async def _start_outstanding(self):
         with self._lock:
             for coroutine in self._payloads:
-                task = self.event_loop.create_task(return_trap(coroutine()))
+                task = self.event_loop.create_task(coroutine())
                 self._tasks.add(task)
             self._payloads.clear()
         await asyncio.sleep(0)
