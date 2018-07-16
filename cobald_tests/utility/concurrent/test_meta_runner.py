@@ -14,6 +14,16 @@ class TerminateRunner(Exception):
 
 
 class TestMetaRunner(object):
+    def test_run_subroutine(self):
+        """Test executing a subroutine"""
+        def with_return():
+            return 'expected return value'
+
+        for flavour in (threading,):
+            runner = MetaRunner()
+            result = runner.run_payload(with_return, flavour=flavour)
+            assert result == with_return()
+
     def test_return_subroutine(self):
         """Test that returning from subroutines aborts runners"""
         def with_return():

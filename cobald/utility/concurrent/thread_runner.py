@@ -44,6 +44,12 @@ class ThreadRunner(BaseRunner):
         super().__init__()
         self._threads = set()
 
+    def run_payload(self, payload):
+        # - run_payload has to block until payload is done
+        # instead of running payload in a thread and blocking this one,
+        # we just block this thread by running payload directly
+        return payload()
+
     def _run(self):
         while self.running.is_set():
             self._start_outstanding()
