@@ -1,7 +1,7 @@
 import trio
 
 
-from .base_runner import CoroutineRunner, OrphanedReturn
+from .base_runner import BaseRunner, OrphanedReturn
 
 
 async def return_trap(payload):
@@ -11,7 +11,7 @@ async def return_trap(payload):
         raise OrphanedReturn(payload, value)
 
 
-class TrioRunner(CoroutineRunner):
+class TrioRunner(BaseRunner):
     """Runner for coroutines of :py:mod:`trio`"""
     flavour = trio
 

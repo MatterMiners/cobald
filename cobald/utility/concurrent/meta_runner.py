@@ -42,7 +42,7 @@ class MetaRunner(object):
             thread_runner = self.runners[threading]
             for runner in self.runners.values():
                 if runner is not thread_runner:
-                    thread_runner.register_subroutine(runner.run)
+                    thread_runner.register_payload(runner.run)
             thread_runner.run()
         except Exception as err:
             self._logger.error('runner terminated: %s', err)

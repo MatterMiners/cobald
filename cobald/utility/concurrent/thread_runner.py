@@ -2,7 +2,7 @@ import threading
 import time
 
 from ..debug import NameRepr
-from .base_runner import SubroutineRunner, OrphanedReturn
+from .base_runner import BaseRunner, OrphanedReturn
 
 
 class CapturingThread(threading.Thread):
@@ -36,7 +36,7 @@ class CapturingThread(threading.Thread):
             del self._target, self._args, self._kwargs
 
 
-class ThreadRunner(SubroutineRunner):
+class ThreadRunner(BaseRunner):
     """Runner for subroutines with :py:mod:`threading`"""
     flavour = threading
 

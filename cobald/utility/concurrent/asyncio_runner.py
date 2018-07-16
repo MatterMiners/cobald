@@ -1,7 +1,7 @@
 import asyncio
 import time
 
-from .base_runner import CoroutineRunner, OrphanedReturn
+from .base_runner import BaseRunner, OrphanedReturn
 
 
 async def return_trap(payload):
@@ -11,7 +11,7 @@ async def return_trap(payload):
         raise OrphanedReturn(payload, value)
 
 
-class AsyncioRunner(CoroutineRunner):
+class AsyncioRunner(BaseRunner):
     flavour = asyncio
 
     def __init__(self):
