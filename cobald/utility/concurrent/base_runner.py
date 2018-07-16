@@ -14,12 +14,30 @@ class BaseRunner(object):
         self.running = threading.Event()
 
     def register_payload(self, payload):
+        """
+        Register ``payload`` for asynchronous execution
+
+        This runs ``payload`` as an orphaned background task as soon as possible.
+        It is an error for ``payload`` to return or raise anything without handling it.
+        """
         self._payloads.append(payload)
 
     def run_payload(self, payload):
+        """
+        Register ``payload`` for synchronous execution
+
+        This runs ``payload`` as soon as possible, blocking until completion.
+        Should ``payload`` return or raise anything, it is propagated to the caller.
+        """
         raise NotImplementedError
 
     def run(self):
+        """
+        Execute all current and future payloads
+
+        Blocks and executes payloads until :py:meth:`stop` is called.
+        It is an error for any orphaned payload to return or raise.
+        """
         self._logger.info('runner started: %s', self)
         try:
             with self._lock:
@@ -38,6 +56,7 @@ class BaseRunner(object):
         raise NotImplementedError
 
     def stop(self):
+        """Stop execution of all current and future payloads"""
         self.running.clear()
 
 
