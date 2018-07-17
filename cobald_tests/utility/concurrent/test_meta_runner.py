@@ -34,7 +34,7 @@ class TestMetaRunner(object):
         async def with_return():
             return 'expected return value'
 
-        for flavour in (trio,):
+        for flavour in (trio, asyncio):
             runner = MetaRunner()
             run_in_thread(runner.run, name='test_run_coroutine')
             result = runner.run_payload(with_return, flavour=flavour)
