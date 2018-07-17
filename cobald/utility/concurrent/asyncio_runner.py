@@ -56,9 +56,10 @@ class AsyncioRunner(BaseRunner):
                 await asyncio.sleep(0.1)
 
     def stop(self):
-        super().stop()
+        self.running.clear()
         for task in self._tasks:
             task.cancel()
+        self._stopped.wait()
         self.event_loop.stop()
         while self.event_loop.is_running():
             time.sleep(0.1)

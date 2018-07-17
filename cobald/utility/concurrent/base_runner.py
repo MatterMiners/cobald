@@ -11,7 +11,12 @@ class BaseRunner(object):
         self._logger = logging.getLogger('cobald.runtime.runner.%s' % NameRepr(self.flavour))
         self._payloads = []
         self._lock = threading.Lock()
+        #: signal that runner should keep in running
         self.running = threading.Event()
+        #: signal that runner has stopped
+        self._stopped = threading.Event()
+        self.running.clear()
+        self._stopped.set()
 
     def register_payload(self, payload):
         """
@@ -41,8 +46,9 @@ class BaseRunner(object):
         self._logger.info('runner started: %s', self)
         try:
             with self._lock:
-                assert not self.running.set(), 'cannot re-run: %s' % self
+                assert not self.running.is_set() and self._stopped.is_set(), 'cannot re-run: %s' % self
                 self.running.set()
+                self._stopped.clear()
             self._run()
         except Exception:
             self._logger.error('runner aborted: %s', self)
@@ -51,6 +57,7 @@ class BaseRunner(object):
             self._logger.info('runner stopped: %s', self)
         finally:
             self.running.clear()
+            self._stopped.set()
 
     def _run(self):
         raise NotImplementedError
@@ -58,6 +65,7 @@ class BaseRunner(object):
     def stop(self):
         """Stop execution of all current and future payloads"""
         self.running.clear()
+        self._stopped.wait()
 
 
 class OrphanedReturn(Exception):
