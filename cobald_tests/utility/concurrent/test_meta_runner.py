@@ -13,6 +13,11 @@ class TerminateRunner(Exception):
     pass
 
 
+def run_in_thread(payload, name, daemon=True):
+    thread = threading.Thread(target=payload, name=name, daemon=daemon)
+    thread.start()
+
+
 class TestMetaRunner(object):
     def test_run_subroutine(self):
         """Test executing a subroutine"""
@@ -23,6 +28,19 @@ class TestMetaRunner(object):
             runner = MetaRunner()
             result = runner.run_payload(with_return, flavour=flavour)
             assert result == with_return()
+
+    def test_run_coroutine(self):
+        """Test executing a subroutine"""
+        async def with_return():
+            return 'expected return value'
+
+        for flavour in (trio,):
+            runner = MetaRunner()
+            run_in_thread(runner.run, name='test_run_coroutine')
+            result = runner.run_payload(with_return, flavour=flavour)
+            # TODO: can we actually get the value from with_return?
+            assert result == 'expected return value'
+            runner.stop()
 
     def test_return_subroutine(self):
         """Test that returning from subroutines aborts runners"""
