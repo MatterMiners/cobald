@@ -52,8 +52,8 @@ Furthermore, it integrates recent research on minimal, succinct semantics for pr
 
 The major goal of ``cobald`` is to explicitly reflect our two main conclusions from past research:
 
-1. It is futile to categorize resources by their nature. The only feasible information is what is useful.
-2. It is futile to predict future usage and requirements. The only reliable information is what happens now.
+    1. It is futile to categorize resources by their nature. The only feasible information is actual usage.
+    2. It is futile to predict future usage and requirements. The only reliable information is what happens now.
 
 About
 =====
