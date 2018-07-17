@@ -18,6 +18,9 @@ class BaseRunner(object):
         self.running.clear()
         self._stopped.set()
 
+    def __bool__(self):
+        return bool(self._payloads) or self.running.is_set()
+
     def register_payload(self, payload):
         """
         Register ``payload`` for asynchronous execution

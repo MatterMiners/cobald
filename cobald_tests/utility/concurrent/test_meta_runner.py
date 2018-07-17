@@ -19,6 +19,25 @@ def run_in_thread(payload, name, daemon=True):
 
 
 class TestMetaRunner(object):
+    def test_bool_payloads(self):
+        def subroutine():
+            time.sleep(0.5)
+
+        async def a_coroutine():
+            await asyncio.sleep(0.5)
+
+        async def t_coroutine():
+            await trio.sleep(0.5)
+
+        for flavour, payload in ((threading, subroutine), (asyncio, a_coroutine), (trio, t_coroutine)):
+            runner = MetaRunner()
+            assert not bool(runner)
+            runner.register_payload(payload, flavour=flavour)
+            assert bool(runner)
+            run_in_thread(runner.run, name='test_run_coroutine')
+            assert bool(runner)
+            runner.stop()
+
     def test_run_subroutine(self):
         """Test executing a subroutine"""
         def with_return():
