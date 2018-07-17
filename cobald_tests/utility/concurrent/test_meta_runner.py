@@ -16,6 +16,7 @@ class TerminateRunner(Exception):
 def run_in_thread(payload, name, daemon=True):
     thread = threading.Thread(target=payload, name=name, daemon=daemon)
     thread.start()
+    time.sleep(0.0)
 
 
 class TestMetaRunner(object):
@@ -34,7 +35,7 @@ class TestMetaRunner(object):
             assert not bool(runner)
             runner.register_payload(payload, flavour=flavour)
             assert bool(runner)
-            run_in_thread(runner.run, name='test_run_coroutine')
+            run_in_thread(runner.run, name='test_bool_payloads %s' % flavour)
             assert bool(runner)
             runner.stop()
 
@@ -43,22 +44,32 @@ class TestMetaRunner(object):
         def with_return():
             return 'expected return value'
 
+        def with_raise():
+            raise KeyError('expected exception')
+
         for flavour in (threading,):
             runner = MetaRunner()
             result = runner.run_payload(with_return, flavour=flavour)
             assert result == with_return()
+            with pytest.raises(KeyError):
+                runner.run_payload(with_raise, flavour=flavour)
 
     def test_run_coroutine(self):
         """Test executing a subroutine"""
         async def with_return():
             return 'expected return value'
 
+        async def with_raise():
+            raise KeyError('expected exception')
+
         for flavour in (trio, asyncio):
             runner = MetaRunner()
-            run_in_thread(runner.run, name='test_run_coroutine')
+            run_in_thread(runner.run, name='test_run_coroutine %s' % flavour)
             result = runner.run_payload(with_return, flavour=flavour)
             # TODO: can we actually get the value from with_return?
             assert result == 'expected return value'
+            with pytest.raises(KeyError):
+                runner.run_payload(with_raise, flavour=flavour)
             runner.stop()
 
     def test_return_subroutine(self):
