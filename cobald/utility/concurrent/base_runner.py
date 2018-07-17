@@ -59,15 +59,17 @@ class BaseRunner(object):
         else:
             self._logger.info('runner stopped: %s', self)
         finally:
-            self.running.clear()
-            self._stopped.set()
+            with self._lock:
+                self.running.clear()
+                self._stopped.set()
 
     def _run(self):
         raise NotImplementedError
 
     def stop(self):
         """Stop execution of all current and future payloads"""
-        self.running.clear()
+        with self._lock:
+            self.running.clear()
         self._stopped.wait()
 
 
