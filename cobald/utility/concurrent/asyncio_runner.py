@@ -57,7 +57,7 @@ class AsyncioRunner(BaseRunner):
 
     def stop(self):
         super().stop()
-        for task in asyncio.Task.all_tasks(loop=self.event_loop):
+        for task in self._tasks:
             task.cancel()
         self.event_loop.stop()
         while self.event_loop.is_running():
