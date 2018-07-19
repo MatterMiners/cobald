@@ -21,4 +21,5 @@ Submodules
    cobald.daemon.cli
    cobald.daemon.core
    cobald.daemon.logger
+   cobald.daemon.service
 
