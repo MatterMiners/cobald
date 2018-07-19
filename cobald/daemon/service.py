@@ -58,12 +58,12 @@ def service(flavour):
     Mark a class as implementing a Service
 
     Each Service class must have a ``run`` method.
-    This method is :py:meth:`~ServiceRunner.adopt`\ ed after the daemon starts, unless
+    This method is :py:meth:`~.ServiceRunner.adopt`\ ed after the daemon starts, unless
 
     * the Service has been garbage collected, or
-    * the ServiceUnit has been :py:meth:`~ServiceUnit.cancel`\ ed.
+    * the ServiceUnit has been :py:meth:`~.ServiceUnit.cancel`\ ed.
 
-    For each service instance, its :py:class:`ServiceUnit` is available at ``service_instance.__service_unit__``.
+    For each service instance, its :py:class:`~.ServiceUnit` is available at ``service_instance.__service_unit__``.
     """
     def service_unit_decorator(cls):
         cls.__new__ = functools.partialmethod(__new_service__, flavour=flavour)
