@@ -109,7 +109,7 @@ class ServiceRunner(object):
     async def run(self):
         while True:
             await trio.sleep(self.accept_delay)
-            self._accept_services()
+            self._adopt_services()
 
     def _adopt_services(self):
         for unit in ServiceUnit.units():  # type: ServiceUnit
