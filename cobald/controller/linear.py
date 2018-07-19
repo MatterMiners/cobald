@@ -2,9 +2,10 @@ import trio
 
 from cobald.interfaces import Pool, Controller
 
-from cobald.daemon import runner
+from cobald.daemon import service
 
 
+@service(flavour=trio)
 class LinearController(Controller):
     """
     Controller that linearly increases or decreases demand
@@ -30,7 +31,6 @@ class LinearController(Controller):
         assert low_utilisation <= high_allocation
         self.low_utilisation = low_utilisation
         self.high_allocation = high_allocation
-        runner.register_payload(self.run, flavour=trio)
 
     async def run(self):
         while True:
