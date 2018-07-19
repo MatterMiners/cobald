@@ -98,7 +98,8 @@ class ServiceRunner(object):
 
     def accept(self):
         """Start accepting synchronous, asynchronous and service payloads"""
-        assert not self._meta_runner, 'payloads scheduled for %s before being started' % self
+        if self._meta_runner:
+            raise RuntimeError('payloads scheduled for %s before being started' % self)
         self._logger.info('ServiceRunner starting')
         # force collecting objects so that defunct, migrated and overwritten services are destroyed now
         gc.collect()
