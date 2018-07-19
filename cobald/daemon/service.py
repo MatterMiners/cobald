@@ -67,6 +67,13 @@ def service(flavour):
     """
     def service_unit_decorator(cls):
         cls.__new__ = functools.partialmethod(__new_service__, flavour=flavour)
+        try:
+            run = cls.run
+        except AttributeError:
+            pass
+        else:
+            if run.__doc__ is None:
+                run.__doc__ = "Service entry point"
         return cls
     return service_unit_decorator
 
