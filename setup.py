@@ -22,6 +22,11 @@ if __name__ == '__main__':
         author_email=package_about['__email__'],
         url=package_about['__url__'],
         packages=find_packages(),
+        entry_points={
+            'console_scripts': [
+                'cobald = cobald.daemon.core:main',
+            ],
+        },
         # dependencies
         install_requires=[
             'typing',
