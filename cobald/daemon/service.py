@@ -46,7 +46,7 @@ class ServiceUnit(object):
         return '%s(%r, flavour=%r)' % (self.__class__.__name__, self.service() or '<defunct>', self.flavour)
 
 
-def __new_service__(cls, *args, flavour, **kwargs):
+def __new_service__(cls, *_, flavour, **__):
     self = super(cls, cls).__new__(cls)
     service_unit = ServiceUnit(self, flavour)
     self.__service_unit__ = service_unit
