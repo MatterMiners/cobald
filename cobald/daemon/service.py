@@ -15,6 +15,8 @@ class ServiceUnit(object):
 
     def __init__(self, service, flavour):
         assert hasattr(service, 'run'), "service must implement a 'run' method"
+        assert any(flavour == runner.flavour for runner in MetaRunner.runner_types), \
+            "service flavour must be one of %s" % ','.join(repr(runner.flavour) for runner in MetaRunner.runner_types)
         self.service = weakref.ref(service)
         self.flavour = flavour
         self._cancel = False

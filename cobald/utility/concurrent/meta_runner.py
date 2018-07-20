@@ -17,10 +17,12 @@ class MetaRunner(object):
     """
     Unified interface to schedule subroutines and coroutines for concurrent execution
     """
+    runner_types = (TrioRunner, AsyncioRunner, ThreadRunner)
+
     def __init__(self):
         self._logger = logging.getLogger('cobald.runtime.runner.meta')
         self.runners = {
-            runner.flavour: runner() for runner in (TrioRunner, AsyncioRunner, ThreadRunner)
+            runner.flavour: runner() for runner in self.runner_types
         }  # type: dict[ModuleType, BaseRunner]
         self._lock = threading.Lock()
         self.running = threading.Event()
