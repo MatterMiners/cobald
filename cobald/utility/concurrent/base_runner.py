@@ -69,6 +69,7 @@ class BaseRunner(object):
 
     def stop(self):
         """Stop execution of all current and future payloads"""
+        self._logger.debug('runner disabled: %s', self)
         with self._lock:
             self.running.clear()
         self._stopped.wait()
