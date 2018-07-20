@@ -30,6 +30,7 @@ class TrioRunner(BaseRunner):
             while self.running.is_set():
                 await self._start_outstanding(nursery=nursery)
                 await trio.sleep(1)
+            nursery.cancel_scope.cancel()
 
     async def _start_outstanding(self, nursery):
         with self._lock:
