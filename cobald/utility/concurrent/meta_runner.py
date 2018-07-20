@@ -55,15 +55,20 @@ class MetaRunner(object):
             self._logger.error('runner terminated: %s', err)
             raise RuntimeError from err
         finally:
-            for runner in self.runners.values():
-                runner.stop()
+            self._stop_runners()
             self._logger.info('stopped all runners')
             self.running.clear()
 
     def stop(self):
         """Stop all runners"""
+        self._stop_runners()
+
+    def _stop_runners(self):
         for runner in self.runners.values():
+            if runner.flavour == threading:
+                continue
             runner.stop()
+        self.runners[threading].stop()
 
 
 if __name__ == "__main__":
