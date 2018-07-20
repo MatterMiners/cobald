@@ -3,6 +3,7 @@ import weakref
 import trio
 import gc
 import functools
+import threading
 
 from types import ModuleType
 
@@ -83,9 +84,11 @@ class ServiceRunner(object):
     """
     Runner for coroutines, subroutines and services
     """
-    def __init__(self, accept_delay : float = 1):
+    def __init__(self, accept_delay: float = 1):
         self._logger = logging.getLogger('cobald.runtime.daemon.services')
         self._meta_runner = MetaRunner()
+        self._must_shutdown = False
+        self._is_shutdown = threading.Event()
         self.accept_delay = accept_delay
 
     def execute(self, payload, flavour: ModuleType):
@@ -100,16 +103,25 @@ class ServiceRunner(object):
         """Start accepting synchronous, asynchronous and service payloads"""
         if self._meta_runner:
             raise RuntimeError('payloads scheduled for %s before being started' % self)
+        self._must_shutdown = False
         self._logger.info('ServiceRunner starting')
         # force collecting objects so that defunct, migrated and overwritten services are destroyed now
         gc.collect()
         self._adopt_services()
         self._meta_runner.run()
 
+    def shutdown(self):
+        """Shutdown the accept loop and stop running payloads"""
+        self._must_shutdown = True
+        self._is_shutdown.wait()
+        self._meta_runner.stop()
+
     async def run(self):
-        while True:
-            await trio.sleep(self.accept_delay)
+        self._is_shutdown.clear()
+        while not self._must_shutdown:
             self._adopt_services()
+            await trio.sleep(self.accept_delay)
+        self._is_shutdown.set()
 
     def _adopt_services(self):
         for unit in ServiceUnit.units():  # type: ServiceUnit
