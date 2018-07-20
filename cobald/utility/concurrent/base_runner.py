@@ -28,7 +28,8 @@ class BaseRunner(object):
         This runs ``payload`` as an orphaned background task as soon as possible.
         It is an error for ``payload`` to return or raise anything without handling it.
         """
-        self._payloads.append(payload)
+        with self._lock:
+            self._payloads.append(payload)
 
     def run_payload(self, payload):
         """
