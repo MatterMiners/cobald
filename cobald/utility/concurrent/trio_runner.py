@@ -26,10 +26,12 @@ class TrioRunner(BaseRunner):
         return trio.run(self.await_all)
 
     async def await_all(self):
+        delay = 0.0
         async with trio.open_nursery() as nursery:
             while self.running.is_set():
                 await self._start_outstanding(nursery=nursery)
-                await trio.sleep(1)
+                await trio.sleep(delay)
+                delay = min(delay + 0.1, 1.0)
             nursery.cancel_scope.cancel()
 
     async def _start_outstanding(self, nursery):

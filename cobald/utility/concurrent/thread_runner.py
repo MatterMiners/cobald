@@ -51,13 +51,15 @@ class ThreadRunner(BaseRunner):
         return payload()
 
     def _run(self):
+        delay = 0.0
         while self.running.is_set():
             self._start_outstanding()
             for thread in self._threads.copy():
                 if thread.join(timeout=0):
                     self._threads.remove(thread)
                     self._logger.debug('reaped thread %s', thread)
-            time.sleep(1)
+            time.sleep(delay)
+            delay = min(delay + 0.1, 1.0)
 
     def _start_outstanding(self):
         with self._lock:

@@ -27,11 +27,13 @@ class AsyncioRunner(BaseRunner):
         self.event_loop.run_until_complete(self.await_all())
 
     async def await_all(self):
+        delay = 0.0
         try:
             while self.running.is_set():
                 await self._start_outstanding()
                 await self._manage_running()
-                await asyncio.sleep(1)
+                await asyncio.sleep(delay)
+                delay = min(delay + 0.1, 1.0)
         except Exception:
             await self._cancel_running()
             raise
