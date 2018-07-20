@@ -56,6 +56,7 @@ class ThreadRunner(BaseRunner):
             for thread in self._threads.copy():
                 if thread.join(timeout=0):
                     self._threads.remove(thread)
+                    self._logger.debug('reaped thread %s', thread)
             time.sleep(1)
 
     def _start_outstanding(self):
@@ -64,4 +65,6 @@ class ThreadRunner(BaseRunner):
                 thread = CapturingThread(target=subroutine)
                 thread.start()
                 self._threads.add(thread)
+                self._logger.debug('booted thread %s', thread)
             self._payloads.clear()
+        time.sleep(0)
