@@ -63,6 +63,9 @@ class AsyncioRunner(BaseRunner):
                 await asyncio.sleep(0.1)
 
     def stop(self):
+        if not self.running.wait(0.2):
+            return
+        self._logger.debug('runner disabled: %s', self)
         with self._lock:
             self.running.clear()
             for task in self._tasks:
