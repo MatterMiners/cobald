@@ -1,5 +1,4 @@
 import asyncio
-import time
 from functools import partial
 
 from .base_runner import BaseRunner
