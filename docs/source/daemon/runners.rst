@@ -10,8 +10,25 @@ The purpose of this is for components to execute concurrently,
 while ensuring each component is in a valid state.
 In this regard, the execution environment is similar to an init service such as systemd.
 
-Registering Concurrent Work
+Registering Background Services
+-------------------------------
+
+The primary entry point to the runtime is defining services:
+the main threads of service instances are automatically started, tracked and handled by the :py:mod:`cobald.daemon`.
+This allows services to update information, manage resources and react to changing conditions.
+
+A service is defined by applying the :py:func:`~cobald.daemon.service.service` decorator to a class.
+
+.. code:: python
+
+    @service(flavour=threading)
+    class MyService(object):
+        # will be executed in a thread once the daemon starts
+        def run():
+            ...
+
+Triggering Background Tasks
 ---------------------------
 
-The execution environment is exposed as :py:data:`cobald.daemon.runner`,
-an instance of :py:class:`~cobald.utility.concurrent.meta_runner.MetaRunner`.
+The execution environment is exposed as :py:data:`cobald.daemon.runtime`,
+an instance of :py:class:`~cobald.daemon.service.ServiceRunner`.
