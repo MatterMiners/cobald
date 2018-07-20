@@ -119,10 +119,12 @@ class ServiceRunner(object):
         self._meta_runner.stop()
 
     async def run(self):
+        delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
         while not self._must_shutdown:
             self._adopt_services()
-            await trio.sleep(self.accept_delay)
+            await trio.sleep(delay)
+            delay = min(delay + increase, max_delay)
         self._is_shutdown.set()
 
     def _adopt_services(self):
