@@ -33,6 +33,9 @@ if __name__ == '__main__':
             'pyyaml',
             'trio',
         ],
+        extras_require={
+            'docs':  ["sphinx", "sphinxcontrib-tikz"],
+        },
         # metadata for package search
         license='MIT',
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
