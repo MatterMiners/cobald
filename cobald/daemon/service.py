@@ -81,7 +81,6 @@ def service(flavour):
     return service_unit_decorator
 
 
-@service(flavour=trio)
 class ServiceRunner(object):
     """
     Runner for coroutines, subroutines and services
@@ -110,6 +109,7 @@ class ServiceRunner(object):
         # force collecting objects so that defunct, migrated and overwritten services are destroyed now
         gc.collect()
         self._adopt_services()
+        self.adopt(self.run, flavour=trio)
         self._meta_runner.run()
 
     def shutdown(self):
