@@ -48,9 +48,9 @@ class TestServiceRunner(object):
 
         a = Service()
         run_in_thread(runner.accept, name='test_service')
-        a.done.wait(timeout=5)
+        assert a.done.wait(timeout=5), 'service thread completed'
         assert len(replies) == 1, 'pre-registered service ran'
         b = Service()
-        b.done.wait(timeout=5)
+        assert b.done.wait(timeout=5), 'service thread completed'
         assert len(replies) == 2, 'post-registered service ran'
         runner.shutdown()
