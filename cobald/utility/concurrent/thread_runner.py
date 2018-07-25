@@ -63,10 +63,11 @@ class ThreadRunner(BaseRunner):
 
     def _start_outstanding(self):
         with self._lock:
-            for subroutine in self._payloads:
-                thread = CapturingThread(target=subroutine)
-                thread.start()
-                self._threads.add(thread)
-                self._logger.debug('booted thread %s', thread)
+            payloads = self._payloads.copy()
             self._payloads.clear()
+        for subroutine in payloads:
+            thread = CapturingThread(target=subroutine)
+            thread.start()
+            self._threads.add(thread)
+            self._logger.debug('booted thread %s', thread)
         time.sleep(0)
