@@ -19,7 +19,6 @@ class ServiceUnit(object):
             "service flavour must be one of %s" % ','.join(repr(runner.flavour) for runner in MetaRunner.runner_types)
         self.service = weakref.ref(service)
         self.flavour = flavour
-        self._cancel = False
         self._started = False
         ServiceUnit.__active_units__.add(self)
 
@@ -32,14 +31,9 @@ class ServiceUnit(object):
     def running(self):
         return self._started
 
-    def cancel(self):
-        if self._started:
-            raise RuntimeError('attempt to cancel %r after starting it' % self)
-        self._cancel = True
-
     def start(self, runner: MetaRunner):
         service = self.service()
-        if service is None or self._cancel or self._started:
+        if service is None:
             return
         else:
             self._started = True
