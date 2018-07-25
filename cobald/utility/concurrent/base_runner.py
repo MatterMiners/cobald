@@ -19,7 +19,8 @@ class BaseRunner(object):
         self._stopped.set()
 
     def __bool__(self):
-        return bool(self._payloads) or self.running.is_set()
+        with self._lock:
+            return bool(self._payloads) or self.running.is_set()
 
     def register_payload(self, payload):
         """
