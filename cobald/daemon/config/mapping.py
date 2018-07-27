@@ -50,8 +50,8 @@ def _load_object(absolute_name: str):
             for component in path[1:]:
                 try:
                     obj = getattr(obj, component)
-                except AttributeError:
-                    raise ConfigurationError('no such object %r' % absolute_name)
+                except AttributeError as err:
+                    raise ConfigurationError('no such object %r: %s' % (absolute_name, err))
             return obj
     else:  # ImportError is not raised if ``absolute_name`` points to a valid module
         return sys.modules[absolute_name]
