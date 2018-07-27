@@ -7,7 +7,7 @@ import cobald
 from .logger import initialise_logging
 from .config.yaml import load_configuration
 from .cli import CLI
-from . import runner
+from . import runtime
 from .. import __about__
 
 
@@ -20,7 +20,7 @@ def core(configuration: str, level: str, target: str, short_format: bool):
     logger.debug(cobald.__file__)
     pipeline = load_configuration(configuration)
     logger.info('Running main event loop...')
-    runner.run()
+    runtime.accept()
 
 
 def main():
