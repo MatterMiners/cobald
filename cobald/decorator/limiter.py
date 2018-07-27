@@ -10,7 +10,6 @@ class Limiter(PoolDecorator):
     :param target: the pool to which changes are applied
     :param minimum: minimum demand to provide
     :param maximum: maximum demand to provide
-    :param backlog: limit for absolute difference between supply and demand
     """
     @property
     def demand(self):

@@ -42,6 +42,7 @@ class LineProtocolFormatter(Formatter):
         self._fields_blacklist = self._tags_whitelist | set(RECORD_ATTRIBUTES)
         self._resolution = resolution
 
+    @staticmethod
     def _as_dict(self, record, keys: set, defaults: dict):
         """Filter a populated ``record`` to a :py:class:`dict`"""
         data = defaults.copy()

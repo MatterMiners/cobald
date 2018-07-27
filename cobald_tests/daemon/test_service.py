@@ -2,7 +2,6 @@ import threading
 import pytest
 import time
 
-import trio
 import logging
 
 from cobald.daemon.service import ServiceRunner, service

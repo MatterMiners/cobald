@@ -2,9 +2,10 @@ import trio
 
 from cobald.interfaces import Pool, PoolDecorator
 
-from cobald.daemon import runner
+from cobald.daemon import service
 
 
+@service(flavour=trio)
 class Buffer(PoolDecorator):
     """
     A timed buffer for changes to a pool
@@ -21,7 +22,6 @@ class Buffer(PoolDecorator):
         super().__init__(target=target)
         self.window = window
         self.demand = target.demand
-        runner.register_payload(self.run, flavour=trio)
 
     async def run(self):
         while True:
