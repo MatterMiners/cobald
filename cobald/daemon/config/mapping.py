@@ -67,3 +67,18 @@ def _create_pipeline_element(element_mapping, context: str = 'pipeline element',
         if target is not None:
             return factory(target=target, **element_mapping)
         return factory(**element_mapping)
+
+
+def construct(mapping: dict, **kwargs):
+    """
+    Construct an object from a mapping
+
+    :param mapping: the constructor definition, with ``__type__`` name and keyword arguments
+    :param kwargs: additional keyword arguments to pass to the constructor
+    """
+    assert '__type__' not in kwargs and '__args__' not in kwargs
+    mapping = {**mapping, **kwargs}
+    factory_fqdn = mapping.pop('__type__')
+    factory = _load_object(factory_fqdn)
+    args = mapping.pop('__args__', [])
+    return factory(*args, **mapping)
