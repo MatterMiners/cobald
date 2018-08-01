@@ -69,6 +69,24 @@ def _create_pipeline_element(element_mapping, context: str = 'pipeline element',
         return factory(**element_mapping)
 
 
+def translate_hierarchy(structure, **construct_kwargs):
+    if isinstance(structure, dict):
+        structure = {key: translate_hierarchy(value) for key, value in structure.items()}
+        if '__type__' in structure:
+            return construct(structure, **construct_kwargs)
+        return structure
+    if isinstance(structure, list):
+        prev_item, items = None, []
+        for item in structure:
+            if not isinstance(prev_item, (list, dict, str, int, float)):
+                prev_item = translate_hierarchy(item, target=prev_item)
+            else:
+                prev_item = translate_hierarchy(item)
+            items.append(prev_item)
+        return items
+    return structure
+
+
 def construct(mapping: dict, **kwargs):
     """
     Construct an object from a mapping
