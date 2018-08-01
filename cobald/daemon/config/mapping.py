@@ -70,6 +70,9 @@ def _create_pipeline_element(element_mapping, context: str = 'pipeline element',
 
 
 class Translator(object):
+    """
+    Translator from a mapping to an initialised object hierarchy
+    """
     def translate_hierarchy(self, structure, **construct_kwargs):
         if isinstance(structure, dict):
             structure = {key: self.translate_hierarchy(value) for key, value in structure.items()}
@@ -87,8 +90,7 @@ class Translator(object):
             return items
         return structure
 
-    @staticmethod
-    def construct(mapping: dict, **kwargs):
+    def construct(self, mapping: dict, **kwargs):
         """
         Construct an object from a mapping
 
@@ -98,6 +100,27 @@ class Translator(object):
         assert '__type__' not in kwargs and '__args__' not in kwargs
         mapping = {**mapping, **kwargs}
         factory_fqdn = mapping.pop('__type__')
-        factory = _load_object(factory_fqdn)
+        factory = self.load_name(factory_fqdn)
         args = mapping.pop('__args__', [])
         return factory(*args, **mapping)
+
+    @staticmethod
+    def load_name(absolute_name: str):
+        """Load an object based on an absolute, dotted name"""
+        path = absolute_name.split('.')
+        try:
+            __import__(absolute_name)
+        except ImportError:
+            try:
+                obj = sys.modules[path[0]]
+            except KeyError:
+                raise ModuleNotFoundError('No module named %r' % path[0])
+            else:
+                for component in path[1:]:
+                    try:
+                        obj = getattr(obj, component)
+                    except AttributeError as err:
+                        raise ConfigurationError('no such object %r: %s' % (absolute_name, err))
+                return obj
+        else:  # ImportError is not raised if ``absolute_name`` points to a valid module
+            return sys.modules[absolute_name]
