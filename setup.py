@@ -32,6 +32,7 @@ if __name__ == '__main__':
             'typing',
             'pyyaml',
             'trio',
+            'include',
         ],
         extras_require={
             'docs':  ["sphinx", "sphinxcontrib-tikz"],

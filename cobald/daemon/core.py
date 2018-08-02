@@ -1,6 +1,7 @@
 """
 Daemon core specific to cobald
 """
+import os
 import sys
 import logging
 import platform
@@ -9,7 +10,8 @@ import cobald
 
 from .logger import initialise_logging
 from .config.mapping import Translator
-from .config.yaml import load_configuration
+from .config.yaml import load_configuration as load_yaml_configuration
+from .config.python import load_configuration as load_python_configuration
 from .cli import CLI
 from . import runtime
 from .. import __about__
@@ -39,9 +41,15 @@ def core(configuration: str, level: str, target: str, short_format: bool):
     logger.info(__about__.__url__)
     logger.info('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
     logger.debug(cobald.__file__)
-    pipeline = load_configuration(configuration, translator=PipelineTranslator())
+    if os.path.splitext(configuration)[1] == 'yaml':
+        handle = load_yaml_configuration(configuration, translator=PipelineTranslator())
+    elif os.path.splitext(configuration)[1] == 'py':
+        handle = load_python_configuration(configuration)
+    else:
+        raise ValueError('Unknown configuration extension: %r' % os.path.splitext(configuration)[1])
     logger.info('Running main event loop...')
     runtime.accept()
+    del handle
 
 
 def main():
