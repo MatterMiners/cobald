@@ -12,5 +12,6 @@ Submodules
 .. toctree::
 
    cobald.daemon.config.mapping
+   cobald.daemon.config.python
    cobald.daemon.config.yaml
 

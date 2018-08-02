@@ -11,6 +11,7 @@ Submodules
 
 .. toctree::
 
+   cobald.composite.factory
    cobald.composite.uniform
    cobald.composite.weighted
 
