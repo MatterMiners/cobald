@@ -16,16 +16,16 @@ from .. import __about__
 
 
 class PipelineTranslator(Translator):
-    def translate_hierarchy(self, structure, **construct_kwargs):
+    def translate_hierarchy(self, structure, *, where='', **construct_kwargs):
         try:
             pipeline = structure['pipeline']
         except (KeyError, TypeError):
-            return super().translate_hierarchy(structure, **construct_kwargs)
+            return super().translate_hierarchy(structure, where=where, **construct_kwargs)
         else:
             prev_item, items = None, []
-            for item in reversed(pipeline):
+            for index, item in reversed(list(enumerate(pipeline))):
                 if prev_item is not None:
-                    prev_item = self.translate_hierarchy(item, target=prev_item)
+                    prev_item = self.translate_hierarchy(item, where='%s[%s]' % (where, index), target=prev_item)
                 else:
                     prev_item = self.translate_hierarchy(item)
                 items.append(prev_item)
