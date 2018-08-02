@@ -6,17 +6,10 @@ _logger = logging.getLogger(__package__)
 
 
 class ConfigurationError(Exception):
-    pass
-
-
-class FieldError(ConfigurationError, KeyError):
-    """
-    An expected field is missing from the configuration
-    """
-    def __init__(self, field: str, context: str):
-        super().__init__('field %r missing at %s' % (field, context))
-        self.field = field
-        self.context = context
+    def __init__(self, where: str, what):
+        self.where = where
+        self.what = what
+        super().__init__("invalid configuration element '%s': %s" % (where, what))
 
 
 def configure_logging(logging_mapping):
@@ -73,17 +66,28 @@ class Translator(object):
     """
     Translator from a mapping to an initialised object hierarchy
     """
-    def translate_hierarchy(self, structure, **construct_kwargs):
-        if isinstance(structure, dict):
-            structure = {key: self.translate_hierarchy(value) for key, value in structure.items()}
-            if '__type__' in structure:
-                return self.construct(structure, **construct_kwargs)
-            return structure
-        elif isinstance(structure, list):
-            # translate bottom up
-            return list(reversed([self.translate_hierarchy(item) for item in reversed(structure)]))
-        else:
-            return structure
+    def translate_hierarchy(self, structure, *, where='', **construct_kwargs):
+        try:
+            if isinstance(structure, dict):
+                structure = {
+                    key: self.translate_hierarchy(value, where='%s.%s' % (where, key))
+                    for key, value in structure.items()
+                }
+                if '__type__' in structure:
+                    return self.construct(structure, **construct_kwargs)
+                return structure
+            elif isinstance(structure, list):
+                # translate bottom up - need those lists to materialize reversed and enumerate iterables
+                return list(reversed([
+                    self.translate_hierarchy(item, where='%s[%s]' % (where, index))
+                    for index, item in reversed(list(enumerate(structure)))
+                ]))
+            else:
+                return structure
+        except ConfigurationError:
+            raise
+        except Exception as err:
+            raise ConfigurationError(where=where, what=err)
 
     def construct(self, mapping: dict, **kwargs):
         """
