@@ -1,7 +1,15 @@
+import pytest
 from collections import Counter
-from cobald.daemon.config.mapping import Translator
+from cobald.daemon.config.mapping import Translator, ConfigurationError
 
 
+def fqdn(obj):
+    """Assign an fully qualified name to an object"""
+    obj.fqdn = obj.__module__ + '.' + obj.__qualname__
+    return obj
+
+
+@fqdn
 class Construct(object):
     """Type that stores its parameters on construction"""
     def __init__(self, *args, **kwargs):
@@ -12,12 +20,12 @@ class Construct(object):
         return '%s(*%r, **%r)' % (self.__class__.__name__, self.args, self.kwargs)
 
 
+@fqdn
 def count(key):
     _counts[key] += 1
     return _counts[key]
 
 
-count.fqdn = count.__module__ + '.' + count.__qualname__
 _counts = Counter()
 
 
@@ -25,7 +33,13 @@ def counted(key):
     return {'__type__': count.fqdn, '__args__': [key]}
 
 
-Construct.fqdn = Construct.__module__ + '.' + Construct.__qualname__
+class SomeError(Exception):
+    pass
+
+
+@fqdn
+def raises(exc=SomeError):
+    raise exc('this is an error')
 
 
 class TestTranslate(object):
@@ -77,3 +91,13 @@ class TestTranslate(object):
                 [counted('nested') for _ in range(2)]
         ])
         assert nested == [[6, 5], 4, 3, [2, 1]]
+
+    def test_translate_error(self):
+        translator = Translator()
+        with pytest.raises(ConfigurationError) as err:
+            translator.translate_hierarchy({'__type__': raises.fqdn}, where='test_translate_error')
+        assert err.value.where == 'test_translate_error'
+        # make sure errors propagate up without being raised anew
+        with pytest.raises(ConfigurationError) as err:
+            translator.translate_hierarchy([1, {'foo': {'__type__': raises.fqdn}}], where='test_translate_error')
+        assert err.value.where == 'test_translate_error[1].foo'
