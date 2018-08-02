@@ -79,16 +79,10 @@ class Translator(object):
             if '__type__' in structure:
                 return self.construct(structure, **construct_kwargs)
             return structure
-        if isinstance(structure, list):
-            prev_item, items = None, []
-            for item in structure:
-                if not isinstance(prev_item, (list, dict, str, int, float)):
-                    prev_item = self.translate_hierarchy(item, target=prev_item)
-                else:
-                    prev_item = self.translate_hierarchy(item)
-                items.append(prev_item)
-            return items
-        return structure
+        elif isinstance(structure, list):
+            return [self.translate_hierarchy(item) for item in structure]
+        else:
+            return structure
 
     def construct(self, mapping: dict, **kwargs):
         """
