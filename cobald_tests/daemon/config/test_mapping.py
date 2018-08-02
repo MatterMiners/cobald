@@ -14,7 +14,7 @@ class Construct(object):
 Construct.fqdn = Construct.__module__ + '.' + Construct.__qualname__
 
 
-class TestHelpers(object):
+class TestTranslate(object):
     def test_load_name(self):
         translator = Translator()
         loaded_construct = translator.load_name(Construct.fqdn)
