@@ -1,3 +1,4 @@
+from collections import Counter
 from cobald.daemon.config.mapping import Translator
 
 
@@ -9,6 +10,19 @@ class Construct(object):
 
     def __repr__(self):
         return '%s(*%r, **%r)' % (self.__class__.__name__, self.args, self.kwargs)
+
+
+def count(key):
+    _counts[key] += 1
+    return _counts[key]
+
+
+count.fqdn = count.__module__ + '.' + count.__qualname__
+_counts = Counter()
+
+
+def counted(key):
+    return {'__type__': count.fqdn, '__args__': [key]}
 
 
 Construct.fqdn = Construct.__module__ + '.' + Construct.__qualname__
@@ -50,3 +64,10 @@ class TestTranslate(object):
         )
         assert isinstance(stacked[1], Construct)
         assert isinstance(stacked[1].kwargs['child'], Construct)
+
+    def test_translate_bottom_up(self):
+        translator = Translator()
+        plain = translator.translate_hierarchy(counted('plain'))
+        assert plain == 1
+        sequence = translator.translate_hierarchy([counted('sequence') for _ in range(5)])
+        assert sequence == [item for item in range(5, 0, -1)]

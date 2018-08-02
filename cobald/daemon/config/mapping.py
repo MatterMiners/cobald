@@ -80,7 +80,8 @@ class Translator(object):
                 return self.construct(structure, **construct_kwargs)
             return structure
         elif isinstance(structure, list):
-            return [self.translate_hierarchy(item) for item in structure]
+            # translate bottom up
+            return list(reversed([self.translate_hierarchy(item) for item in reversed(structure)]))
         else:
             return structure
 
