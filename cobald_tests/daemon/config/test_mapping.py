@@ -71,3 +71,9 @@ class TestTranslate(object):
         assert plain == 1
         sequence = translator.translate_hierarchy([counted('sequence') for _ in range(5)])
         assert sequence == [item for item in range(5, 0, -1)]
+        nested = translator.translate_hierarchy([
+                [counted('nested') for _ in range(2)],
+                *[counted('nested') for _ in range(2)],
+                [counted('nested') for _ in range(2)]
+        ])
+        assert nested == [[6, 5], 4, 3, [2, 1]]
