@@ -17,51 +17,6 @@ def configure_logging(logging_mapping):
     logging.config.dictConfig(logging_mapping)
 
 
-def create_pipeline(pipeline_elements):
-    _logger.info('Configuring pipelines')
-    pipeline = []
-    previous_element = None
-    for idx, element_data in enumerate(pipeline_elements):
-        previous_element = _create_pipeline_element(
-            element_data, context='pipeline element %d' % (idx + 1), target=previous_element
-        )
-        pipeline.append(previous_element)
-    return pipeline
-
-
-def _load_object(absolute_name: str):
-    """Load an object based on an absolute, dotted name"""
-    path = absolute_name.split('.')
-    try:
-        __import__(absolute_name)
-    except ImportError:
-        try:
-            obj = sys.modules[path[0]]
-        except KeyError:
-            raise ModuleNotFoundError('No module named %r' % path[0])
-        else:
-            for component in path[1:]:
-                try:
-                    obj = getattr(obj, component)
-                except AttributeError as err:
-                    raise ConfigurationError('no such object %r: %s' % (absolute_name, err))
-            return obj
-    else:  # ImportError is not raised if ``absolute_name`` points to a valid module
-        return sys.modules[absolute_name]
-
-
-def _create_pipeline_element(element_mapping, context: str = 'pipeline element', target=None):
-    try:
-        factory_name = element_mapping.pop('type')
-    except KeyError:
-        raise FieldError('type', context)
-    else:
-        factory = _load_object(factory_name)
-        if target is not None:
-            return factory(target=target, **element_mapping)
-        return factory(**element_mapping)
-
-
 class Translator(object):
     """
     Translator from a mapping to an initialised object hierarchy
