@@ -12,3 +12,4 @@ Any component integrated into this infrastructure can be configured and controll
 
     logging
     runners
+    config
