@@ -1,3 +1,6 @@
+"""
+Daemon core specific to cobald
+"""
 import sys
 import logging
 import platform
@@ -5,10 +8,28 @@ import platform
 import cobald
 
 from .logger import initialise_logging
+from .config.mapping import Translator
 from .config.yaml import load_configuration
 from .cli import CLI
 from . import runtime
 from .. import __about__
+
+
+class PipelineTranslator(Translator):
+    def translate_hierarchy(self, structure, **construct_kwargs):
+        try:
+            pipeline = structure['pipeline']
+        except (KeyError, TypeError):
+            return super().translate_hierarchy(structure, **construct_kwargs)
+        else:
+            prev_item, items = None, []
+            for item in reversed(pipeline):
+                if prev_item is not None:
+                    prev_item = self.translate_hierarchy(item, target=prev_item)
+                else:
+                    prev_item = self.translate_hierarchy(item)
+                items.append(prev_item)
+            return list(reversed(items))
 
 
 def core(configuration: str, level: str, target: str, short_format: bool):
@@ -18,7 +39,7 @@ def core(configuration: str, level: str, target: str, short_format: bool):
     logger.info(__about__.__url__)
     logger.info('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
     logger.debug(cobald.__file__)
-    pipeline = load_configuration(configuration)
+    pipeline = load_configuration(configuration, translator=PipelineTranslator())
     logger.info('Running main event loop...')
     runtime.accept()
 
