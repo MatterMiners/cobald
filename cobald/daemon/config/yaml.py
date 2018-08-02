@@ -1,6 +1,6 @@
 from yaml import load
 
-from .mapping import configure_logging, Translator, FieldError
+from .mapping import configure_logging, Translator, ConfigurationError
 
 
 def load_configuration(path, translator=Translator()):
@@ -14,8 +14,9 @@ def load_configuration(path, translator=Translator()):
         configure_logging(logging_mapping)
     try:
         root_pipeline = config_data.pop('pipeline')
-    except KeyError:
-        raise FieldError('pipeline', 'configuration root')
+    except KeyError as err:
+        raise ConfigurationError(where='root', what=err)
     else:
-        assert not config_data, 'dangling configuration data: %s' % config_data
+        if config_data:
+            raise ConfigurationError(where='root', what='dangling configuration keys (%s)' % ', '.join(config_data))
         return translator.translate_hierarchy({'pipeline': root_pipeline})
