@@ -41,9 +41,9 @@ def core(configuration: str, level: str, target: str, short_format: bool):
     logger.info(__about__.__url__)
     logger.info('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
     logger.debug(cobald.__file__)
-    if os.path.splitext(configuration)[1] == 'yaml':
+    if os.path.splitext(configuration)[1] == '.yaml':
         handle = load_yaml_configuration(configuration, translator=PipelineTranslator())
-    elif os.path.splitext(configuration)[1] == 'py':
+    elif os.path.splitext(configuration)[1] == '.py':
         handle = load_python_configuration(configuration)
     else:
         raise ValueError('Unknown configuration extension: %r' % os.path.splitext(configuration)[1])
