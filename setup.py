@@ -31,7 +31,7 @@ if __name__ == '__main__':
         install_requires=[
             'typing',
             'pyyaml',
-            'trio',
+            'trio~=0.4.0',
             'include',
         ],
         extras_require={
