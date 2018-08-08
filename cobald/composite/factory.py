@@ -54,7 +54,7 @@ class FactoryPool(CompositePool):
         except ZeroDivisionError:
             return 1.
 
-    def __init__(self, *children: Pool, factory: Callable[..., Pool], interval: float = 30):
+    def __init__(self, *children: Pool, factory: Callable[[], Pool], interval: float = 30):
         self._demand = sum(child.demand for child in children)
         #: children fulfilling our demand
         self._hatchery = set(children)
