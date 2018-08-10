@@ -22,13 +22,13 @@ class Standardiser(PoolDecorator):
     It is illegal to
     """
     @property
-    def demand(self):
+    def demand(self) -> float:
         if abs(self._demand - self.target.demand) >= self.granularity:
             self._demand = self.target.demand
         return self._demand
 
     @demand.setter
-    def demand(self, value):
+    def demand(self, value: float):
         minimum = max(self.minimum, self.target.supply - self.backlog)
         maximum = min(self.maximum, self.target.supply + self.surplus)
         self._demand = type(value)(min(maximum, max(minimum, value)))
