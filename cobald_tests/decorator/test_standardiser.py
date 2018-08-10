@@ -28,6 +28,16 @@ class TestStandardiser(object):
                     standardiser.demand = value
                     assert pool.demand % granularity == 0
 
+    def test_granularity_incremental(self):
+        pool = FullMockPool()
+        for granularity in (1, 3, 5, 7, 13, 16):
+            pool.demand = 0
+            standardiser = Standardiser(pool, granularity=granularity)
+            for total in range(granularity * 5):
+                standardiser.demand += 1
+                assert pool.demand % granularity == 0
+                assert standardiser.demand % granularity == (total + 1) % granularity
+
     def test_surplus_backlog(self):
         pool = FullMockPool()
         for base_supply in (10000, 500, 0):
