@@ -2,7 +2,7 @@ import pytest
 
 from ..mock.pool import FullMockPool
 
-from cobald.decorator.standardizer import Standardiser
+from cobald.decorator.standardiser import Standardiser
 
 
 class TestStandardiser(object):
