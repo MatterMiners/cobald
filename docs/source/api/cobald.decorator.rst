@@ -15,4 +15,5 @@ Submodules
    cobald.decorator.coarser
    cobald.decorator.limiter
    cobald.decorator.logger
+   cobald.decorator.standardiser
 
