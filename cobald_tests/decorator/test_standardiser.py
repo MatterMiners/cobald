@@ -29,14 +29,17 @@ class TestStandardiser(object):
                     assert pool.demand % granularity == 0
 
     def test_granularity_incremental(self):
+        """Standardiser: ``demand + n`` equals ``demand + 1 + 1 + 1 ... + 1``"""
         pool = FullMockPool()
         for granularity in (1, 3, 5, 7, 13, 16):
-            pool.demand = 0
+            # wrap first, then reset to test if Standardiser correctly picks this up
             standardiser = Standardiser(pool, granularity=granularity)
+            pool.demand = 0
             for total in range(granularity * 5):
                 standardiser.demand += 1
                 assert pool.demand % granularity == 0
                 assert standardiser.demand % granularity == (total + 1) % granularity
+                assert standardiser.demand == total + 1
 
     def test_surplus_backlog(self):
         pool = FullMockPool()
