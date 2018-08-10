@@ -23,6 +23,7 @@ COBalD - the Opportunistic Balancing Daemon
     :target: https://github.com/MaineKuehn/cobald/blob/master/LICENSE.txt
 
 .. toctree::
+    :hidden:
     :maxdepth: 1
     :caption: Contents:
 
@@ -34,7 +35,7 @@ COBalD - the Opportunistic Balancing Daemon
 
 .. image:: images/cobald_logo_120.png
     :alt: Cobald Logo
-    :height: 120
+    :height: 150
     :align: right
 
 The ``cobald`` library provides a framework and runtime for balancing opportunistic resources.
