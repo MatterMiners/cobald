@@ -32,10 +32,10 @@ COBalD - the Opportunistic Balancing Daemon
     /source/glossary
     Module Index <source/api/modules>
 
-.. image:: images/cobald_logo.svg
+.. image:: images/cobald_logo_120.png
     :alt: Cobald Logo
-    :height: 150
-    :align: left
+    :height: 120
+    :align: right
 
 The ``cobald`` library provides a framework and runtime for balancing opportunistic resources.
 With its straightforward :doc:`model </source/model/overview>` for pools of resources and their composition,

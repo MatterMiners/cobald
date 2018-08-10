@@ -35,7 +35,7 @@ if __name__ == '__main__':
             'include',
         ],
         extras_require={
-            'docs':  ["sphinx", "sphinxcontrib-tikz"],
+            'docs':  ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
         },
         # metadata for package search
         license='MIT',
