@@ -8,7 +8,7 @@ from .base_runner import BaseRunner
 from .trio_runner import TrioRunner
 from .asyncio_runner import AsyncioRunner
 from .thread_runner import ThreadRunner
-from .asyncio_watcher import AsyncioMainWatcher
+from .asyncio_watcher import asyncio_main_run
 
 
 from ...utility.debug import NameRepr
@@ -54,8 +54,7 @@ class MetaRunner(object):
                 if runner is not thread_runner:
                     thread_runner.register_payload(runner.run)
             if threading.current_thread() == threading.main_thread():
-                main_asyncio = AsyncioMainWatcher()
-                main_asyncio.run(root_runner=thread_runner)
+                asyncio_main_run(root_runner=thread_runner)
             else:
                 thread_runner.run()
         except Exception as err:
