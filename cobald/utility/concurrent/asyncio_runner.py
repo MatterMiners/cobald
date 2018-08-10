@@ -23,7 +23,6 @@ class AsyncioRunner(BaseRunner):
 
     def _run(self):
         asyncio.set_event_loop(self.event_loop)
-        asyncio.get_child_watcher()
         self.event_loop.run_until_complete(self.await_all())
 
     async def await_all(self):

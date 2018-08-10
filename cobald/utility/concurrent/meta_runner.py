@@ -8,6 +8,7 @@ from .base_runner import BaseRunner
 from .trio_runner import TrioRunner
 from .asyncio_runner import AsyncioRunner
 from .thread_runner import ThreadRunner
+from .asyncio_watcher import AsyncioMainWatcher
 
 
 from ...utility.debug import NameRepr
@@ -52,7 +53,11 @@ class MetaRunner(object):
             for runner in self.runners.values():
                 if runner is not thread_runner:
                     thread_runner.register_payload(runner.run)
-            thread_runner.run()
+            if threading.current_thread() == threading.main_thread():
+                main_asyncio = AsyncioMainWatcher()
+                main_asyncio.run(root_runner=thread_runner)
+            else:
+                thread_runner.run()
         except Exception as err:
             self._logger.error('runner terminated: %s', err)
             raise RuntimeError from err
