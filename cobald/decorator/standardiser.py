@@ -23,12 +23,15 @@ class Standardiser(PoolDecorator):
     """
     @property
     def demand(self):
-        return self.target.demand
+        if abs(self._demand - self.target.demand) >= self.granularity:
+            self._demand = self.target.demand
+        return self._demand
 
     @demand.setter
     def demand(self, value):
         minimum = max(self.minimum, self.target.supply - self.backlog)
         maximum = min(self.maximum, self.target.supply + self.surplus)
+        self._demand = type(value)(min(maximum, max(minimum, value)))
         request = value // self.granularity * self.granularity
         self.target.demand = type(value)(min(maximum, max(minimum, request)))
 
@@ -43,6 +46,9 @@ class Standardiser(PoolDecorator):
         enforce(surplus > 0, ValueError('allowed surplus must be positive'))
         enforce(backlog > 0, ValueError('allowed backlog must be positive'))
         enforce(granularity > 0, ValueError('granularity must be positive'))
+        # demand may be incrementally changed - store it internally to give
+        # the impression of a smooth transition
+        self._demand = target.demand
         self.minimum = minimum
         self.maximum = maximum
         self.granularity = granularity
