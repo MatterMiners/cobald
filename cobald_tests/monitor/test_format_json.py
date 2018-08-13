@@ -62,3 +62,9 @@ class TestFormatJson(object):
         assert len(data) == len(payload) + 1
         assert 'time' not in data
 
+    def test_payload_empty(self):
+        logger, handler = make_test_logger(__name__)
+        handler.formatter = JsonFormatter()
+        logger.critical('message', {})
+        data = json.loads(handler.content)
+        assert len(data) == 2
