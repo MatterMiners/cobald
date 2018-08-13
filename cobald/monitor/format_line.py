@@ -45,9 +45,11 @@ class LineProtocolFormatter(Formatter):
 
     def format(self, record: LogRecord) -> str:
         args = record.args
+        if args == ({},):  # logger.info('message', {}) -> record.args == ({},)
+            args = {}
         assert isinstance(args, Mapping), 'monitor record argument must be a mapping, not %r' % type(args)
         record.asctime = self.formatTime(record, self.datefmt)
-        record.message = record.getMessage()
+        record.message = record.getMessage() if args else record.msg
         tags = self._default_tags.copy()
         tags.update({key: value for key, value in args.items() if key in self._tags_whitelist})
         fields = {key: value for key, value in args.items() if key not in self._fields_blacklist}
