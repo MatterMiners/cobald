@@ -46,3 +46,22 @@ class TestFormatLine(object):
             name, tags, fields, timestamp = parse_line_protocol(handler.content)
             assert len(fields) == len(payload)
             assert timestamp == now // resolution * resolution * 1e9
+
+    def test_payload_tag(self):
+        for payload in (
+                {'a': 'a'},
+                {'a': 'a', 'b': 'b'},
+                {str(i): i for i in range(20)},
+        ):
+            logger, handler = make_test_logger(__name__)
+            handler.formatter = LineProtocolFormatter({'a'})
+            logger.critical('message', payload)
+            name, tags, fields, timestamp = parse_line_protocol(handler.content)
+            assert timestamp is None
+            if 'a' in payload:
+                assert len(fields) == len(payload) - 1
+                assert tags == {'a': 'a'}
+                assert fields == {key: value for key, value in payload.items() if key != 'a'}
+            else:
+                assert len(fields) == len(payload)
+                assert fields == payload
