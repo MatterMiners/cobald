@@ -32,12 +32,14 @@ class JsonFormatter(Formatter):
 
     def format(self, record: LogRecord):
         args = record.args
+        if args == ({},):  # logger.info('message', {}) -> record.args == ({},)
+            args = {}
         assert isinstance(args, Mapping), 'monitor record argument must be a mapping, not %r' % type(args)
         data = self._defaults
         if self._add_time:
             data['time'] = self.formatTime(record, self.datefmt)
-        data['message'] = record.getMessage()
-        data.update(record.args)
+        data['message'] = record.getMessage() if args else record.msg
+        data.update(args)
         return json.dumps(data)
 
 
