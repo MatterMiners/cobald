@@ -1,10 +1,11 @@
 from collections.abc import Mapping
 from logging import Formatter, LogRecord
+from typing import Dict, Set, Union, Any
 
 from .format_json import RECORD_ATTRIBUTES
 
 
-def line_protocol(name, tags: dict = None, fields: dict = None, timestamp: float = None):
+def line_protocol(name, tags: dict = None, fields: dict = None, timestamp: float = None) -> str:
     """
     Format a report as per InfluxDB line protocol
 
@@ -35,25 +36,14 @@ class LineProtocolFormatter(Formatter):
     The ``tags`` act as a whitelist for record keys if they are an iterable.
     When a dictionary is supplied, its values act as default values if the key is not in a record.
     """
-    def __init__(self, tags: dict = None, resolution: float = None):
+    def __init__(self, tags: Union[Dict[str, Any], Set[str], None] = None, resolution: float = None):
         super().__init__()
         self._default_tags = tags if isinstance(tags, Mapping) else {}
         self._tags_whitelist = set(tags) if tags is not None else set()
         self._fields_blacklist = self._tags_whitelist | set(RECORD_ATTRIBUTES)
         self._resolution = resolution
 
-    @staticmethod
-    def _as_dict(self, record, keys: set, defaults: dict):
-        """Filter a populated ``record`` to a :py:class:`dict`"""
-        data = defaults.copy()
-        data.update({
-            name: value
-            for name, value in record.__dict__.items()
-            if name in keys
-        })
-        return data
-
-    def format(self, record: LogRecord):
+    def format(self, record: LogRecord) -> str:
         args = record.args
         assert isinstance(args, Mapping), 'monitor record argument must be a mapping, not %r' % type(args)
         record.asctime = self.formatTime(record, self.datefmt)
