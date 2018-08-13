@@ -40,6 +40,7 @@ def make_test_logger(base_name: str = 'test_logger'):
         log_name = base_name + '.test%d' % _test_index
         _test_index += 1
     logger = logging.getLogger(log_name)
+    logger.propagate = False
     logger.__class__ = ExtraLogger
     handler = CapturingHandler()
     logger.handlers = [handler]
