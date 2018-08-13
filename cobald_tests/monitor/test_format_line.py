@@ -65,3 +65,14 @@ class TestFormatLine(object):
             else:
                 assert len(fields) == len(payload)
                 assert fields == payload
+
+    def test_payload_empty(self):
+        logger, handler = make_test_logger(__name__)
+        handler.formatter = LineProtocolFormatter()
+        logger.critical('message', {})
+        name, tags, fields, timestamp = parse_line_protocol(handler.content)
+        assert len(fields) == 0
+        assert fields == {}
+        assert len(tags) == 0
+        assert tags == {}
+        assert timestamp is None
