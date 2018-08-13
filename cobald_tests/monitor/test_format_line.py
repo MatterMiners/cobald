@@ -9,7 +9,7 @@ from . import make_test_logger
 def parse_line_protocol(literal: str):
     name_tags, _, fields_stamp = literal.strip().partition(' ')
     fields, _, stamp = fields_stamp.partition(' ')
-    fields = fields.split(',')
+    fields = fields.split(',') if fields else []
     name, *tags = name_tags.split(',')
     return name, {
         key: value
