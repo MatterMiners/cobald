@@ -13,6 +13,7 @@ Submodules
 
    cobald.utility.concurrent.async_tools
    cobald.utility.concurrent.asyncio_runner
+   cobald.utility.concurrent.asyncio_watcher
    cobald.utility.concurrent.base_runner
    cobald.utility.concurrent.meta_runner
    cobald.utility.concurrent.thread_runner

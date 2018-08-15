@@ -39,23 +39,49 @@ COBalD - the Opportunistic Balancing Daemon
     :align: right
 
 The ``cobald`` library provides a framework and runtime for balancing opportunistic resources.
-With its straightforward :doc:`model </source/model/overview>` for pools of resources and their composition,
+With its lightweight :doc:`model </source/model/overview>` for pools of resources and their composition,
 it is easy to define and manage a large number of opportunistic resources.
-At the heart of ``cobald`` is a minimal control model that condenses the desirable *and* feasible features
+At the heart of ``cobald`` is a minimal control model that condenses relevant features
 to control resources in a scalable and dynamic way.
 
 .. seealso:: The `cobald demo`_ is a minimal working toy example for using :py:mod:`cobald`.
 
-Overview
-========
+The COBalD Resource Model
+=========================
 
-The ``cobald`` model for resource control is built on four simple primitives:
+The ``cobald`` model for controlling resources is built on four simple types of primitives.
+Two fundamental primitives represent the actual resources and the provisioning strategy:
 
 * The adapter handling concrete resources is a :py:class:`~cobald.interfaces.Pool`.
-  Each Pool merely communicates the total volume of resources and their fitness.
+  Each Pool merely communicates the total volume of resources and their overall fitness.
 
 * The decision to add or remove resources is made by a :py:class:`~cobald.interfaces.Controller`.
   Each Controller only inspects the fitness of its Pools and adjusts their desired volume.
+
+These two primitives are sufficient for direct control of simple resources.
+It is often feasible to control several pools of resources separately.
+
+.. graphviz::
+
+    digraph graphname {
+        graph [rankdir=LR, splines=lines, bgcolor="transparent"]
+        labelloc = "b"
+        controla, controlb [label=Controller]
+        poola, poolb [label=Pool]
+        subgraph cluster_0 {
+            controla -> poola
+            pencolor=transparent
+            label = "Resource 1"
+        }
+        subgraph cluster_1 {
+            controlb -> poolb
+            pencolor=transparent
+            label = "Resource 2"
+        }
+        poola -> controlb [style=invis]
+    }
+
+For complex tasks it may be necessary to combine resources or change their interaction and appearance.
 
 * The details of managing resources are encoded by :py:class:`~cobald.interfaces.Decorator`\ s.
   Each Decorator translates between the specific :py:class:`~cobald.interfaces.Pool`\ s
@@ -64,19 +90,27 @@ The ``cobald`` model for resource control is built on four simple primitives:
 * The combination of several resources is made by :py:class:`~cobald.interfaces.CompositePool`\ s.
   Each CompositePool handles several Pools, but gives the outward appearance of a single Pool.
 
-These primitives can be combined to express both simple and complex resource and control scenarios.
-The end result is a chain or tree, with a :py:class:`~cobald.interfaces.Controller` on one end
+All four primitives can be combined to express even complex resource and control scenarios.
+However, there is always a :py:class:`~cobald.interfaces.Controller` on one end
 and a :py:class:`~cobald.interfaces.Pool` on the other.
 Since individual primitives can be combined and reused,
 new use cases require only a minimum of new implementations.
 
-::
+.. graphviz::
 
-    Controller <--> Pool
-
-                                                /-> Decorator <--> Pool
-    Controller <--> Decorator <--> Composite <-|
-                                                \-> Decorator <--> Pool
+    digraph graphname {
+        graph [rankdir=LR, splines=lines, bgcolor="transparent"]
+        labelloc = "b"
+        controller [label=Controller]
+        decoa, decob, decoc [label=Decorator]
+        composite [label=Composite]
+        poola, poolb [label=Pool]
+        controller -> decoa -> composite
+        composite -> decob -> poola
+        composite -> decoc -> poolb
+        pencolor=transparent
+        label = "Resource 1 and 2"
+    }
 
 About
 =====
