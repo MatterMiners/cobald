@@ -87,6 +87,7 @@ class FactoryPool(CompositePool):
             if child.demand <= excess_demand:
                 excess_demand -= child.demand
                 self._release_child(child)
+        self._reap_children()
 
     def _grow(self, target: float):
         missing_demand = target - sum(child.demand for child in self.children)
@@ -95,6 +96,12 @@ class FactoryPool(CompositePool):
             self._hatchery.add(new_child)
             assert new_child.demand > 0, 'factory must produce children with initial demand'
             missing_demand -= new_child.demand
+        self._reap_children()
+
+    def _reap_children(self):
+        for child in self._hatchery:
+            if child.demand <= 0:
+                self._release_child(child)
 
     def _release_child(self, child: Pool):
         child.demand = 0
