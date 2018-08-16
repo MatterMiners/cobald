@@ -21,7 +21,8 @@ class FactoryPool(CompositePool):
     * When disabled via ``demand=0``, children shall shut down and free any resources and tasks.
 
     Once spawned, children are free to adjust their demand if required.
-    The :py:class:`FactoryPool` re-inspects demand before spawning or disabling children.
+    A child may disable itself permanently by setting ``demand=0``.
+    The :py:class:`FactoryPool` re-inspects child demand before spawning or disabling children.
     """
     @property
     def children(self):
