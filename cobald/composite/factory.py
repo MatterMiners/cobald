@@ -71,11 +71,11 @@ class FactoryPool(CompositePool):
             # freeze target demand in case another thread updates us
             supply, demand = self.supply, self.demand
             if supply > demand:
-                await self._shrink(target=demand)
+                self._shrink(target=demand)
             else:
-                await self._grow(target=demand)
+                self._grow(target=demand)
 
-    async def _shrink(self, target: float):
+    def _shrink(self, target: float):
         # we can only reap children that are not already shutting down
         # prefer reaping children that supply few used resources
         hit_list = sorted(self._hatchery, key=lambda child: child.supply * child.utilisation)
@@ -86,14 +86,17 @@ class FactoryPool(CompositePool):
             # reap child
             if child.demand <= excess_demand:
                 excess_demand -= child.demand
-                child.demand = 0
-                self._hatchery.discard(child)
-                self._mortuary.add(child)
+                self._release_child(child)
 
-    async def _grow(self, target: float):
+    def _grow(self, target: float):
         missing_demand = target - sum(child.demand for child in self.children)
         while missing_demand > 0:
             new_child = self.factory()
             self._hatchery.add(new_child)
             assert new_child.demand > 0, 'factory must produce children with initial demand'
             missing_demand -= new_child.demand
+
+    def _release_child(self, child: Pool):
+        child.demand = 0
+        self._hatchery.discard(child)
+        self._mortuary.add(child)
