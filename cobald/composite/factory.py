@@ -42,15 +42,17 @@ class FactoryPool(CompositePool):
 
     @property
     def utilisation(self):
+        active_children = [child for child in self._hatchery if child.supply > 0]
         try:
-            return sum(child.utilisation for child in self._hatchery) / len(self._hatchery)
+            return sum(child.utilisation for child in active_children) / len(active_children)
         except ZeroDivisionError:
             return 1.
 
     @property
     def allocation(self):
+        active_children = [child for child in self._hatchery if child.supply > 0]
         try:
-            return sum(child.allocation for child in self._hatchery) / len(self._hatchery)
+            return sum(child.allocation for child in active_children) / len(active_children)
         except ZeroDivisionError:
             return 1.
 
