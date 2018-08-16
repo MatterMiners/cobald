@@ -23,6 +23,12 @@ class FactoryPool(CompositePool):
     Once spawned, children are free to adjust their demand if required.
     A child may disable itself permanently by setting ``demand=0``.
     The :py:class:`FactoryPool` re-inspects child demand before spawning or disabling children.
+
+    Note that both ``allocation`` and ``utilisation`` are computed only from children which
+    satisfy ``supply > 0`` and ``demand > 0``.
+    All other machines are considered as not fully functional -
+    and thus as representative due to not aiming for ideal usage.
+    The ``children``, ``demand`` and ``supply`` reflect all available resources, however.
     """
     @property
     def children(self):
