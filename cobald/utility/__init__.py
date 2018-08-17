@@ -17,3 +17,9 @@ def enforce(condition: bool, exception: BaseException = InvariantError()):
     """
     if not condition:
         raise exception
+
+
+def pairwise(iterable):
+    """Iterator yielding consecutive pairs from ``iterable``"""
+    elements = iter(iterable)
+    return zip(elements, elements)
