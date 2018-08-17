@@ -11,3 +11,7 @@ class Controller(metaclass=abc.ABCMeta):
     """
     def __init__(self, target: Pool):
         self.target = target
+
+    @abc.abstractmethod
+    def regulate(self, interval: float):
+        """Regulate demand for the ``pool`` in the past ``interval`` seconds"""

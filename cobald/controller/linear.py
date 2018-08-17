@@ -15,17 +15,8 @@ class LinearController(Controller):
     :param high_allocation: pool allocation above which resources are increased
     :param rate: maximum change of demand in resources per second
     """
-    @property
-    def rate(self):
-        return 1 / self._interval
-
-    @rate.setter
-    def rate(self, value):
-        self._interval = 1 / value
-
     def __init__(self, target: Pool, low_utilisation=0.5, high_allocation=0.5, rate=1):
         super().__init__(target=target)
-        self._interval = None
         assert rate > 0
         self.rate = rate
         assert low_utilisation <= high_allocation
@@ -34,11 +25,11 @@ class LinearController(Controller):
 
     async def run(self):
         while True:
-            self.regulate_demand()
-            await trio.sleep(self._interval)
+            self.regulate_demand(1)
+            await trio.sleep(1)
 
-    def regulate_demand(self):
+    def regulate(self, interval):
         if self.target.utilisation < self.low_utilisation:
-            self.target.demand -= 1
+            self.target.demand -= interval * self.rate
         elif self.target.allocation > self.high_allocation:
-            self.target.demand += 1
+            self.target.demand += interval * self.rate
