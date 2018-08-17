@@ -17,8 +17,11 @@ class DemandSwitch(Controller):
         DemandSwitch(pool, linear_control, 10, supply_control)
 
     :param target: the pool on which to regulate demand
+    :param default: controller to use by default
+    :param slaves: alternating sequence of minimum demand to switch and corresponding controller
+    :param interval: interval between adjustments in seconds
     """
-    def __init__(self, target: Pool, default: Controller, *slaves: Union[Controller, float], interval: int = 1):
+    def __init__(self, target: Pool, default: Controller, *slaves: Union[float, Controller], interval=1):
         super().__init__(target)
         enforce(len(slaves) % 2 == 0, InvariantError("slaves must be paired with required demands"))
         self._default = default
