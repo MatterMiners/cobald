@@ -12,4 +12,6 @@ Submodules
 .. toctree::
 
    cobald.controller.linear
+   cobald.controller.relative_supply
+   cobald.controller.switch
 
