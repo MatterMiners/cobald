@@ -27,7 +27,7 @@ class LinearController(Controller):
 
     async def run(self):
         while True:
-            self.regulate_demand(self.interval)
+            self.regulate(self.interval)
             await trio.sleep(self.interval)
 
     def regulate(self, interval):
