@@ -11,6 +11,12 @@ from ..utility.concurrent.meta_runner import MetaRunner
 
 
 class ServiceUnit(object):
+    """
+    Definition for running a service
+
+    :param service: the service to run
+    :param flavour: runner flavour to use for running the service
+    """
     __active_units__ = weakref.WeakSet()
 
     def __init__(self, service, flavour):
