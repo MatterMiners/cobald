@@ -44,3 +44,12 @@ class TestLogger(object):
         assert chain.demand == pool.demand
         assert chain.utilisation == pool.utilisation
         assert chain.allocation == pool.allocation
+
+    def test_name(self):
+        pool = FullMockPool()
+        chain = Logger(target=pool, name='default')
+        assert chain.name == 'default'
+        chain.name = None
+        assert chain.name == pool.__class__.__name__
+        chain.name = 'final'
+        assert chain.name == 'final'
