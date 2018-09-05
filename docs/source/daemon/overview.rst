@@ -8,8 +8,8 @@ Any component integrated into this infrastructure can be configured and controll
 
 .. toctree::
     :maxdepth: 1
-    :caption: Contents:
+    :caption: Subsystems:
 
+    config
     logging
     runners
-    config
