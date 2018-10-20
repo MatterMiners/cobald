@@ -11,6 +11,10 @@ class CapturingHandler(logging.StreamHandler):
     def __init__(self):
         super().__init__(stream=io.StringIO())
 
+    def clear(self):
+        self.stream.truncate(0)
+        self.stream.seek(0)
+
 
 _test_index = 0
 _index_lock = threading.Lock()
