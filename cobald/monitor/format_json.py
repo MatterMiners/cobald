@@ -35,7 +35,7 @@ class JsonFormatter(Formatter):
         if args == ({},):  # logger.info('message', {}) -> record.args == ({},)
             args = {}
         assert isinstance(args, Mapping), 'monitor record argument must be a mapping, not %r' % type(args)
-        data = self._defaults
+        data = self._defaults.copy()
         if self._add_time:
             data['time'] = self.formatTime(record, self.datefmt)
         data['message'] = record.getMessage() if args else record.msg
