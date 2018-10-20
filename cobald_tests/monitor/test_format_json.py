@@ -68,3 +68,20 @@ class TestFormatJson(object):
         logger.critical('message', {})
         data = json.loads(handler.content)
         assert len(data) == 2
+
+    def test_default(self):
+        logger, handler = make_test_logger(__name__)
+        handler.formatter = JsonFormatter(fmt={"test": 1})
+        logger.critical('message', {'drones': 1})
+        data = json.loads(handler.content)
+        assert data.pop("test") == 1
+        handler.clear()
+        logger.critical('message', {'test': 2})
+        data = json.loads(handler.content)
+        assert data.pop("test") == 2
+        assert len(data) == 2
+        handler.clear()
+        logger.critical('message', {})
+        data = json.loads(handler.content)
+        assert data.pop("test") == 1
+        assert len(data) == 2
