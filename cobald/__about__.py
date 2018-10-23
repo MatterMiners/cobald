@@ -13,7 +13,7 @@ __title__ = 'cobald'
 __summary__ = 'COBalD - the Opportunistic Balancing Deamon'
 __url__ = 'https://github.com/MaineKuehn/cobald'
 
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __author__ = 'Eileen Kuehn, Max Fischer'
 __email__ = 'mainekuehn@gmail.com'
 __copyright__ = '2018 %s' % __author__
