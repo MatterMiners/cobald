@@ -1,5 +1,5 @@
-cobald\.decorator\.limiter module
-=================================
+cobald.decorator.limiter module
+===============================
 
 .. automodule:: cobald.decorator.limiter
     :members:

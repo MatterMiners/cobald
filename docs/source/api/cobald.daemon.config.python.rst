@@ -1,5 +1,5 @@
-cobald\.daemon\.config\.python module
-=====================================
+cobald.daemon.config.python module
+==================================
 
 .. automodule:: cobald.daemon.config.python
     :members:

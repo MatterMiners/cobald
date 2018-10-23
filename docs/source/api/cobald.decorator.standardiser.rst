@@ -1,5 +1,5 @@
-cobald\.decorator\.standardiser module
-======================================
+cobald.decorator.standardiser module
+====================================
 
 .. automodule:: cobald.decorator.standardiser
     :members:

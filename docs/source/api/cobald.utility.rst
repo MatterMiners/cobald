@@ -1,5 +1,5 @@
-cobald\.utility package
-=======================
+cobald.utility package
+======================
 
 .. automodule:: cobald.utility
     :members:

@@ -1,5 +1,5 @@
-cobald\.composite package
-=========================
+cobald.composite package
+========================
 
 .. automodule:: cobald.composite
     :members:

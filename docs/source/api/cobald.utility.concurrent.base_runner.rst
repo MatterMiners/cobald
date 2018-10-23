@@ -1,5 +1,5 @@
-cobald\.utility\.concurrent\.base\_runner module
-================================================
+cobald.utility.concurrent.base\_runner module
+=============================================
 
 .. automodule:: cobald.utility.concurrent.base_runner
     :members:

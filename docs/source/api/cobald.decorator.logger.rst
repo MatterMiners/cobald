@@ -1,5 +1,5 @@
-cobald\.decorator\.logger module
-================================
+cobald.decorator.logger module
+==============================
 
 .. automodule:: cobald.decorator.logger
     :members:

@@ -1,5 +1,5 @@
-cobald\.composite\.uniform module
-=================================
+cobald.composite.uniform module
+===============================
 
 .. automodule:: cobald.composite.uniform
     :members:

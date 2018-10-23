@@ -1,5 +1,5 @@
-cobald\.utility\.debug module
-=============================
+cobald.utility.debug module
+===========================
 
 .. automodule:: cobald.utility.debug
     :members:

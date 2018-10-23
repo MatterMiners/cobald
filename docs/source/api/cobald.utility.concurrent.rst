@@ -1,5 +1,5 @@
-cobald\.utility\.concurrent package
-===================================
+cobald.utility.concurrent package
+=================================
 
 .. automodule:: cobald.utility.concurrent
     :members:

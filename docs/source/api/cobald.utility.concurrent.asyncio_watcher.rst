@@ -1,5 +1,5 @@
-cobald\.utility\.concurrent\.asyncio\_watcher module
-====================================================
+cobald.utility.concurrent.asyncio\_watcher module
+=================================================
 
 .. automodule:: cobald.utility.concurrent.asyncio_watcher
     :members:

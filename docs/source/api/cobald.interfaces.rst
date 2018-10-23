@@ -1,5 +1,5 @@
-cobald\.interfaces package
-==========================
+cobald.interfaces package
+=========================
 
 .. automodule:: cobald.interfaces
     :members:

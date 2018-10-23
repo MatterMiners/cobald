@@ -1,5 +1,5 @@
-cobald\.decorator\.coarser module
-=================================
+cobald.decorator.coarser module
+===============================
 
 .. automodule:: cobald.decorator.coarser
     :members:

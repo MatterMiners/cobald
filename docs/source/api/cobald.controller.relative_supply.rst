@@ -1,5 +1,5 @@
-cobald\.controller\.relative\_supply module
-===========================================
+cobald.controller.relative\_supply module
+=========================================
 
 .. automodule:: cobald.controller.relative_supply
     :members:

@@ -1,5 +1,5 @@
-cobald\.utility\.primitives module
-==================================
+cobald.utility.primitives module
+================================
 
 .. automodule:: cobald.utility.primitives
     :members:

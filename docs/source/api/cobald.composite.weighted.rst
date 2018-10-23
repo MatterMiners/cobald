@@ -1,5 +1,5 @@
-cobald\.composite\.weighted module
-==================================
+cobald.composite.weighted module
+================================
 
 .. automodule:: cobald.composite.weighted
     :members:

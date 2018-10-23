@@ -1,5 +1,5 @@
-cobald\.daemon\.cli module
-==========================
+cobald.daemon.cli module
+========================
 
 .. automodule:: cobald.daemon.cli
     :members:

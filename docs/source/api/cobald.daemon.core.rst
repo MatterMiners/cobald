@@ -1,5 +1,5 @@
-cobald\.daemon\.core module
-===========================
+cobald.daemon.core module
+=========================
 
 .. automodule:: cobald.daemon.core
     :members:

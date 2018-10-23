@@ -1,5 +1,5 @@
-cobald\.daemon\.config\.yaml module
-===================================
+cobald.daemon.config.yaml module
+================================
 
 .. automodule:: cobald.daemon.config.yaml
     :members:

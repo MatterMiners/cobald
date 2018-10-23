@@ -1,5 +1,5 @@
-cobald\.monitor package
-=======================
+cobald.monitor package
+======================
 
 .. automodule:: cobald.monitor
     :members:

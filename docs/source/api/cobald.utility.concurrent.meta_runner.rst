@@ -1,5 +1,5 @@
-cobald\.utility\.concurrent\.meta\_runner module
-================================================
+cobald.utility.concurrent.meta\_runner module
+=============================================
 
 .. automodule:: cobald.utility.concurrent.meta_runner
     :members:

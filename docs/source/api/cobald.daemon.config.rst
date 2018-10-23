@@ -1,5 +1,5 @@
-cobald\.daemon\.config package
-==============================
+cobald.daemon.config package
+============================
 
 .. automodule:: cobald.daemon.config
     :members:

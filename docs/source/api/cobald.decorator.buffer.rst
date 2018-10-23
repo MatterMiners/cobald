@@ -1,5 +1,5 @@
-cobald\.decorator\.buffer module
-================================
+cobald.decorator.buffer module
+==============================
 
 .. automodule:: cobald.decorator.buffer
     :members:

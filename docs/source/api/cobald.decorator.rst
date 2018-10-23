@@ -1,5 +1,5 @@
-cobald\.decorator package
-=========================
+cobald.decorator package
+========================
 
 .. automodule:: cobald.decorator
     :members:

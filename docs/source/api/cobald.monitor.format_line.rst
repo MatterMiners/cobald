@@ -1,5 +1,5 @@
-cobald\.monitor\.format\_line module
-====================================
+cobald.monitor.format\_line module
+==================================
 
 .. automodule:: cobald.monitor.format_line
     :members:

@@ -1,5 +1,5 @@
-cobald\.daemon\.service module
-==============================
+cobald.daemon.service module
+============================
 
 .. automodule:: cobald.daemon.service
     :members:

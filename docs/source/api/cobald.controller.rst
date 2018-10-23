@@ -1,5 +1,5 @@
-cobald\.controller package
-==========================
+cobald.controller package
+=========================
 
 .. automodule:: cobald.controller
     :members:

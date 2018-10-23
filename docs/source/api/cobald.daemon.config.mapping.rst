@@ -1,5 +1,5 @@
-cobald\.daemon\.config\.mapping module
-======================================
+cobald.daemon.config.mapping module
+===================================
 
 .. automodule:: cobald.daemon.config.mapping
     :members:

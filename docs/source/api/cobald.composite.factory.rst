@@ -1,5 +1,5 @@
-cobald\.composite\.factory module
-=================================
+cobald.composite.factory module
+===============================
 
 .. automodule:: cobald.composite.factory
     :members:

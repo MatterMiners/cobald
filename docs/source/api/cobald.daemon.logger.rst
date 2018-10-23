@@ -1,5 +1,5 @@
-cobald\.daemon\.logger module
-=============================
+cobald.daemon.logger module
+===========================
 
 .. automodule:: cobald.daemon.logger
     :members:

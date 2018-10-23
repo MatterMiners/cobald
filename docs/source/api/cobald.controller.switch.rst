@@ -1,5 +1,5 @@
-cobald\.controller\.switch module
-=================================
+cobald.controller.switch module
+===============================
 
 .. automodule:: cobald.controller.switch
     :members:
