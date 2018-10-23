@@ -50,7 +50,7 @@ class ServiceUnit(object):
 
 
 def service(flavour):
-    """
+    r"""
     Mark a class as implementing a Service
 
     Each Service class must have a ``run`` method.
