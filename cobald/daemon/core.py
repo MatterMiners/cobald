@@ -29,7 +29,7 @@ class PipelineTranslator(Translator):
                 if prev_item is not None:
                     prev_item = self.translate_hierarchy(item, where='%s[%s]' % (where, index), target=prev_item)
                 else:
-                    prev_item = self.translate_hierarchy(item)
+                    prev_item = self.translate_hierarchy(item, where='%s[%s]' % (where, index))
                 items.append(prev_item)
             return list(reversed(items))
 
