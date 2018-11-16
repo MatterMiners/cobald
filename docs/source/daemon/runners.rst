@@ -24,7 +24,7 @@ This automatically schedules the ``run`` method of any instances for execution a
 
     @service(flavour=threading)
     class MyService(object):
-        # run of any instances is executed in a thread once the daemon starts
+        # run method of any instances is executed in a thread once the daemon starts
         def run():
             ...
 
@@ -53,15 +53,19 @@ The execution environment is exposed as :py:data:`cobald.daemon.runtime`,
 an instance of :py:class:`~cobald.daemon.service.ServiceRunner`.
 Via this entry point, new tasks may be launched after the daemon has started.
 
-.. describe:: runtime.adopt(payload, flavour)
+.. describe:: runtime.adopt(payload, *args, flavour, **kwargs)
 
     Run a ``payload`` of the appropriate ``flavour`` in the background.
     The caller is not blocked, but cannot receive any return value or exceptions.
 
-.. describe:: runtime.execute(payload, flavour)
+    .. note:: It is a fatal error if ``payload`` produces any value or exception.
+
+.. describe:: runtime.execute(payload, *args, flavour, **kwargs)
 
     Run a ``payload`` of the appropriate ``flavour`` until completion.
     The caller is blocked during execution, and receives any return value or exceptions.
+
+If ``*args`` or ``**kwargs`` are provided, the ``payload`` is run as ``payload(*args, **kwargs)``.
 
 Available Flavours
 ------------------
