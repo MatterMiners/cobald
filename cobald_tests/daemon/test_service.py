@@ -110,9 +110,10 @@ class TestServiceRunner(object):
         assert runner.execute(co_pingpong, what=5, flavour=trio) is None
         assert runner.execute(co_pingpong, what=6, flavour=asyncio) is None
         for _ in range(10):
-            time.sleep(0)
+            time.sleep(0.05)
             if len(reply_store) == 9:
                 assert reply_store.count(default) == 3
                 assert set(reply_store) == {default} | set(range(1, 7))
+                break
         else:
             assert len(reply_store) == 9
