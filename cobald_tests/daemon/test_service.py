@@ -98,17 +98,17 @@ class TestServiceRunner(object):
         runner = ServiceRunner(accept_delay=0.1)
         run_in_thread(runner.accept, name='test_execute')
         # do not pass in values - receive default
-        assert runner.execute(sub_pingpong, flavour=threading) is None
-        assert runner.execute(co_pingpong, flavour=trio) is None
-        assert runner.execute(co_pingpong, flavour=asyncio) is None
+        assert runner.adopt(sub_pingpong, flavour=threading) is None
+        assert runner.adopt(co_pingpong, flavour=trio) is None
+        assert runner.adopt(co_pingpong, flavour=asyncio) is None
         # pass in positional arguments
-        assert runner.execute(sub_pingpong, 1, flavour=threading) is None
-        assert runner.execute(co_pingpong, 2, flavour=trio) is None
-        assert runner.execute(co_pingpong, 3, flavour=asyncio) is None
+        assert runner.adopt(sub_pingpong, 1, flavour=threading) is None
+        assert runner.adopt(co_pingpong, 2, flavour=trio) is None
+        assert runner.adopt(co_pingpong, 3, flavour=asyncio) is None
         # pass in keyword arguments
-        assert runner.execute(sub_pingpong, what=4, flavour=threading) is None
-        assert runner.execute(co_pingpong, what=5, flavour=trio) is None
-        assert runner.execute(co_pingpong, what=6, flavour=asyncio) is None
+        assert runner.adopt(sub_pingpong, what=4, flavour=threading) is None
+        assert runner.adopt(co_pingpong, what=5, flavour=trio) is None
+        assert runner.adopt(co_pingpong, what=6, flavour=asyncio) is None
         for _ in range(10):
             time.sleep(0.05)
             if len(reply_store) == 9:
