@@ -91,12 +91,24 @@ class ServiceRunner(object):
         self._is_shutdown = threading.Event()
         self.accept_delay = accept_delay
 
-    def execute(self, payload, flavour: ModuleType):
-        """Synchronously run ``payload`` and provide its output"""
-        self._meta_runner.run_payload(payload, flavour=flavour)
+    def execute(self, payload, *args, flavour: ModuleType, **kwargs):
+        """
+        Synchronously run ``payload`` and provide its output
 
-    def adopt(self, payload, flavour: ModuleType):
-        """Concurrently run ``payload`` in the background"""
+        If ``*args*`` and/or ``**kwargs`` are provided, pass them to ``payload`` upon execution.
+        """
+        if args or kwargs:
+            payload = functools.partial(payload, *args, **kwargs)
+        return self._meta_runner.run_payload(payload, flavour=flavour)
+
+    def adopt(self, payload, *args, flavour: ModuleType, **kwargs):
+        """
+        Concurrently run ``payload`` in the background
+
+        If ``*args*`` and/or ``**kwargs`` are provided, pass them to ``payload`` upon execution.
+        """
+        if args or kwargs:
+            payload = functools.partial(payload, *args, **kwargs)
         self._meta_runner.register_payload(payload, flavour=flavour)
 
     def accept(self):
