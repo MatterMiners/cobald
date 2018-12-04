@@ -18,6 +18,10 @@ COBalD - the Opportunistic Balancing Daemon
     :alt: Available on PyPI
     :target: https://pypi.python.org/pypi/cobald/
 
+.. image:: https://zenodo.org/badge/129873843.svg
+   :alt: Zenodo DOI
+   :target: https://zenodo.org/badge/latestdoi/129873843
+
 .. image:: https://img.shields.io/github/license/MaineKuehn/cobald.svg
     :alt: License
     :target: https://github.com/MaineKuehn/cobald/blob/master/LICENSE.txt
