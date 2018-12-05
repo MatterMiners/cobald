@@ -29,6 +29,7 @@ def accept(payload: ServiceRunner, name=None):
         yield
     finally:
         payload.shutdown()
+        thread.join()
 
 
 class TestServiceRunner(object):
