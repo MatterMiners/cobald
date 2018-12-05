@@ -8,6 +8,7 @@ import threading
 from types import ModuleType
 
 from ..utility.concurrent.meta_runner import MetaRunner
+from ..utility.concurrent.guard import exclusive
 
 
 class ServiceUnit(object):
@@ -112,6 +113,7 @@ class ServiceRunner(object):
             payload = functools.partial(payload, *args, **kwargs)
         self._meta_runner.register_payload(payload, flavour=flavour)
 
+    @exclusive()
     def accept(self):
         """Start accepting synchronous, asynchronous and service payloads"""
         if self._meta_runner:

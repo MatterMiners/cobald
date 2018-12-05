@@ -43,6 +43,13 @@ class TestServiceRunner(object):
         with pytest.raises(RuntimeError):
             runner.accept()
 
+    def test_unique_reaper(self):
+        """Assert that no two runners may fetch services"""
+        with accept(ServiceRunner(accept_delay=0.1), name='outer'):
+            with pytest.raises(RuntimeError):
+                with accept(ServiceRunner(accept_delay=0.1), name='inner'):
+                    pass
+
     def test_service(self):
         """Test running service classes automatically"""
         runner = ServiceRunner(accept_delay=0.1)
