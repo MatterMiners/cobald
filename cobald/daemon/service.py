@@ -89,6 +89,7 @@ class ServiceRunner(object):
         self._meta_runner = MetaRunner()
         self._must_shutdown = False
         self._is_shutdown = threading.Event()
+        self.running = threading.Event()
         self.accept_delay = accept_delay
 
     def execute(self, payload, *args, flavour: ModuleType, **kwargs):
@@ -132,10 +133,12 @@ class ServiceRunner(object):
     async def run(self):
         delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
+        self.running.set()
         while not self._must_shutdown:
             self._adopt_services()
             await trio.sleep(delay)
             delay = min(delay + increase, max_delay)
+        self.running.clear()
         self._is_shutdown.set()
 
     def _adopt_services(self):
