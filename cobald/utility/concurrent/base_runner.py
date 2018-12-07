@@ -56,7 +56,7 @@ class BaseRunner(object):
                 self._stopped.clear()
             self._run()
         except Exception:
-            self._logger.error('runner aborted: %s', self)
+            self._logger.exception('runner aborted: %s', self)
             raise
         else:
             self._logger.info('runner stopped: %s', self)

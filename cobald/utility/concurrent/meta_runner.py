@@ -58,7 +58,7 @@ class MetaRunner(object):
             else:
                 thread_runner.run()
         except Exception as err:
-            self._logger.error('runner terminated: %s', err)
+            self._logger.exception('runner terminated: %s', err)
             raise RuntimeError from err
         finally:
             self._stop_runners()
