@@ -1,0 +1,19 @@
+To cite cobald in publications, please use:
+
+    Max Fischer, Eileen Kuehn, & Manuel Giffels. (2018, December 3).
+    MaineKuehn/cobald: COBalD - the Opportunistic Balancing Daemon (Version v0.9.1).
+    Zenodo. http://doi.org/10.5281/zenodo.1887873
+
+A BibTeX entry for LaTeX users is:
+
+    @misc{cobald_2018_1887873,
+      author       = {Max Fischer and
+                      Eileen Kuehn and
+                      Manuel Giffels},
+      title        = {{MaineKuehn/cobald: COBalD - the Opportunistic
+                       Balancing Daemon}},
+      month        = dec,
+      year         = 2018,
+      doi          = {10.5281/zenodo.1887873},
+      url          = {https://doi.org/10.5281/zenodo.1887873}
+    }
