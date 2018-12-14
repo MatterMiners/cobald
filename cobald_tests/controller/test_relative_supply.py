@@ -38,3 +38,8 @@ class TestRelativeSupplyController(object):
             expected_demand = pool.supply * relative_supply_controller.low_scale
             relative_supply_controller.regulate(1)
             assert (pool.demand == expected_demand)
+        pool.utilisation = pool.allocation = .5
+        expected_demand = pool.supply
+        for i in range(5):
+            relative_supply_controller.regulate(1)
+            assert (pool.demand == expected_demand)
