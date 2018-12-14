@@ -6,7 +6,7 @@ from cobald.controller.linear import LinearController
 from cobald.controller.switch import DemandSwitch
 
 
-class TestLinearController(object):
+class TestSwitchController(object):
     def test_select(self):
         pool = MockPool()
         switch_controller = DemandSwitch(pool, LinearController(pool, rate=1), 5, LinearController(pool, rate=2))
