@@ -40,8 +40,8 @@ class RelativeSupplyController(Controller):
 
     def regulate(self, interval):
         if self.target.utilisation < self.low_utilisation:
-            self.target.demand -= self.target.supply * self.low_scale
+            self.target.demand = self.target.supply * self.low_scale
         elif self.target.allocation > self.high_allocation:
-            self.target.demand += self.target.supply * self.high_scale
+            self.target.demand = self.target.supply * self.high_scale
         else:
             self.target.demand = self.target.supply
