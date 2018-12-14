@@ -28,6 +28,8 @@ class RelativeSupplyController(Controller):
         self.low_utilisation = low_utilisation
         self.high_allocation = high_allocation
         assert low_scale <= high_scale
+        assert low_scale < 1
+        assert high_scale > 1
         self.low_scale = low_scale
         self.high_scale = high_scale
 
