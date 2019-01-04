@@ -74,7 +74,7 @@ class FactoryPool(CompositePool):
 
     async def run(self):
         while True:
-            await trio.sleep_until(self.interval)
+            await trio.sleep(self.interval)
             # freeze target demand in case another thread updates us
             supply, demand = self.supply, self.demand
             if supply > demand:
