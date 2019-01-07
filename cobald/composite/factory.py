@@ -106,7 +106,7 @@ class FactoryPool(CompositePool):
         self._reap_children()
 
     def _reap_children(self):
-        for child in self._hatchery:
+        for child in list(self._hatchery):
             if child.demand <= 0:
                 self._release_child(child)
 
