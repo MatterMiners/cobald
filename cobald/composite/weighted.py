@@ -15,8 +15,12 @@ class WeightedComposite(CompositePool):
     def demand(self, value):
         self._demand = value
         total_supply = self.supply
+        child_count = len(self.children)
         for pool in self.children:
-            pool.demand = value * pool.supply / total_supply
+            try:
+                pool.demand = value * pool.supply / total_supply
+            except ZeroDivisionError:
+                pool.demand = value / child_count
 
     @property
     def supply(self):
