@@ -20,6 +20,11 @@ any number of :py:class:`~.PoolDecorator` may proceed it.
         composite -> poolb
     }
 
+It is common for the properties :py:attr:`~Pool.utilisation`
+and :py:attr:`~Pool.allocation` to not have a consistent value.
+For example, a pool with no resources cannot allocate any,
+resulting in an invalid :py:attr:`~Pool.allocation` of 0/0.
+In this case, :py:exc:`~.PropertyError` should be raised.
 """
 from ._composite import CompositePool
 from ._controller import Controller
@@ -31,8 +36,10 @@ class PropertyError(AttributeError):
     """A property cannot provide the current value of an attribute"""
     __slots__ = ('owner', 'attribute')
 
-    def __init__(self, owner, attribute):
+    def __init__(self, owner, attribute: str):
+        #: the object on which the attribute was looked up
         self.owner = owner
+        #: name of the attribute on the object
         self.attribute = attribute
         super().__init__()
 
@@ -40,4 +47,4 @@ class PropertyError(AttributeError):
         return "property %r currently has no value for %r" % (self.attribute, self.owner)
 
 
-__all__ = [cls.__name__ for cls in (Pool, PoolDecorator, Controller, CompositePool)]
+__all__ = ['Pool', 'PoolDecorator', 'Controller', 'CompositePool', 'PropertyError']
