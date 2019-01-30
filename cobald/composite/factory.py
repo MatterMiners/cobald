@@ -3,7 +3,7 @@ import weakref
 
 import trio
 
-from cobald.interfaces import Pool, CompositePool
+from cobald.interfaces import Pool, CompositePool, PropertyError
 from cobald.daemon import service
 
 
@@ -52,16 +52,16 @@ class FactoryPool(CompositePool):
         active_children = [child for child in self._hatchery if child.supply > 0]
         try:
             return sum(child.utilisation for child in active_children) / len(active_children)
-        except ZeroDivisionError:
-            return 1.
+        except ZeroDivisionError as err:
+            raise PropertyError(self, 'utilisation') from err
 
     @property
     def allocation(self):
         active_children = [child for child in self._hatchery if child.supply > 0]
         try:
             return sum(child.allocation for child in active_children) / len(active_children)
-        except ZeroDivisionError:
-            return 1.
+        except ZeroDivisionError as err:
+            raise PropertyError(self, 'allocation') from err
 
     def __init__(self, *children: Pool, factory: Callable[[], Pool], interval: float = 30):
         self._demand = sum(child.demand for child in children)

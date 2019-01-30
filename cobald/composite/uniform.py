@@ -1,4 +1,4 @@
-from ..interfaces import Pool, CompositePool
+from ..interfaces import Pool, CompositePool, PropertyError
 
 
 class UniformComposite(CompositePool):
@@ -26,15 +26,15 @@ class UniformComposite(CompositePool):
     def utilisation(self):
         try:
             return sum(child.utilisation for child in self.children) / len(self.children)
-        except ZeroDivisionError:
-            return 1.
+        except ZeroDivisionError as err:
+            raise PropertyError(self, 'utilisation') from err
 
     @property
     def allocation(self):
         try:
             return sum(child.allocation for child in self.children) / len(self.children)
-        except ZeroDivisionError:
-            return 1.
+        except ZeroDivisionError as err:
+            raise PropertyError(self, 'allocation') from err
 
     def __init__(self, *children: Pool):
         self._demand = sum(child.demand for child in children)
