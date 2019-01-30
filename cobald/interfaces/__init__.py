@@ -26,4 +26,18 @@ from ._controller import Controller
 from ._pool import Pool
 from ._proxy import PoolDecorator
 
+
+class PropertyError(AttributeError):
+    """A property cannot provide the current value of an attribute"""
+    __slots__ = ('owner', 'attribute')
+
+    def __init__(self, owner, attribute):
+        self.owner = owner
+        self.attribute = attribute
+        super().__init__()
+
+    def __str__(self):
+        return "property %r currently has no value for %r" % (self.attribute, self.owner)
+
+
 __all__ = [cls.__name__ for cls in (Pool, PoolDecorator, Controller, CompositePool)]
