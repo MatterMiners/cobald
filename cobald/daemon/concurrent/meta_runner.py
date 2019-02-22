@@ -11,7 +11,7 @@ from .thread_runner import ThreadRunner
 from .asyncio_watcher import asyncio_main_run
 
 
-from ...utility.debug import NameRepr
+from cobald.daemon.debug import NameRepr
 
 
 class MetaRunner(object):

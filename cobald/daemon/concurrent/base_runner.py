@@ -1,7 +1,7 @@
 import logging
 import threading
 
-from ...utility.debug import NameRepr
+from cobald.daemon.debug import NameRepr
 
 
 class BaseRunner(object):

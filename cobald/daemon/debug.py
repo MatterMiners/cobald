@@ -5,6 +5,7 @@ from functools import partial, singledispatch
 
 @singledispatch
 def pretty_ref(obj):
+    """Pretty object reference using ``module.path:qual.name`` format"""
     return obj.__module__ + ':' + obj.__qualname__
 
 
