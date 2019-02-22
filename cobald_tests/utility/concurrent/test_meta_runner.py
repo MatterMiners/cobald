@@ -5,8 +5,8 @@ import asyncio
 
 import trio
 
-from cobald.daemon.concurrent.base_runner import OrphanedReturn
-from cobald.daemon.concurrent.meta_runner import MetaRunner
+from cobald.daemon.runners.base_runner import OrphanedReturn
+from cobald.daemon.runners.meta_runner import MetaRunner
 
 
 class TerminateRunner(Exception):

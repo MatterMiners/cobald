@@ -7,8 +7,8 @@ import threading
 
 from types import ModuleType
 
-from .concurrent.meta_runner import MetaRunner
-from .concurrent.guard import exclusive
+from .runners.meta_runner import MetaRunner
+from .runners.guard import exclusive
 
 
 class ServiceUnit(object):
