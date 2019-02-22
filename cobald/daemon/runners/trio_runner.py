@@ -23,9 +23,9 @@ class TrioRunner(BaseRunner):
         return execution.wait()
 
     def _run(self):
-        return trio.run(self.await_all)
+        return trio.run(self._await_all)
 
-    async def await_all(self):
+    async def _await_all(self):
         delay = 0.0
         async with trio.open_nursery() as nursery:
             while self.running.is_set():
