@@ -10,6 +10,8 @@ def exclusive(via=threading.Lock):
 
     Guards the callable against being entered again before completion.
     Explicitly raises a :py:exc:`RuntimeError` on violation.
+
+    :note: If applied to a method, it is exclusive across all instances.
     """
     def make_exclusive(fnc):
         fnc_guard = via()
