@@ -1,3 +1,3 @@
-from .core import main
+from .core.main import cli_run
 
-main()
+cli_run()

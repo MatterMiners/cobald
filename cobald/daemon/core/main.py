@@ -13,7 +13,8 @@ from .config import load
 from .. import runtime
 
 
-def core(configuration: str, level: str, target: str, short_format: bool):
+def run(configuration: str, level: str, target: str, short_format: bool):
+    """Run the daemon and all its services"""
     initialise_logging(level=level, target=target, short_format=short_format)
     logger = logging.getLogger(__package__)
     logger.info('COBalD %s', cobald.__about__.__version__)
@@ -26,6 +27,7 @@ def core(configuration: str, level: str, target: str, short_format: bool):
         runtime.accept()
 
 
-def main():
+def cli_run():
+    """Run the daemon from a command line interface"""
     options = CLI.parse_args()
-    core(options.CONFIGURATION, options.log_level, options.log_target, options.log_journal)
+    run(options.CONFIGURATION, options.log_level, options.log_target, options.log_journal)
