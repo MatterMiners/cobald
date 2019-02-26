@@ -53,15 +53,13 @@ class ThreadRunner(BaseRunner):
     def _run(self):
         delay = 0.0
         while self.running.is_set():
-            self._start_outstanding()
-            for thread in self._threads.copy():
-                if thread.join(timeout=0):
-                    self._threads.remove(thread)
-                    self._logger.debug('reaped thread %s', thread)
+            self._start_payloads()
+            self._reap_payloads()
             time.sleep(delay)
             delay = min(delay + 0.1, 1.0)
 
-    def _start_outstanding(self):
+    def _start_payloads(self):
+        """Start all queued payloads"""
         with self._lock:
             payloads = self._payloads.copy()
             self._payloads.clear()
@@ -71,3 +69,11 @@ class ThreadRunner(BaseRunner):
             self._threads.add(thread)
             self._logger.debug('booted thread %s', thread)
         time.sleep(0)
+
+    def _reap_payloads(self):
+        """Clean up all finished payloads"""
+        for thread in self._threads.copy():
+            # CapturingThread.join will throw
+            if thread.join(timeout=0):
+                self._threads.remove(thread)
+                self._logger.debug('reaped thread %s', thread)

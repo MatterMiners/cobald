@@ -6,6 +6,7 @@ from .async_tools import raise_return, AsyncExecution
 
 
 class AsyncioRunner(BaseRunner):
+    """Runner for coroutines with :py:mod:`asyncio`"""
     flavour = asyncio
 
     def __init__(self):
@@ -23,21 +24,23 @@ class AsyncioRunner(BaseRunner):
 
     def _run(self):
         asyncio.set_event_loop(self.event_loop)
-        self.event_loop.run_until_complete(self.await_all())
+        self.event_loop.run_until_complete(self._run_payloads())
 
-    async def await_all(self):
+    async def _run_payloads(self):
+        """Async component of _run"""
         delay = 0.0
         try:
             while self.running.is_set():
-                await self._start_outstanding()
-                await self._manage_running()
+                await self._start_payloads()
+                await self._reap_payloads()
                 await asyncio.sleep(delay)
                 delay = min(delay + 0.1, 1.0)
         except Exception:
-            await self._cancel_running()
+            await self._cancel_payloads()
             raise
 
-    async def _start_outstanding(self):
+    async def _start_payloads(self):
+        """Start all queued payloads"""
         with self._lock:
             for coroutine in self._payloads:
                 task = self.event_loop.create_task(coroutine())
@@ -45,7 +48,8 @@ class AsyncioRunner(BaseRunner):
             self._payloads.clear()
         await asyncio.sleep(0)
 
-    async def _manage_running(self):
+    async def _reap_payloads(self):
+        """Clean up all finished payloads"""
         for task in self._tasks.copy():
             if task.done():
                 self._tasks.remove(task)
@@ -53,13 +57,15 @@ class AsyncioRunner(BaseRunner):
                     raise task.exception()
         await asyncio.sleep(0)
 
-    async def _cancel_running(self):
+    async def _cancel_payloads(self):
+        """Cancel all remaining payloads"""
         for task in self._tasks:
             task.cancel()
             await asyncio.sleep(0)
         for task in self._tasks:
             while not task.done():
                 await asyncio.sleep(0.1)
+                task.cancel()
 
     def stop(self):
         if not self.running.wait(0.2):

@@ -43,7 +43,7 @@ class MetaRunner(object):
         return self.runners[flavour].run_payload(payload)
 
     def run(self):
-        """Run all runners until completion"""
+        """Run all runners, blocking until completion or error"""
         self._logger.info('starting all runners')
         try:
             with self._lock:
