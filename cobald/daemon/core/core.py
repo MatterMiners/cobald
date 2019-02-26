@@ -9,12 +9,12 @@ import platform
 import cobald
 
 from .logger import initialise_logging
-from .config.mapping import Translator
-from .config.yaml import load_configuration as load_yaml_configuration
-from .config.python import load_configuration as load_python_configuration
+from ..config.mapping import Translator
+from ..config.yaml import load_configuration as load_yaml_configuration
+from ..config.python import load_configuration as load_python_configuration
 from .cli import CLI
-from . import runtime
-from .. import __about__
+from .. import runtime
+from ... import __about__
 
 
 class PipelineTranslator(Translator):
