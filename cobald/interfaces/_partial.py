@@ -29,6 +29,10 @@ class Partial(Generic[C_co]):
 
         # apply target by chaining
         pipeline = control >> Decorator() >> Pool()
+
+    :note: Binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator` \s creates a temporary
+           :py:class:`~.PartialBind`. Only binding to a :py:class:`~.Pool` as the last element
+           creates a concrete binding.
     """
     __slots__ = ('ctor', 'args', 'kwargs')
 
