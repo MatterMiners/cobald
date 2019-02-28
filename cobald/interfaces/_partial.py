@@ -1,19 +1,21 @@
 from inspect import Signature, BoundArguments
-from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING, Union
+from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING, Union, overload
 
 from ._pool import Pool
 
 if TYPE_CHECKING:
     from ._controller import Controller
     from ._proxy import PoolDecorator
-    C_co = TypeVar('C_co', bound=Union[Controller, PoolDecorator])
+    Owner = Union[Controller, PoolDecorator]
+    C_co = TypeVar('C_co', bound=Owner)
 else:
+    Owner = Union[object]
     C_co = TypeVar('C_co')
 
 
 class Partial(Generic[C_co]):
-    """
-    Partial application and chaining of Pool :py:class:`~.Controllers` and :py:class:`~.Decorators`
+    r"""
+    Partial application and chaining of Pool :py:class:`~.Controller`\ s and :py:class:`~.Decorator` \s
 
     This class acts similar to :py:class:`functools.partial`,
     but allows for repeated application (currying) and
@@ -53,5 +55,47 @@ class Partial(Generic[C_co]):
     def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
         return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
 
-    def __rshift__(self, other: Pool) -> C_co:
-        return self.ctor(other, *self.args, **self.kwargs)
+    @overload
+    def __rshift__(self, other: 'Partial[Owner]') -> 'PartialBind[C_co]':
+        ...
+
+    @overload
+    def __rshift__(self, other: Pool) -> 'C_co':
+        ...
+
+    def __rshift__(self, other: Pool):
+        if isinstance(other, Pool):
+            return self.ctor(other, *self.args, **self.kwargs)
+        else:
+            return PartialBind(self, other)
+
+
+class PartialBind(Generic[C_co]):
+    r"""
+    Helper for recursively binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator` \s
+
+    This helper is used to invert the operator precedence of ``>>``,
+    allowing the last pair to be bound first.
+    """
+    __slots__ = ('parent', 'targets')
+
+    def __init__(self, parent: Partial[C_co], *targets: Partial[Owner]):
+        self.parent = parent
+        self.targets = targets
+
+    @overload
+    def __rshift__(self, other: Partial[Owner]) -> 'PartialBind[C_co]':
+        ...
+
+    @overload
+    def __rshift__(self, other: Pool) -> 'C_co':
+        ...
+
+    def __rshift__(self, other: Union[Pool, Partial[Owner]]):
+        if isinstance(other, Pool):
+            pool = self.targets[-1] >> other
+            for owner in reversed(self.targets[:-1]):
+                pool = owner >> pool
+            return self.parent >> pool
+        else:
+            return PartialBind(self.parent, *self.targets, other)
