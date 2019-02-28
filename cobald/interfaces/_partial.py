@@ -1,12 +1,12 @@
 from inspect import Signature, BoundArguments
-from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING
+from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING, Union
 
 from ._pool import Pool
 
 if TYPE_CHECKING:
     from ._controller import Controller
     from ._proxy import PoolDecorator
-    C_co = TypeVar('C_co', Controller, PoolDecorator, covariant=True)
+    C_co = TypeVar('C_co', bound=Union[Controller, PoolDecorator])
 else:
     C_co = TypeVar('C_co')
 

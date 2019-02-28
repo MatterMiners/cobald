@@ -5,12 +5,14 @@ from typing import TypeVar, Type
 from ._partial import Partial
 
 
-C = TypeVar('C', bound='Controller')
+C = TypeVar('C', bound='PoolDecorator')
 
 
 class PoolDecorator(Pool):
     """
     Decorator modifying how a pool provides resources
+
+    :param target: the resource pool for which demand is adjusted
     """
     def __init__(self, target: Pool):
         self.target = target
