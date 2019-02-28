@@ -31,10 +31,10 @@ class Partial(Generic[C_co]):
     __slots__ = ('ctor', 'args', 'kwargs')
 
     def __init__(self, ctor: Type[C_co], *args, **kwargs):
-        self._check_signature(args, kwargs)
         self.ctor = ctor
         self.args = args
         self.kwargs = kwargs
+        self._check_signature(args, kwargs)
 
     def _check_signature(self, args: Tuple, kwargs: Dict):
         try:
