@@ -1,4 +1,11 @@
 from ._pool import Pool
+from typing import TypeVar, Type
+
+
+from ._partial import Partial
+
+
+C = TypeVar('C', bound='Controller')
 
 
 class PoolDecorator(Pool):
@@ -7,6 +14,19 @@ class PoolDecorator(Pool):
     """
     def __init__(self, target: Pool):
         self.target = target
+
+    @classmethod
+    def s(cls: Type[C], *args, **kwargs) -> Partial[C]:
+        """
+        Create an unbound prototype of this class, partially applying arguments
+
+        .. code:: python
+
+            decorator = Buffer.s(window=20)
+
+            pipeline = controller >> decorator >> pool
+        """
+        return Partial(cls, *args, **kwargs)
 
     @property
     def supply(self):
