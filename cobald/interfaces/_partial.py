@@ -1,3 +1,4 @@
+from inspect import Signature, BoundArguments
 from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING
 
 from ._pool import Pool
@@ -30,21 +31,26 @@ class Partial(Generic[C_co]):
     __slots__ = ('ctor', 'args', 'kwargs')
 
     def __init__(self, ctor: Type[C_co], *args, **kwargs):
-        self._assert_unbound(args, kwargs)
+        self._check_signature(args, kwargs)
         self.ctor = ctor
         self.args = args
         self.kwargs = kwargs
 
-    @staticmethod
-    def _assert_unbound(args: Tuple, kwargs: Dict):
-        if (args and isinstance(args[0], Pool)) or kwargs.get('target') is not None:
-            raise ValueError(
-                'Cannot bind target by calling `this(target, ...)`. '
-                'Use `this.bind(target)` or `this >> target` instead.'
-            )
+    def _check_signature(self, args: Tuple, kwargs: Dict):
+        try:
+            bound_args = Signature.from_callable(self.ctor).bind_partial(*args, **kwargs)  # type: BoundArguments
+        except TypeError as err:
+            message = err.args[0]
+            raise TypeError('%s[%s] %s' % (self.__class__.__name__, self.ctor, message)) from err
+        else:
+            if bound_args.arguments.get('target', None) is not None:
+                raise TypeError(
+                    "%s[%s] cannot bind 'target' by calling. Use `this >> target` instead." % (
+                        self.__class__.__name__, self.ctor
+                    )
+                )
 
     def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
-        self._assert_unbound(args, kwargs)
         return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
 
     def __rshift__(self, other: Pool) -> C_co:
