@@ -12,10 +12,11 @@ else:
 
 class Partial(Generic[C_co]):
     """
-    Partial application and chaining of Pool Controllers
+    Partial application and chaining of Pool :py:class:`~.Controllers` and :py:class:`~.Decorators`
 
     This class acts similar to :py:class:`functools.partial`,
     but allows for repeated application (currying) and
+    explicit binding via the ``>>`` operator.
 
     .. code:: python
 
@@ -46,7 +47,5 @@ class Partial(Generic[C_co]):
         self._assert_unbound(args, kwargs)
         return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
 
-    def bind(self, other: Pool) -> C_co:
+    def __rshift__(self, other: Pool) -> C_co:
         return self.ctor(other, *self.args, **self.kwargs)
-
-    __rshift__ = bind
