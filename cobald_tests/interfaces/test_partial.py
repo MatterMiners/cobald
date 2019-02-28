@@ -1,4 +1,4 @@
-from cobald.interfaces import Controller, Partial
+from cobald.interfaces import Controller, PoolDecorator, Partial
 
 from ..mock.pool import FullMockPool
 
@@ -8,9 +8,23 @@ class MockController(Controller):
         ...
 
 
+class MockDecorator(PoolDecorator):
+    ...
+
+
 class TestPartial(object):
     def test_bind(self):
         partial_control = MockController.s()
         assert isinstance(partial_control, Partial)
         pipeline = partial_control >> FullMockPool()
         assert isinstance(pipeline, MockController)
+
+    def test_recursive_bind(self):
+        partial_control = MockController.s()
+        assert isinstance(partial_control, Partial)
+        partial_decorator = MockDecorator.s()
+        assert isinstance(partial_decorator, Partial)
+        pipeline = partial_control >> partial_decorator >> FullMockPool()
+        assert isinstance(pipeline, MockController)
+        assert isinstance(pipeline.target, MockDecorator)
+        assert isinstance(pipeline.target.target, FullMockPool)
