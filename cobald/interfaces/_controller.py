@@ -29,7 +29,3 @@ class Controller(metaclass=abc.ABCMeta):
             pipeline = controller(rate=10) >> pool
         """
         return Partial(cls, *args, **kwargs)
-
-    @abc.abstractmethod
-    def regulate(self, interval: float):
-        """Regulate demand for the ``pool`` in the past ``interval`` seconds"""
