@@ -181,7 +181,9 @@ class UnboundStepwise(object):
         """
         return Partial(Stepwise, self.base, *self.rules, *args, **kwargs)
 
-    def __call__(self, target: Pool, interval: float):
+    def __call__(self, target: Pool, interval: float = None):
+        if interval is None:
+            return Stepwise(target, self.base, *self.rules)
         return Stepwise(target, self.base, *self.rules, interval=interval)
 
 
