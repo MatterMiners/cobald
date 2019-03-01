@@ -1,5 +1,7 @@
-import pytest
 import random
+import sys
+
+import pytest
 
 from collections import Counter
 from cobald.daemon.config.mapping import Translator, ConfigurationError
@@ -49,6 +51,8 @@ class TestTranslate(object):
         translator = Translator()
         loaded_construct = translator.load_name(Construct.fqdn)
         assert loaded_construct is Construct
+        loaded_module = translator.load_name(__name__)
+        assert sys.modules[__name__] is loaded_module
 
     def test_construct(self):
         translator = Translator()
