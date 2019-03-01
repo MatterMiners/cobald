@@ -1,6 +1,6 @@
 from functools import partial
 from itertools import chain
-from typing import Callable, Tuple, Optional, TypeVar, List, Set, overload
+from typing import Callable, Tuple, Optional, TypeVar, List, Set, Dict, overload
 
 import trio
 
@@ -32,7 +32,7 @@ class RangeSelector(object):
     :param rules: lower bound and its control rule
     """
     def __init__(self, base: ControlRule, *rules: Tuple[float, ControlRule]):
-        self._lookup = self._compile_lookup(base, rules)
+        self._lookup = self._compile_lookup(base, rules)  # type: Dict[Tuple[float, float], ControlRule]
 
     def get_rule(self, supply: float):
         for (low, high), rule in self._lookup.items():
