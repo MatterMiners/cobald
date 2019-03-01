@@ -1,11 +1,12 @@
 import logging
 import threading
+from typing import Any
 
 from cobald.daemon.debug import NameRepr
 
 
 class BaseRunner(object):
-    flavour = None
+    flavour = None  # type: Any
 
     def __init__(self):
         self._logger = logging.getLogger('cobald.runtime.runner.%s' % NameRepr(self.flavour))

@@ -1,16 +1,20 @@
+from typing import Any
 from types import ModuleType
 
 from functools import partial, singledispatch
 
 
 @singledispatch
-def pretty_ref(obj):
+def pretty_ref(obj: Any) -> str:
     """Pretty object reference using ``module.path:qual.name`` format"""
-    return obj.__module__ + ':' + obj.__qualname__
+    try:
+        return obj.__module__ + ':' + obj.__qualname__
+    except AttributeError:
+        return pretty_ref(type(obj)) + '(...)'
 
 
 @pretty_ref.register(partial)
-def pretty_partial(obj):
+def pretty_partial(obj: partial) -> str:
     if not obj.args and not obj.keywords:
         return pretty_ref(obj.func)
     return 'partial(%s%s%s)' % (
@@ -21,7 +25,7 @@ def pretty_partial(obj):
 
 
 @pretty_ref.register(ModuleType)
-def pretty_module(obj):
+def pretty_module(obj: ModuleType) -> str:
     return obj.__name__
 
 

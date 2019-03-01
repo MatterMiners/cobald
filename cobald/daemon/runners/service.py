@@ -18,7 +18,7 @@ class ServiceUnit(object):
     :param service: the service to run
     :param flavour: runner flavour to use for running the service
     """
-    __active_units__ = weakref.WeakSet()
+    __active_units__ = weakref.WeakSet()  # type: weakref.WeakSet[ServiceUnit]
 
     def __init__(self, service, flavour):
         assert hasattr(service, 'run'), "service must implement a 'run' method"
