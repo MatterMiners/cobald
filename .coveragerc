@@ -17,3 +17,5 @@ exclude_lines =
     return NotImplemented
     if __name__ == "__main__"
     if __name__ == '__main__'
+    @overload
+    if TYPE_CHECKING
