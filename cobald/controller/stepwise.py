@@ -1,4 +1,4 @@
-from functools import partialmethod
+from functools import partial
 from itertools import chain
 from typing import Callable, Tuple, Optional, TypeVar, List, Set, overload
 
@@ -160,7 +160,7 @@ class UnboundStepwise(object):
             self._thresholds.add(supply)
             return rule
         else:
-            return partialmethod(self.add, supply=supply)
+            return partial(self.add, supply=supply)
 
     def s(self, *args, **kwargs) -> Partial[Stepwise]:
         """
