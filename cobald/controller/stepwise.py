@@ -41,6 +41,8 @@ class RangeSelector(object):
 
     @staticmethod
     def _compile_lookup(base, rules):
+        if not rules:
+            return {(0, float('inf')): base}
         lookup = {}
         thresholds, _rules = zip(*sorted(rules))
         for low, high, rule in zip(
