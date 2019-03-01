@@ -1,4 +1,6 @@
 import pytest
+import random
+
 from collections import Counter
 from cobald.daemon.config.mapping import Translator, ConfigurationError
 
@@ -101,3 +103,14 @@ class TestTranslate(object):
         with pytest.raises(ConfigurationError) as err:
             translator.translate_hierarchy([1, {'foo': {'__type__': raises.fqdn}}], where='test_translate_error')
         assert err.value.where == 'test_translate_error[1].foo'
+
+    def test_lookup_failure(self):
+        translator = Translator()
+        with pytest.raises(ConfigurationError):
+            translator.translate_hierarchy({
+                '__type__': 'fake_module_%s.foo.bar' % random.getrandbits(32)
+            })
+        with pytest.raises(ConfigurationError):
+            translator.translate_hierarchy({
+                '__type__': '%s%s' % (Construct.fqdn, random.getrandbits(32))
+            })
