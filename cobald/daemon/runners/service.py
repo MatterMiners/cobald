@@ -7,8 +7,8 @@ import threading
 
 from types import ModuleType
 
-from ..utility.concurrent.meta_runner import MetaRunner
-from ..utility.concurrent.guard import exclusive
+from .meta_runner import MetaRunner
+from .guard import exclusive
 
 
 class ServiceUnit(object):
@@ -18,7 +18,7 @@ class ServiceUnit(object):
     :param service: the service to run
     :param flavour: runner flavour to use for running the service
     """
-    __active_units__ = weakref.WeakSet()
+    __active_units__ = weakref.WeakSet()  # type: weakref.WeakSet[ServiceUnit]
 
     def __init__(self, service, flavour):
         assert hasattr(service, 'run'), "service must implement a 'run' method"
@@ -54,7 +54,7 @@ def service(flavour):
     r"""
     Mark a class as implementing a Service
 
-    Each Service class must have a ``run`` method.
+    Each Service class must have a ``run`` method, which does not take any arguments.
     This method is :py:meth:`~.ServiceRunner.adopt`\ ed after the daemon starts, unless
 
     * the Service has been garbage collected, or
@@ -115,7 +115,12 @@ class ServiceRunner(object):
 
     @exclusive()
     def accept(self):
-        """Start accepting synchronous, asynchronous and service payloads"""
+        """
+        Start accepting synchronous, asynchronous and service payloads
+
+        Since services are globally defined, only one :py:class:`ServiceRunner`
+        may :py:meth:`accept` payloads at any time.
+        """
         if self._meta_runner:
             raise RuntimeError('payloads scheduled for %s before being started' % self)
         self._must_shutdown = False
@@ -123,7 +128,7 @@ class ServiceRunner(object):
         # force collecting objects so that defunct, migrated and overwritten services are destroyed now
         gc.collect()
         self._adopt_services()
-        self.adopt(self.run, flavour=trio)
+        self.adopt(self._accept_services, flavour=trio)
         self._meta_runner.run()
 
     def shutdown(self):
@@ -132,7 +137,7 @@ class ServiceRunner(object):
         self._is_shutdown.wait()
         self._meta_runner.stop()
 
-    async def run(self):
+    async def _accept_services(self):
         delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
         self.running.set()

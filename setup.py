@@ -24,7 +24,7 @@ if __name__ == '__main__':
         packages=find_packages(),
         entry_points={
             'console_scripts': [
-                'cobald = cobald.daemon.core:main',
+                'cobald = cobald.daemon.core.main:cli_run',
             ],
         },
         # dependencies

@@ -2,11 +2,13 @@ import logging
 import logging.config
 import sys
 
+from typing import Any
+
 _logger = logging.getLogger(__package__)
 
 
 class ConfigurationError(Exception):
-    def __init__(self, where: str, what):
+    def __init__(self, what: Any, where: str = None):
         self.where = where
         self.what = what
         super().__init__("invalid configuration element '%s': %s" % (where, what))
@@ -39,7 +41,9 @@ class Translator(object):
                 ]))
             else:
                 return structure
-        except ConfigurationError:
+        except ConfigurationError as err:
+            if err.where is None:
+                raise ConfigurationError(what=err.what, where=where)
             raise
         except Exception as err:
             raise ConfigurationError(where=where, what=err)
@@ -74,7 +78,7 @@ class Translator(object):
                     try:
                         obj = getattr(obj, component)
                     except AttributeError as err:
-                        raise ConfigurationError('no such object %r: %s' % (absolute_name, err))
+                        raise ConfigurationError(what='no such object %r: %s' % (absolute_name, err))
                 return obj
         else:  # ImportError is not raised if ``absolute_name`` points to a valid module
             return sys.modules[absolute_name]

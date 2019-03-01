@@ -4,7 +4,7 @@ import trio
 
 from ..interfaces import Pool, Controller
 from ..utility import enforce, InvariantError, pairwise
-from ..daemon.service import service
+from ..daemon import service
 
 
 @service(flavour=trio)

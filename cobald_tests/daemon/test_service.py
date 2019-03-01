@@ -9,7 +9,7 @@ import contextlib
 import logging
 import pytest
 
-from cobald.daemon.service import ServiceRunner, service
+from cobald.daemon.runners.service import ServiceRunner, service
 
 
 logging.getLogger().level = 10
