@@ -1,11 +1,13 @@
 from functools import partialmethod
 from itertools import chain
-from typing import Callable, Tuple, Optional
+from typing import Callable, Tuple, Optional, TypeVar, List, Set, overload
 
 import trio
 
-from ..interfaces import Pool, Controller
-from ..daemon.service import service
+from ..interfaces import Pool, Controller, Partial
+from ..daemon import service
+
+C = TypeVar('C', bound='Controller')
 
 #: Individual control rule for a pool on a given interval
 #:
@@ -117,8 +119,16 @@ class UnboundStepwise(object):
     """
     def __init__(self, base: ControlRule):
         self.base = base
-        self.rules = []
-        self._thresholds = set()
+        self.rules = []  # type: List[Tuple[float, ControlRule]]
+        self._thresholds = set()  # type: Set[float]
+
+    @overload
+    def add(self, rule: ControlRule, *, supply: float) -> ControlRule:
+        ...
+
+    @overload
+    def add(self, rule: None, *, supply: float) -> Callable[[ControlRule], ControlRule]:
+        ...
 
     def add(self, rule: ControlRule = None, *, supply: float):
         """
@@ -151,6 +161,23 @@ class UnboundStepwise(object):
             return rule
         else:
             return partialmethod(self.add, supply=supply)
+
+    def s(self, *args, **kwargs) -> Partial[Stepwise]:
+        """
+        Create an unbound prototype of this class, partially applying arguments
+
+        .. code:: python
+
+            @stepwise
+            def control(pool: Pool, interval):
+                return 10
+
+            pipeline = control.s(interval=20) >> pool
+
+        :note: The partial rules are sealed, and :py:meth:`~.UnboundStepwise.add`
+               cannot be called on it.
+        """
+        return Partial(Stepwise, self.base, *self.rules, *args, **kwargs)
 
     def __call__(self, target: Pool, interval: float):
         return Stepwise(target, self.base, *self.rules, interval=interval)
