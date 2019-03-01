@@ -43,18 +43,17 @@ class Partial(Generic[C_co]):
         self._check_signature(args, kwargs)
 
     def _check_signature(self, args: Tuple, kwargs: Dict):
+        if 'target' in kwargs or (args and isinstance(args[0], Pool)):
+            raise TypeError(
+                "%s[%s] cannot bind 'target' by calling. Use `this >> target` instead." % (
+                    self.__class__.__name__, self.ctor
+                )
+            )
         try:
-            bound_args = Signature.from_callable(self.ctor).bind_partial(*args, **kwargs)  # type: BoundArguments
+            bound_args = Signature.from_callable(self.ctor).bind_partial(None, *args, **kwargs)  # type: BoundArguments
         except TypeError as err:
             message = err.args[0]
             raise TypeError('%s[%s] %s' % (self.__class__.__name__, self.ctor, message)) from err
-        else:
-            if bound_args.arguments.get('target', None) is not None:
-                raise TypeError(
-                    "%s[%s] cannot bind 'target' by calling. Use `this >> target` instead." % (
-                        self.__class__.__name__, self.ctor
-                    )
-                )
 
     def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
         return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
