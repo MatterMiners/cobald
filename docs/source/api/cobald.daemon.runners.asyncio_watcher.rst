@@ -1,7 +1,7 @@
-cobald.utility.concurrent.meta\_runner module
+cobald.daemon.runners.asyncio\_watcher module
 =============================================
 
-.. automodule:: cobald.utility.concurrent.meta_runner
+.. automodule:: cobald.daemon.runners.asyncio_watcher
     :members:
     :undoc-members:
     :show-inheritance:

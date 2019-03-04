@@ -6,10 +6,3 @@ cobald.interfaces package
     :undoc-members:
     :show-inheritance:
 
-Submodules
-----------
-
-.. toctree::
-
-   cobald.interfaces.actor
-

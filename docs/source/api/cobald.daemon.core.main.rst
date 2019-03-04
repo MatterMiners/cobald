@@ -1,7 +1,7 @@
-cobald.interfaces.actor module
+cobald.daemon.core.main module
 ==============================
 
-.. automodule:: cobald.interfaces.actor
+.. automodule:: cobald.daemon.core.main
     :members:
     :undoc-members:
     :show-inheritance:

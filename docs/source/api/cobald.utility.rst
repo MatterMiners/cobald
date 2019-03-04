@@ -6,18 +6,10 @@ cobald.utility package
     :undoc-members:
     :show-inheritance:
 
-Subpackages
------------
-
-.. toctree::
-
-    cobald.utility.concurrent
-
 Submodules
 ----------
 
 .. toctree::
 
-   cobald.utility.debug
    cobald.utility.primitives
 

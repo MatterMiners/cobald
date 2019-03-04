@@ -12,14 +12,13 @@ Subpackages
 .. toctree::
 
     cobald.daemon.config
+    cobald.daemon.core
+    cobald.daemon.runners
 
 Submodules
 ----------
 
 .. toctree::
 
-   cobald.daemon.cli
-   cobald.daemon.core
-   cobald.daemon.logger
-   cobald.daemon.service
+   cobald.daemon.debug
 
