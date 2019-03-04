@@ -83,7 +83,7 @@ The development of ``cobald`` is currently organized by the GridKa and CMS resea
 We openly encourage adoption and contributions outside of KIT, LHC and our current selection of opportunistic resources.
 Information on deployment as well as creating and publishing custom plugins will follow.
 
-Please contact us on `github`_ if you want to contribute already.
+Please contact us on `github`_ or `gitter`_ if you want to contribute.
 
 Indices and tables
 ==================
@@ -95,4 +95,5 @@ Indices and tables
 .. _github: https://github.com/MatterMiners/cobald
 .. _ROCED: https://github.com/roced-scheduler/ROCED
 .. _`cobald demo`: https://github.com/MaineKuehn/cobald_demo
-.. _`TARDIS`: https://github.com/giffels/tardis
+.. _`TARDIS`: https://github.com/tardis-resourcemanager/tardis
+.. _gitter: https://gitter.im/MatterMiners/community
