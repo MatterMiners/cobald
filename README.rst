@@ -6,21 +6,21 @@ COBalD - the Opportunistic Balancing Daemon
     :target: http://cobald.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. image:: https://travis-ci.org/MaineKuehn/cobald.svg?branch=master
-    :target: https://travis-ci.org/MaineKuehn/cobald
+.. image:: https://travis-ci.org/MatterMiners/cobald.svg?branch=master
+    :target: https://travis-ci.org/MatterMiners/cobald
     :alt: Test Status
 
-.. image:: https://codecov.io/gh/MaineKuehn/cobald/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/MaineKuehn/cobald
+.. image:: https://codecov.io/gh/MatterMiners/cobald/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/MatterMiners/cobald
     :alt: Test Coverage
 
 .. image:: https://img.shields.io/pypi/v/cobald.svg
     :alt: Available on PyPI
     :target: https://pypi.python.org/pypi/cobald/
 
-.. image:: https://img.shields.io/github/license/MaineKuehn/cobald.svg
+.. image:: https://img.shields.io/github/license/MatterMiners/cobald.svg
     :alt: License
-    :target: https://github.com/MaineKuehn/cobald/blob/master/LICENSE.txt
+    :target: https://github.com/MatterMiners/cobald/blob/master/LICENSE
 
 .. image:: https://zenodo.org/badge/129873843.svg
    :alt: Zenodo DOI

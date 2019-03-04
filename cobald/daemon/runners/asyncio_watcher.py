@@ -24,7 +24,7 @@ def asyncio_main_run(root_runner: BaseRunner):
     This function sets up and runs the correct loop in a portable way.
     In addition, it runs a single :py:class:`~.BaseRunner` until completion or failure.
 
-    .. seealso:: The `issue #8 <https://github.com/MaineKuehn/cobald/issues/8>`_ for details.
+    .. seealso:: The `issue #8 <https://github.com/MatterMiners/cobald/issues/8>`_ for details.
     """
     assert threading.current_thread() == threading.main_thread(), 'only main thread can accept asyncio subprocesses'
     if sys.platform == 'win32':

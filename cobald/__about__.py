@@ -11,7 +11,7 @@ This is a **draft** for a feedback based balancing system for providing opportun
 """
 __title__ = 'cobald'
 __summary__ = 'COBalD - the Opportunistic Balancing Deamon'
-__url__ = 'https://github.com/MaineKuehn/cobald'
+__url__ = 'https://github.com/MatterMiners/cobald'
 
 __version__ = '0.9.1'
 __author__ = 'Eileen Kuehn, Max Fischer'
