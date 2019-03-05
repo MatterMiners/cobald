@@ -1,6 +1,6 @@
-===========================================
-COBalD - the Opportunistic Balancing Daemon
-===========================================
+============================================
+COBalD -- the Opportunistic Balancing Daemon
+============================================
 
 .. image:: https://readthedocs.org/projects/cobald/badge/?version=latest
     :target: http://cobald.readthedocs.io/en/latest/?badge=latest
