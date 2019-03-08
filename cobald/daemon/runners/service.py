@@ -9,6 +9,7 @@ from types import ModuleType
 
 from .meta_runner import MetaRunner
 from .guard import exclusive
+from ..debug import NameRepr
 
 
 class ServiceUnit(object):
@@ -124,7 +125,7 @@ class ServiceRunner(object):
         if self._meta_runner:
             raise RuntimeError('payloads scheduled for %s before being started' % self)
         self._must_shutdown = False
-        self._logger.info('ServiceRunner starting')
+        self._logger.info('%s starting', self.__class__.__name__)
         # force collecting objects so that defunct, migrated and overwritten services are destroyed now
         gc.collect()
         self._adopt_services()
@@ -141,15 +142,24 @@ class ServiceRunner(object):
         delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
         self.running.set()
-        while not self._must_shutdown:
-            self._adopt_services()
-            await trio.sleep(delay)
-            delay = min(delay + increase, max_delay)
-        self.running.clear()
-        self._is_shutdown.set()
+        try:
+            self._logger.info('%s started', self.__class__.__name__)
+            while not self._must_shutdown:
+                self._adopt_services()
+                await trio.sleep(delay)
+                delay = min(delay + increase, max_delay)
+        except Exception:
+            self._logger.exception('%s aborted', self.__class__.__name__)
+            raise
+        else:
+            self._logger.info('%s stopped', self.__class__.__name__)
+        finally:
+            self.running.clear()
+            self._is_shutdown.set()
 
     def _adopt_services(self):
         for unit in ServiceUnit.units():  # type: ServiceUnit
             if unit.running:
                 continue
+            self._logger.info('%s adopts %s', self.__class__.__name__, NameRepr(unit))
             unit.start(self._meta_runner)
