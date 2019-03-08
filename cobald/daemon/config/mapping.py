@@ -16,6 +16,10 @@ class ConfigurationError(Exception):
 
 def configure_logging(logging_mapping):
     _logger.info('Configuring logging')
+    # > takes a default parameter, disable_existing_loggers, which defaults to True
+    # > for reasons of backward compatibility. This may or may not be what you want
+    # Note: this is *not* what we want, since we create several loggers in advance
+    logging_mapping['disable_existing_loggers'] = logging_mapping.get('disable_existing_loggers', False)
     logging.config.dictConfig(logging_mapping)
 
 
