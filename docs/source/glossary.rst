@@ -17,5 +17,4 @@ Glossary of Terms
         This does not imply strict equality, merely that any differences are inconsequential or negligible.
 
     Pool
-    Resource Pool
         A collection of resources which are :term:`indistinguishable <indistinguishable resources>`.
