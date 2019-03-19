@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 repo_base_dir = os.path.abspath(os.path.dirname(__file__))
 # pull in the packages metadata
 package_about = {}
-with open(os.path.join(repo_base_dir, "cobald", "__about__.py")) as about_file:
+with open(os.path.join(repo_base_dir, "src", "cobald", "__about__.py")) as about_file:
     exec(about_file.read(), package_about)
 
 
@@ -21,7 +21,11 @@ if __name__ == '__main__':
         author=package_about['__author__'],
         author_email=package_about['__email__'],
         url=package_about['__url__'],
-        packages=find_packages(),
+        package_dir={'': 'src'},
+        packages=[
+            'cobald.%s' % pkg
+            for pkg in find_packages(os.path.join(repo_base_dir, "src", "cobald"))
+        ],
         entry_points={
             'console_scripts': [
                 'cobald = cobald.daemon.core.main:cli_run',
