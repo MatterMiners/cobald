@@ -21,17 +21,21 @@ if __name__ == '__main__':
         author=package_about['__author__'],
         author_email=package_about['__email__'],
         url=package_about['__url__'],
+        # >>> Source Code to distribute
+        # root location for packages
         package_dir={'': 'src'},
+        # the 'cobald' top-level is not a namespace package, we must explicitly point to it
         packages=[
             'cobald.%s' % pkg
             for pkg in find_packages(os.path.join(repo_base_dir, "src", "cobald"))
         ],
+        py_modules=['cobald.__about__'],
         entry_points={
             'console_scripts': [
                 'cobald = cobald.daemon.core.main:cli_run',
             ],
         },
-        # dependencies
+        # >>> Dependencies
         install_requires=[
             'typing',
             'pyyaml',
