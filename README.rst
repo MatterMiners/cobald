@@ -35,6 +35,9 @@ cloud bursting, container orchestration, allocation scaling and more.
 Its lightweight model for resource control and composition
 makes it easy to integrate custom resources and manage them at a large scale.
 
+Getting Started
+===============
+
 If you want to use ``cobald``, please refer to the `documentation`_.
 This provides information and examples on how to install, configure and run ``cobald``.
 It also covers how to extend ``cobald`` with plugins,
