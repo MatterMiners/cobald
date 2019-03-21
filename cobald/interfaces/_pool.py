@@ -7,19 +7,19 @@ class Pool(metaclass=abc.ABCMeta):
     """
     @property
     @abc.abstractmethod
-    def supply(self):
+    def supply(self) -> float:
         """The volume of resources that is provided by this pool"""
         raise NotImplementedError
 
     @property
     @abc.abstractmethod
-    def demand(self):
+    def demand(self) -> float:
         """The volume of resources to be provided by this pool"""
         raise NotImplementedError
 
     @demand.setter
     @abc.abstractmethod
-    def demand(self, value):
+    def demand(self, value: float):
         raise NotImplementedError
 
     @property
