@@ -1,11 +1,11 @@
-from yaml import load
+from yaml import safe_load
 
 from .mapping import configure_logging, Translator, ConfigurationError
 
 
 def load_configuration(path, translator=Translator()):
     with open(path) as yaml_stream:
-        config_data = load(yaml_stream)
+        config_data = safe_load(yaml_stream)
     try:
         logging_mapping = config_data.pop('logging')
     except KeyError:

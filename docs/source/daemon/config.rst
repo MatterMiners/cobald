@@ -44,6 +44,9 @@ Each ``pipeline`` is constructed in order:
 the *last* element should be a :py:class:`~cobald.interface.Pool`,
 and subsequent elements recursively receive their predecessor as the ``target`` keyword.
 
+:note: To read the yaml configuration ``yaml.SafeLoader`` is used. Implications can be found in the
+       `PyYAML <https://pyyaml.org/wiki/PyYAMLDocumentation>`_ documentation
+
 Python Code Inclusion
 ---------------------
 
