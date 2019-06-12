@@ -1,17 +1,82 @@
-==========================
-Packaging and Distribution
-==========================
+=================================
+Using and Distributing Extensions
+=================================
 
-Ideally, any custom code is made available as a regular Python package.
+Extensions for :py:mod:`cobald` are regular Python code accessible to the interpreter.
+For specific problems, extensions can be defined directly in a Python configuration file.
+General purpose and reusable code should be made available as a regular Python package.
 This ensures proper installation and dependency management.
-Once installed, :py:mod:`cobald` can access and use such packages directly.
 
-Writing the setup.py
---------------------
+Configuration Files
+===================
 
-Packages for :py:mod:`cobald` can follow the `PyPA`_ recommendations for `python packaging`_.
-Their ``setup.py`` file should contain a dependency on :py:mod:`cobald`.
-Ideally, the keywords should contain `cobald` for findability.
+Using Python :doc:`configuration files </source/daemon/config>` allows to define arbitrary
+objects, functions and helpers.
+This is ideal for minor modifications of existing objects and
+experimental extensions.
+Simply add new definitions to the configuration before using them:
+
+.. code:: python3
+
+    #/etc/cobald/my_demo.py
+    from cobald.interface import Controller
+
+    from cobald_demo.cpu_pool import CpuPool
+    from cobald_demo.draw_line import DrawLineHook
+
+
+    # custom Controller implementation
+    class StaticController(Controller):
+        """Controller that sets demand to a fixed value"""
+        def __init__(self, target, demand):
+            super().__init__(target)
+            self.target.demand = demand
+
+    # use custom Controller
+    pipeline = StaticController.s(demand=50) >> DrawLineHook.s() >> CpuPool(interval=1)
+
+Configuration files are easy to use and modify, but impractical for reusable extensions.
+
+Python Packages
+===============
+
+For generic extensions, Python packages simplify distribution and reuse.
+Packages are individual `.py` files or folders containing several `.py` files;
+in addition, packages contain meta-data for dependency management and installation.
+
+.. code:: python3
+
+    # my_controller.py
+    from cobald.interfaces import Controller
+
+    class StaticController(Controller):
+        def __init__(self, target, demand):
+            super().__init__(target)
+            self.target.demand = demand
+
+Packages can be temporarily mounted via ``PYTHONPATH`` or permanently installed.
+Once available, packages can be imported and used in any configurations.
+
+.. code:: python3
+
+    #/etc/cobald/my_demo.py
+    from my_controller import StaticController
+
+    from cobald_demo.cpu_pool import CpuPool
+    from cobald_demo.draw_line import DrawLineHook
+
+    # use custom Controller from package
+    pipeline = StaticController.s(demand=50) >> DrawLineHook.s() >> CpuPool(interval=1)
+
+Packages require additional effort to create and use, but are easier to automate and maintain.
+As with any package, authors should follow the `PyPA`_ recommendations for `python packaging`_.
+
+The ``setup.py`` File
+*********************
+
+The ``setup.py`` file contains the metadata to install, update and manage a package.
+For extension packages, it should contain a dependency on :py:mod:`cobald` and the
+keywords should mention ``cobald`` for findability.
 
 .. code:: python
 
@@ -30,5 +95,14 @@ Ideally, the keywords should contain `cobald` for findability.
 
 There are currently no ``entry_points`` used by :py:mod:`cobald`.
 
+The ``cobald`` Namespace
+************************
+
+The top-level ``cobald`` package itself is a `namespace package`_.
+This allows the COBalD developers to add, remove or split sub-packages.
+In order to not conflict with the core development,
+do *not* add your own packages to the ``cobald`` namespace.
+
 .. _PyPA: https://www.pypa.io/en/latest/
 .. _`python packaging`: https://packaging.python.org
+.. _`namespace package`: https://packaging.python.org/guides/packaging-namespace-packages/#native-namespace-packages
