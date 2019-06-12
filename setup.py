@@ -28,7 +28,7 @@ if __name__ == '__main__':
         packages=[
             'cobald.%s' % pkg
             for pkg in find_packages(os.path.join(repo_base_dir, "src", "cobald"))
-        ],
+        ] + ['cobald'],
         py_modules=['cobald.__about__'],
         entry_points={
             'console_scripts': [
