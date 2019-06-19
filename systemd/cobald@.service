@@ -2,6 +2,9 @@
 Description=COBalD - the Opportunistic Balancing Daemon for %I
 After=network.target
 
+[Install]
+RequiredBy=multi-user.target
+
 [Service]
 Type=simple
 WorkingDirectory=/opt/tardis/

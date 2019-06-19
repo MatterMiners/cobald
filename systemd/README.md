@@ -16,6 +16,7 @@ Copy the file `cobald.service` into the `/usr/lib/systemd/system` directory.
  - `systemctl start cobald` starts one instance of COBalD as a service
  - `systemctl stop cobald` stops the instance of COBald
  - `systemctl status cobald` reports the current status of the COBalD instance
+ - `systemctl enable cobald` the COBalD instance starts at system boot
  
  ## Multiple COBalD Instances:
 Copy the file `cobald@.service` into the `/usr/lib/systemd/system` directory.
@@ -26,4 +27,6 @@ The COBalD instance loads the `cobald_instance.yaml` config in the `WorkingDirec
     `cobald_instance.yaml` 
  - `systemctl stop cobald@instance` stops the instance of COBald with the configuration file `cobald_instance.yaml` 
  - `systemctl status cobald@instance` reports the current status of the COBalD instance with the configuration file
+    `cobald_instance.yaml` 
+ - `systemctl enable cobald@instance` COBalD instance starts at system boot with the configuration file
     `cobald_instance.yaml` 
