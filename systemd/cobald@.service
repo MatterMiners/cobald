@@ -1,0 +1,8 @@
+[Unit]
+Description=COBalD - the Opportunistic Balancing Daemon for %I
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/tardis/
+ExecStart=/usr/bin/python3.6 -m cobald.daemon cobald_%i.yaml
