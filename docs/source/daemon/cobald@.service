@@ -1,0 +1,13 @@
+[Unit]
+Description=COBalD - the Opportunistic Balancing Daemon for %I
+Documentation=https://cobald.readthedocs.io
+After=network.target
+Wants=network-online.target
+After=network-online.target
+
+[Install]
+RequiredBy=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 -m cobald.daemon /etc/cobald/%i.py
