@@ -4,7 +4,7 @@ Using and Distributing Extensions
 
 Extensions for :py:mod:`cobald` are regular Python code accessible to the interpreter.
 For specific problems, extensions can be defined directly in a Python configuration file.
-General purpose and reusable code should be made available as a regular Python package.
+General purpose and reusable code should be made available as a Python package.
 This ensures proper installation and dependency management.
 
 Configuration Files
@@ -42,7 +42,7 @@ Python Packages
 
 For generic extensions, Python packages simplify distribution and reuse.
 Packages are individual `.py` files or folders containing several `.py` files;
-in addition, packages contain meta-data for dependency management and installation.
+in addition, packages contain metadata for dependency management and installation.
 
 .. code:: python3
 
@@ -54,8 +54,8 @@ in addition, packages contain meta-data for dependency management and installati
             super().__init__(target)
             self.target.demand = demand
 
-Packages can be temporarily mounted via ``PYTHONPATH`` or permanently installed.
-Once available, packages can be imported and used in any configurations.
+Packages can be temporarily accessed via ``PYTHONPATH`` or permanently installed.
+Once available, packages can be imported and used in any configuration.
 
 .. code:: python3
 
