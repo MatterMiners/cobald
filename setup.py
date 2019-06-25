@@ -12,6 +12,8 @@ with open(os.path.join(repo_base_dir, "src", "cobald", "__about__.py")) as about
 with open(os.path.join(repo_base_dir, 'README.rst'), 'r') as README:
     long_description = README.read()
 
+TESTS_REQUIRE = ['pytest>=4.3.0', 'pytest-timeout']
+
 if __name__ == '__main__':
     setup(
         name=package_about['__title__'],
@@ -44,6 +46,8 @@ if __name__ == '__main__':
         ],
         extras_require={
             'docs':  ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
+            'test': TESTS_REQUIRE,
+            'contrib': ['flake8', 'flake8-bugbear'] + TESTS_REQUIRE,
         },
         # metadata for package search
         license='MIT',
@@ -66,5 +70,5 @@ if __name__ == '__main__':
         # unit tests
         setup_requires=['pytest-runner'],
         test_suite='cobald_tests',
-        tests_require=['pytest'],
+        tests_require=TESTS_REQUIRE,
     )
