@@ -15,7 +15,7 @@ An example of a systemd config file:
 In this example, the configs for the different COBalD instances are located at ``/etc/cobald/instance-name.py``.
 :py:mod:`cobald` can handle ``.py`` and ``.yaml`` configuration files.
 Please ensure that the chosen python interpreter has :py:mod:`cobald` installed!
-We recomment to use a ``virtualenv``.
+We recommend to use a ``virtualenv``.
 By using a ``virtualenv`` you have to set the  ``ExecStart`` to ``ExecStart={{ virtualenv }}/bin/python -m cobald.daemon /etc/cobald/%i.yaml``.
 
 After you created or changed the file you need to run:
@@ -46,7 +46,7 @@ Now you can manage the :py:mod:`cobald` instance which loads the ``/etc/cobald/i
 
         $ systemctl status cobald@instance-name
 
- -  :py:mod:`cobald` instance starts at system boot
+ -  enable :py:mod:`cobald` instance start at boot time
 
     .. code:: bash
 
