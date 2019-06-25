@@ -1,10 +1,5 @@
-cobald package
-==============
-
-.. automodule:: cobald
-    :members:
-    :undoc-members:
-    :show-inheritance:
+cobald namespace
+================
 
 Subpackages
 -----------

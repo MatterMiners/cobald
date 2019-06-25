@@ -19,7 +19,7 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
 from cobald import __about__
 
 # -- General configuration ------------------------------------------------
@@ -80,6 +80,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
+
+# A list of ignored prefixes for module index sorting.
+modindex_common_prefix = ['cobald.']
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
