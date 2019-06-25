@@ -6,7 +6,7 @@ You can run :py:mod:`cobald` as a system service.
 We provide systemd configs for multiple :py:mod:`cobald` instances run as services.
 You can manage several instances which are identified with a systemd instance name.
 
-Create a file named  ``cobald@.service`` into the ``/usr/lib/systemd/system`` directory.
+Create a file named  ``cobald@.service`` in the ``/usr/lib/systemd/system`` directory.
 
 An example of a systemd config file:
 
@@ -14,7 +14,7 @@ An example of a systemd config file:
 
 In this example, the configs for the different COBalD instances are located at ``/etc/cobald/instance-name.py``.
 :py:mod:`cobald` can handle ``.py`` and ``.yaml`` configuration files.
-Please ensure that the choosen python interpreter has :py:mod:`cobald` installed!
+Please ensure that the chosen python interpreter has :py:mod:`cobald` installed!
 We recomment to use a ``virtualenv``.
 By using a ``virtualenv`` you have to set the  ``ExecStart`` to ``ExecStart={{ virtualenv }}/bin/python -m cobald.daemon /etc/cobald/%i.yaml``.
 
