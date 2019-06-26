@@ -29,7 +29,7 @@ class FactoryPool(CompositePool):
 
     Note that both ``allocation`` and ``utilisation`` are computed only
     from children which satisfy ``supply > 0`` and ``demand > 0``.
-    All other children are considered as not fully functional -
+    We consider all other children as not fully functional --
     and thus as not representative due to not aiming for ideal usage.
     The ``children``, ``demand`` and ``supply`` reflect all available
     resources, however.
