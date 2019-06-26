@@ -1,16 +1,12 @@
+dist: xenial
 language: python
 python:
   - "3.5"
   - "3.6"
+  - "3.7"
   - "pypy3.5"
-  - "3.7-dev"
 os:
   - linux
-#  - osx  # osx+python installation fails
-matrix:
-  # ignore all but the most recent, stable releases
-  allow_failures:
-  - python: "3.7-dev"
 before_script:
   - python -m pip install pip --upgrade
   - python -m pip list
