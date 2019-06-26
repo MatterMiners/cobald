@@ -30,7 +30,11 @@ class TestMetaRunner(object):
         async def t_coroutine():
             await trio.sleep(0.5)
 
-        for flavour, payload in ((threading, subroutine), (asyncio, a_coroutine), (trio, t_coroutine)):
+        for flavour, payload in (
+                (threading, subroutine),
+                (asyncio, a_coroutine),
+                (trio, t_coroutine)
+        ):
             runner = MetaRunner()
             assert not bool(runner)
             runner.register_payload(payload, flavour=flavour)

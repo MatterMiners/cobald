@@ -26,7 +26,8 @@ if __name__ == '__main__':
         # >>> Source Code to distribute
         # root location for packages
         package_dir={'': 'src'},
-        # the 'cobald' top-level is not a namespace package, we must explicitly point to it
+        # the 'cobald' top-level is not a namespace package,
+        # we must explicitly point to it
         packages=[
             'cobald.%s' % pkg
             for pkg in find_packages(os.path.join(repo_base_dir, "src", "cobald"))
@@ -45,7 +46,7 @@ if __name__ == '__main__':
             'include',
         ],
         extras_require={
-            'docs':  ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
+            'docs': ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
             'test': TESTS_REQUIRE,
             'contrib': ['flake8', 'flake8-bugbear'] + TESTS_REQUIRE,
         },

@@ -9,7 +9,9 @@ class BaseRunner(object):
     flavour = None  # type: Any
 
     def __init__(self):
-        self._logger = logging.getLogger('cobald.runtime.runner.%s' % NameRepr(self.flavour))
+        self._logger = logging.getLogger(
+            'cobald.runtime.runner.%s' % NameRepr(self.flavour)
+        )
         self._payloads = []
         self._lock = threading.Lock()
         #: signal that runner should keep in running
@@ -52,7 +54,8 @@ class BaseRunner(object):
         self._logger.info('runner started: %s', self)
         try:
             with self._lock:
-                assert not self.running.is_set() and self._stopped.is_set(), 'cannot re-run: %s' % self
+                assert not self.running.is_set() and self._stopped.is_set(),\
+                    'cannot re-run: %s' % self
                 self.running.set()
                 self._stopped.clear()
             self._run()

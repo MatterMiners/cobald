@@ -2,8 +2,6 @@ import threading
 import logging
 import io
 
-import pytest
-
 from ..mock.pool import FullMockPool
 
 from cobald.decorator.logger import Logger

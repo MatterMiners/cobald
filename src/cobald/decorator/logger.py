@@ -5,7 +5,8 @@ from cobald.interfaces import Pool, PoolDecorator
 
 _DEFAULT_MESSAGE = \
     'demand = %(value)s '\
-    '[demand=%(demand)s, supply=%(supply)s, utilisation=%(utilisation).2f, consumption=%(consumption).2f]'
+    '[demand=%(demand)s, supply=%(supply)s, '\
+    'utilisation=%(utilisation).2f, consumption=%(consumption).2f]'
 
 
 class Logger(PoolDecorator):
@@ -37,8 +38,11 @@ class Logger(PoolDecorator):
         self._logger.log(
             self.level, self.message,
             {
-                'value': value, 'demand': self.target.demand, 'supply': self.target.supply,
-                'utilisation': self.target.utilisation, 'consumption': self.target.allocation,
+                'value': value,
+                'demand': self.target.demand,
+                'supply': self.target.supply,
+                'utilisation': self.target.utilisation,
+                'consumption': self.target.allocation,
                 'target': self.target,
             })
         self.target.demand = value
@@ -53,7 +57,13 @@ class Logger(PoolDecorator):
             value = self.target.__class__.__qualname__
         self._logger = logging.getLogger(value)
 
-    def __init__(self, target: Pool, name: str = None, message: str = _DEFAULT_MESSAGE, level: int = logging.INFO):
+    def __init__(
+            self,
+            target: Pool,
+            name: str = None,
+            message: str = _DEFAULT_MESSAGE,
+            level: int = logging.INFO
+    ):
         super().__init__(target=target)
         self._logger = None  # type: logging.Logger
         self.message = message

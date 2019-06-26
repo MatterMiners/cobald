@@ -24,7 +24,9 @@ class ServiceUnit(object):
     def __init__(self, service, flavour):
         assert hasattr(service, 'run'), "service must implement a 'run' method"
         assert any(flavour == runner.flavour for runner in MetaRunner.runner_types), \
-            "service flavour must be one of %s" % ','.join(repr(runner.flavour) for runner in MetaRunner.runner_types)
+            "service flavour must be one of %s" % ','.join(
+                repr(runner.flavour) for runner in MetaRunner.runner_types
+        )
         self.service = weakref.ref(service)
         self.flavour = flavour
         self._started = False
@@ -48,7 +50,11 @@ class ServiceUnit(object):
             runner.register_payload(service.run, flavour=self.flavour)
 
     def __repr__(self):
-        return '%s(%r, flavour=%r)' % (self.__class__.__name__, self.service() or '<defunct>', self.flavour)
+        return '%s(%r, flavour=%r)' % (
+            self.__class__.__name__,
+            self.service() or '<defunct>',
+            self.flavour
+        )
 
 
 def service(flavour):
@@ -61,7 +67,8 @@ def service(flavour):
     * the Service has been garbage collected, or
     * the ServiceUnit has been :py:meth:`~.ServiceUnit.cancel`\ ed.
 
-    For each service instance, its :py:class:`~.ServiceUnit` is available at ``service_instance.__service_unit__``.
+    For each service instance, its :py:class:`~.ServiceUnit` is available at
+    ``service_instance.__service_unit__``.
     """
     def service_unit_decorator(raw_cls):
         __new__ = raw_cls.__new__
@@ -98,7 +105,8 @@ class ServiceRunner(object):
         """
         Synchronously run ``payload`` and provide its output
 
-        If ``*args*`` and/or ``**kwargs`` are provided, pass them to ``payload`` upon execution.
+        If ``*args*`` and/or ``**kwargs`` are provided, pass them to ``payload``
+        upon execution.
         """
         if args or kwargs:
             payload = functools.partial(payload, *args, **kwargs)
@@ -108,7 +116,8 @@ class ServiceRunner(object):
         """
         Concurrently run ``payload`` in the background
 
-        If ``*args*`` and/or ``**kwargs`` are provided, pass them to ``payload`` upon execution.
+        If ``*args*`` and/or ``**kwargs`` are provided, pass them to ``payload``
+        upon execution.
         """
         if args or kwargs:
             payload = functools.partial(payload, *args, **kwargs)
@@ -126,7 +135,8 @@ class ServiceRunner(object):
             raise RuntimeError('payloads scheduled for %s before being started' % self)
         self._must_shutdown = False
         self._logger.info('%s starting', self.__class__.__name__)
-        # force collecting objects so that defunct, migrated and overwritten services are destroyed now
+        # force collecting objects so that defunct,
+        # migrated and overwritten services are destroyed now
         gc.collect()
         self._adopt_services()
         self.adopt(self._accept_services, flavour=trio)

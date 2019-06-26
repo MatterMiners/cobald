@@ -16,13 +16,13 @@ class TestLinearController(object):
         pool.utilisation = 1.0
 
         expected_demand = 0
-        for i in range(2):
+        for _ in range(2):
             assert(pool.demand == expected_demand)
             controller.regulate(1)
             expected_demand += 1
 
         pool.utilisation = 0.0
-        for i in range(2):
+        for _ in range(2):
             assert (pool.demand == expected_demand)
             controller.regulate(1)
             expected_demand -= 1
@@ -100,6 +100,5 @@ class TestLinearController(object):
         assert controller.rate == 1
         controller = LinearController(target=pool, rate=2)
         assert controller.rate == 2
-        controller = LinearController(target=pool, rate=1/3)
-        assert controller.rate == 1/3
-
+        controller = LinearController(target=pool, rate=1 / 3)
+        assert controller.rate == 1 / 3

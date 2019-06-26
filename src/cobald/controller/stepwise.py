@@ -32,7 +32,7 @@ class RangeSelector(object):
     :param rules: lower bound and its control rule
     """
     def __init__(self, base: ControlRule, *rules: Tuple[float, ControlRule]):
-        self._lookup = self._compile_lookup(base, rules)  # type: Dict[Tuple[float, float], ControlRule]
+        self._lookup = self._compile_lookup(base, rules)
 
     def get_rule(self, supply: float):
         for (low, high), rule in self._lookup.items():
@@ -40,7 +40,7 @@ class RangeSelector(object):
                 return rule
 
     @staticmethod
-    def _compile_lookup(base, rules):
+    def _compile_lookup(base, rules) -> Dict[Tuple[float, float], ControlRule]:
         if not rules:
             return {(0, float('inf')): base}
         lookup = {}
@@ -64,7 +64,13 @@ class Stepwise(Controller):
     :see: :py:class:`UnboundStepwise` allows creating :py:class:`Stepwise` instances
           via decorators.
     """
-    def __init__(self, target: Pool, base: ControlRule, *rules: Tuple[float, ControlRule], interval: float = 1):
+    def __init__(
+            self,
+            target: Pool,
+            base: ControlRule,
+            *rules: Tuple[float, ControlRule],
+            interval: float = 1
+    ):
         super().__init__(target)
         self.interval = interval
         self._selector = RangeSelector(base, *rules)
@@ -124,15 +130,15 @@ class UnboundStepwise(object):
         self.rules = []  # type: List[Tuple[float, ControlRule]]
         self._thresholds = set()  # type: Set[float]
 
-    @overload
+    @overload  # noqa: F811
     def add(self, rule: ControlRule, *, supply: float) -> ControlRule:
         ...
 
-    @overload
+    @overload  # noqa: F811
     def add(self, rule: None, *, supply: float) -> Callable[[ControlRule], ControlRule]:
         ...
 
-    def add(self, rule: ControlRule = None, *, supply: float):
+    def add(self, rule: ControlRule = None, *, supply: float):  # noqa: F811
         """
         Register a new rule above a given ``supply`` threshold
 
@@ -151,7 +157,9 @@ class UnboundStepwise(object):
                     return pool.supply + interval
 
             control.add(
-                lambda pool, interval: pool.supply * (1.2 if pool.allocation > 0.75 else 0.9),
+                lambda pool, interval: pool.supply * (
+                    1.2 if pool.allocation > 0.75 else 0.9
+                ),
                 supply=100
             )
         """

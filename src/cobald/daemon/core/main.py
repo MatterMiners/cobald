@@ -19,7 +19,10 @@ def run(configuration: str, level: str, target: str, short_format: bool):
     logger = logging.getLogger(__package__)
     logger.info('COBalD %s', cobald.__about__.__version__)
     logger.info(cobald.__about__.__url__)
-    logger.info('%s %s (%s)', platform.python_implementation(), platform.python_version(), sys.executable)
+    logger.info(
+        '%s %s (%s)',
+        platform.python_implementation(), platform.python_version(), sys.executable
+    )
     logger.debug(cobald.__file__)
     logger.info('Using configuration %s', configuration)
     with load(configuration):
@@ -30,4 +33,9 @@ def run(configuration: str, level: str, target: str, short_format: bool):
 def cli_run():
     """Run the daemon from a command line interface"""
     options = CLI.parse_args()
-    run(options.CONFIGURATION, options.log_level, options.log_target, options.log_journal)
+    run(
+        configuration=options.CONFIGURATION,
+        level=options.log_level,
+        target=options.log_target,
+        short_format=options.log_journal,
+    )

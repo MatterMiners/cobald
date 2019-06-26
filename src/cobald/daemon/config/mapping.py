@@ -19,7 +19,9 @@ def configure_logging(logging_mapping):
     # > takes a default parameter, disable_existing_loggers, which defaults to True
     # > for reasons of backward compatibility. This may or may not be what you want
     # Note: this is *not* what we want, since we create several loggers in advance
-    logging_mapping['disable_existing_loggers'] = logging_mapping.get('disable_existing_loggers', False)
+    logging_mapping['disable_existing_loggers'] = logging_mapping.get(
+        'disable_existing_loggers', False
+    )
     logging.config.dictConfig(logging_mapping)
 
 
@@ -38,7 +40,8 @@ class Translator(object):
                     return self.construct(structure, **construct_kwargs)
                 return structure
             elif isinstance(structure, list):
-                # translate bottom up - need those lists to materialize reversed and enumerate iterables
+                # translate bottom up - need those lists to materialize
+                # reversed and enumerate iterables
                 return list(reversed([
                     self.translate_hierarchy(item, where='%s[%s]' % (where, index))
                     for index, item in reversed(list(enumerate(structure)))
@@ -56,7 +59,7 @@ class Translator(object):
         """
         Construct an object from a mapping
 
-        :param mapping: the constructor definition, with ``__type__`` name and keyword arguments
+        :param mapping: constructor definition, with ``__type__`` and keyword arguments
         :param kwargs: additional keyword arguments to pass to the constructor
         """
         assert '__type__' not in kwargs and '__args__' not in kwargs
@@ -82,7 +85,9 @@ class Translator(object):
                     try:
                         obj = getattr(obj, component)
                     except AttributeError as err:
-                        raise ConfigurationError(what='no such object %r: %s' % (absolute_name, err))
+                        raise ConfigurationError(
+                            what='no such object %r: %s' % (absolute_name, err)
+                        )
                 return obj
         else:  # ImportError is not raised if ``absolute_name`` points to a valid module
             return sys.modules[absolute_name]

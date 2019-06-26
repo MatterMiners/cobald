@@ -7,7 +7,7 @@ from .base_runner import BaseRunner, OrphanedReturn
 
 class CapturingThread(threading.Thread):
     """
-    Daemonic threads that automatically capture any return value or exception from their ``target``
+    Daemonic threads that capture any return value or exception from their ``target``
     """
     def __init__(self, **kwargs):
         super().__init__(**kwargs, daemon=True)

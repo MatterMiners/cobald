@@ -29,14 +29,18 @@ class WeightedComposite(CompositePool):
     @property
     def utilisation(self):
         try:
-            return sum(child.utilisation * child.supply for child in self.children) / self.supply
+            return sum(
+                child.utilisation * child.supply for child in self.children
+            ) / self.supply
         except ZeroDivisionError:
             return 1.
 
     @property
     def allocation(self):
         try:
-            return sum(child.allocation * child.supply for child in self.children) / self.supply
+            return sum(
+                child.allocation * child.supply for child in self.children
+            ) / self.supply
         except ZeroDivisionError:
             return 1.
 
