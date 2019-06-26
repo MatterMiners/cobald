@@ -31,7 +31,7 @@ class PipelineTranslator(Translator):
 
     This allows for YAML configurations to have one or several ``pipeline`` elements.
     Each ``pipeline``  is translated as a series of nested elements, the way a
-    :py:class:`~cobald.interfaces.Controller` receive a
+    :py:class:`~cobald.interfaces.Controller` receives a
     :py:class:`~cobald.interfaces.Pool`.
 
     .. code:: yaml

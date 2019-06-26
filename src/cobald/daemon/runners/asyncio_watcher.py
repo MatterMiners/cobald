@@ -20,7 +20,7 @@ def asyncio_main_run(root_runner: BaseRunner):
     """
     Create an ``asyncio`` event loop running in the main thread and watching runners
 
-    Using ``asyncio`` to handle suprocesses requires a specific loop type
+    Using ``asyncio`` to handle subprocesses requires a specific loop type
     to run in the main thread.
     This function sets up and runs the correct loop in a portable way.
     In addition, it runs a single :py:class:`~.BaseRunner` until completion

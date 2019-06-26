@@ -1,14 +1,14 @@
 # Contributing to COBalD
 
 COBalD is hosted on GitHub and open source.
-This makes it easy for you to submit bug reports or directly propose changes.
+This makes it easy for you to submit bug reports or directly propose changes via pull requests.
 
 ## Reporting a Bug
 
-Enabling robust and reliable services is our goal,
-and that means chasing every single bug.
-However, there is so little time in a day -
-Please help us help you!
+It is our goal to enable robust and reliable services,
+and that means we try to chase every single bug.
+However, there is so little time in a day --
+so please help us help you!
 
 * Avoid reporting issues that are already being worked on:
   * *Exclude version issues:*

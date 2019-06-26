@@ -16,7 +16,7 @@ else:
 class Partial(Generic[C_co]):
     r"""
     Partial application and chaining of Pool :py:class:`~.Controller`\ s
-    and :py:class:`~.Decorator` \s
+    and :py:class:`~.Decorator`\ s
 
     This class acts similar to :py:class:`functools.partial`,
     but allows for repeated application (currying) and
@@ -31,7 +31,7 @@ class Partial(Generic[C_co]):
         # apply target by chaining
         pipeline = control >> Decorator() >> Pool()
 
-    :note: Binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator` \s
+    :note: Binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator`\ s
            creates a temporary :py:class:`~.PartialBind`. Only binding to a
            :py:class:`~.Pool` as the last element creates a concrete binding.
     """
@@ -82,7 +82,7 @@ class Partial(Generic[C_co]):
 class PartialBind(Generic[C_co]):
     r"""
     Helper for recursively binding :py:class:`~.Controller`\ s
-    and :py:class:`~.Decorator` \s
+    and :py:class:`~.Decorator`\ s
 
     This helper is used to invert the operator precedence of ``>>``,
     allowing the last pair to be bound first.

@@ -4,7 +4,7 @@ Interfaces for primitives of the :py:mod:`cobald` model
 Each :py:class:`~.Pool` provides a varying number of resources.
 A :py:class:`~.Controller` adjusts the number of resources that
 a :py:class:`~.Pool` must provide.
-Several :py:class:`~.Pool` can be combined in a single
+Several :py:class:`~.Pool`\ s can be combined in a single
 :py:class:`~.CompositePool` to appear as one.
 To modify how a :py:class:`~.Pool` presents or digests data,
 any number of :py:class:`~.PoolDecorator` may proceed it.
