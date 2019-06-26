@@ -14,6 +14,7 @@ matrix:
 before_script:
   - export PYTHONHASHSEED=${PYTHONHASHSEED:-${RANDOM}}
   - echo "export PYTHONHASHSEED=${PYTHONHASHSEED}"
+  - pip install .
   - pip install codecov
   - export COVERAGE_PROCESS_START=$(pwd)/.coveragerc
 script:
