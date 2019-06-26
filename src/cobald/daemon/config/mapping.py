@@ -79,7 +79,7 @@ class Translator(object):
             try:
                 obj = sys.modules[path[0]]
             except KeyError:
-                raise ModuleNotFoundError('No module named %r' % path[0])
+                raise ImportError('No module named %r' % path[0])
             else:
                 for component in path[1:]:
                     try:
