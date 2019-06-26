@@ -20,7 +20,9 @@ def pretty_partial(obj: partial) -> str:
     return 'partial(%s%s%s)' % (
         pretty_ref(obj.func),
         '' if not obj.args else ', '.join(repr(arg) for arg in obj.args),
-        '' if not obj.keywords else ', '.join('%r = %r' % (k, v) for k, v in obj.keywords.items()),
+        '' if not obj.keywords else ', '.join(
+            '%r = %r' % (k, v) for k, v in obj.keywords.items()
+        ),
     )
 
 

@@ -1,12 +1,11 @@
 import threading
-import pytest
 import time
 import random
 import trio
 import asyncio
 import contextlib
-
 import logging
+
 import pytest
 
 from cobald.daemon.runners.service import ServiceRunner, service
@@ -21,7 +20,9 @@ class TerminateRunner(Exception):
 
 @contextlib.contextmanager
 def accept(payload: ServiceRunner, name=None):
-    thread = threading.Thread(target=payload.accept, name=name or str(payload), daemon=True)
+    thread = threading.Thread(
+        target=payload.accept, name=name or str(payload), daemon=True
+    )
     thread.start()
     if not payload.running.wait(1):
         raise RuntimeError('%s failed to start' % payload)

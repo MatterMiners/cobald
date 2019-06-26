@@ -28,7 +28,8 @@ class TestPartial(object):
         assert isinstance(partial_control, Partial)
         partial_decorator = MockDecorator.s()
         assert isinstance(partial_decorator, Partial)
-        pipeline = partial_control >> partial_decorator >> partial_decorator >> FullMockPool()
+        pipeline = partial_control >> partial_decorator \
+            >> partial_decorator >> FullMockPool()
         assert isinstance(pipeline, MockController)
         assert isinstance(pipeline.target, MockDecorator)
         assert isinstance(pipeline.target.target, MockDecorator)

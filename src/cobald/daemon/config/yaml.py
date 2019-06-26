@@ -18,5 +18,8 @@ def load_configuration(path, translator=Translator()):
         raise ConfigurationError(where='root', what=err)
     else:
         if config_data:
-            raise ConfigurationError(where='root', what='dangling configuration keys (%s)' % ', '.join(config_data))
+            raise ConfigurationError(
+                where='root',
+                what='dangling configuration keys (%s)' % ', '.join(config_data),
+            )
         return translator.translate_hierarchy({'pipeline': root_pipeline})

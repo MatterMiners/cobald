@@ -15,7 +15,8 @@ else:
 
 class Partial(Generic[C_co]):
     r"""
-    Partial application and chaining of Pool :py:class:`~.Controller`\ s and :py:class:`~.Decorator` \s
+    Partial application and chaining of Pool :py:class:`~.Controller`\ s
+    and :py:class:`~.Decorator`\ s
 
     This class acts similar to :py:class:`functools.partial`,
     but allows for repeated application (currying) and
@@ -30,9 +31,9 @@ class Partial(Generic[C_co]):
         # apply target by chaining
         pipeline = control >> Decorator() >> Pool()
 
-    :note: Binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator` \s creates a temporary
-           :py:class:`~.PartialBind`. Only binding to a :py:class:`~.Pool` as the last element
-           creates a concrete binding.
+    :note: Binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator`\ s
+           creates a temporary :py:class:`~.PartialBind`. Only binding to a
+           :py:class:`~.Pool` as the last element creates a concrete binding.
     """
     __slots__ = ('ctor', 'args', 'kwargs')
 
@@ -45,28 +46,33 @@ class Partial(Generic[C_co]):
     def _check_signature(self, args: Tuple, kwargs: Dict):
         if 'target' in kwargs or (args and isinstance(args[0], Pool)):
             raise TypeError(
-                "%s[%s] cannot bind 'target' by calling. Use `this >> target` instead." % (
+                "%s[%s] cannot bind 'target' by calling. "
+                "Use `this >> target` instead." % (
                     self.__class__.__name__, self.ctor
                 )
             )
         try:
-            bound_args = Signature.from_callable(self.ctor).bind_partial(None, *args, **kwargs)  # type: BoundArguments
+            _ = Signature.from_callable(self.ctor).bind_partial(
+                None, *args, **kwargs
+            )  # type: BoundArguments
         except TypeError as err:
             message = err.args[0]
-            raise TypeError('%s[%s] %s' % (self.__class__.__name__, self.ctor, message)) from err
+            raise TypeError(
+                '%s[%s] %s' % (self.__class__.__name__, self.ctor, message)
+            ) from err
 
     def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
         return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
 
-    @overload
+    @overload  # noqa: F811
     def __rshift__(self, other: 'Union[Partial, PartialBind]') -> 'PartialBind[C_co]':
         ...
 
-    @overload
+    @overload  # noqa: F811
     def __rshift__(self, other: 'Union[Owner, Pool]') -> 'C_co':
         ...
 
-    def __rshift__(self, other):
+    def __rshift__(self, other):  # noqa: F811
         if isinstance(other, (Partial, PartialBind)):
             return PartialBind(self, other)
         else:
@@ -75,7 +81,8 @@ class Partial(Generic[C_co]):
 
 class PartialBind(Generic[C_co]):
     r"""
-    Helper for recursively binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator` \s
+    Helper for recursively binding :py:class:`~.Controller`\ s
+    and :py:class:`~.Decorator`\ s
 
     This helper is used to invert the operator precedence of ``>>``,
     allowing the last pair to be bound first.
@@ -86,15 +93,15 @@ class PartialBind(Generic[C_co]):
         self.parent = parent
         self.targets = targets
 
-    @overload
+    @overload  # noqa: F811
     def __rshift__(self, other: Partial[Owner]) -> 'PartialBind[C_co]':
         ...
 
-    @overload
+    @overload  # noqa: F811
     def __rshift__(self, other: Pool) -> 'C_co':
         ...
 
-    def __rshift__(self, other: Union[Pool, Partial[Owner]]):
+    def __rshift__(self, other: Union[Pool, Partial[Owner]]):  # noqa: F811
         if isinstance(other, Pool):
             pool = self.targets[-1] >> other
             for owner in reversed(self.targets[:-1]):

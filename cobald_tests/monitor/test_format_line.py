@@ -61,7 +61,9 @@ class TestFormatLine(object):
             if 'a' in payload:
                 assert len(fields) == len(payload) - 1
                 assert tags == {'a': 'a'}
-                assert fields == {key: value for key, value in payload.items() if key != 'a'}
+                assert fields == {
+                    key: value for key, value in payload.items() if key != 'a'
+                }
             else:
                 assert len(fields) == len(payload)
                 assert fields == payload
