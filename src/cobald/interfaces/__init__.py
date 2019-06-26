@@ -1,4 +1,4 @@
-"""
+r"""
 Interfaces for primitives of the :py:mod:`cobald` model
 
 Each :py:class:`~.Pool` provides a varying number of resources.
