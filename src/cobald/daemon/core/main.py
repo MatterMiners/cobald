@@ -5,7 +5,7 @@ import sys
 import logging
 import platform
 
-import cobald
+import cobald.__about__
 
 from .logger import initialise_logging
 from .cli import CLI
