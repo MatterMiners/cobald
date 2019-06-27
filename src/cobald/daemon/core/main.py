@@ -23,7 +23,7 @@ def run(configuration: str, level: str, target: str, short_format: bool):
         '%s %s (%s)',
         platform.python_implementation(), platform.python_version(), sys.executable
     )
-    logger.debug(cobald.__file__)
+    logger.debug(cobald.__about__.__file__)
     logger.info('Using configuration %s', configuration)
     with load(configuration):
         logger.info('Starting daemon services...')
