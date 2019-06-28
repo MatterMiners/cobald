@@ -1,11 +1,20 @@
-from yaml import safe_load
+from typing import Type
+from yaml import SafeLoader, BaseLoader, nodes
 
 from .mapping import configure_logging, Translator, ConfigurationError
 
 
-def load_configuration(path, translator=Translator()):
+def load_configuration(
+        path: str,
+        loader: Type[BaseLoader] = SafeLoader,
+        translator=Translator()
+):
     with open(path) as yaml_stream:
-        config_data = safe_load(yaml_stream)
+        loader_instance = loader(yaml_stream)
+        try:
+            config_data = loader_instance.get_single_data()
+        finally:
+            loader_instance.dispose()
     try:
         logging_mapping = config_data.pop('logging')
     except KeyError:
