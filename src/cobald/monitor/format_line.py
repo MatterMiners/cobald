@@ -68,6 +68,8 @@ class LineProtocolFormatter(Formatter):
             args = {}
         assert isinstance(args, Mapping), \
             'monitor record argument must be a mapping, not %r' % type(args)
+        assert all(elem is not None for elem in args.values()), \
+            'line protocol values must not be None'
         record.asctime = self.formatTime(record, self.datefmt)
         record.message = record.getMessage() if args else record.msg
         tags = self._default_tags.copy()
