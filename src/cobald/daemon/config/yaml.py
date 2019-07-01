@@ -57,7 +57,7 @@ def yaml_constructor(factory):
           a: 0.3
           b: 0.7
     """
-    def factory_constructor(loader: BaseLoader, node):
+    def factory_constructor(loader: BaseLoader, node: nodes.Node):
         if isinstance(node, nodes.MappingNode):
             kwargs = loader.construct_mapping(node)
             return factory(**kwargs)
