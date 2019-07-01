@@ -6,7 +6,7 @@ Extensions for :py:mod:`cobald` are regular Python code accessible to the interp
 For specific problems, extensions can be defined directly in a Python configuration file.
 General purpose and reusable code should be made available as a Python package.
 This ensures proper installation and dependency management,
-and allows quick access in YAML configuration files.
+and allows quick access from YAML configuration files.
 
 Configuration Files
 ===================
@@ -116,7 +116,7 @@ can be made available as ``MyExtension`` in this way:
     )
 
 This allows using the extension with YAML tag syntax as ``!MyExtension``.
-Extension are treated as callables and, depending on how their node is defined,
+Extensions are treated as callables and, depending on how their node is defined,
 receive keyword arguments (mapping node),
 positional arguments (sequence node),
 or no arguments (scalar node).

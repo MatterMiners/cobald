@@ -31,7 +31,7 @@ and :py:class:`~cobald.interface.Pool`\ s.
 Each ``pipeline`` is constructed in reverse order:
 the *last* element should be a :py:class:`~cobald.interface.Pool`
 and is constructed first,
-then recursively passed to its predecessor to for construction.
+then recursively passed to its predecessor for construction.
 
 .. code:: yaml
 

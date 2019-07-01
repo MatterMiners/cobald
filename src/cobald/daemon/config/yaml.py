@@ -38,12 +38,12 @@ def yaml_constructor(factory):
     """
     Convert a factory function/class to a YAML constructor
 
-    :param factory:
+    :param factory: the factory function/class
     :return: factory constructor
 
     Applying this helper to a factory allows it to be used as a YAML constructor,
     without it knowing about YAML itself.
-    It properly construct nodes and converts
+    It properly constructs nodes and converts
     mapping nodes to ``factory(**node)``,
     sequence nodes to ``factory(*node)``, and
     scalar nodes to ``factory()``.
