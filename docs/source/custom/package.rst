@@ -115,11 +115,13 @@ can be made available as ``MyExtension`` in this way:
         ...
     )
 
-This allows using the extension with YAML tag syntax as ``!MyExtension``.
-Extensions are treated as callables and, depending on how their node is defined,
-receive keyword arguments (mapping node),
-positional arguments (sequence node),
-or no arguments (scalar node).
+This allows using the extension as elements with YAML tag syntax,
+such as ``!MyExtension``.
+Extensions are treated as callables and
+receive arguments depending on the type of their element:
+mappings are used as keyword arguments,
+and
+sequences are used as positional arguments.
 
 .. code:: YAML
 
@@ -127,6 +129,10 @@ or no arguments (scalar node).
     - !MyExtension
       foo: 2
       bar: "Hello World!"
+    # resolves to ExtensionClass(2, "Hello World!")
+    - !MyExtension
+      - 2
+      - "Hello World!"
 
 
 The ``cobald`` Namespace
