@@ -97,7 +97,8 @@ keywords should mention ``cobald`` for findability.
 Configuration Plugins
 *********************
 
-Packages can declare callables as plugins for the YAML configuration format.
+In order to use extensions in YAML configuration files,
+packages can declare any callable as a plugin.
 Plugins are added as ``entry_points`` of the ``cobald.config.yaml_constructors`` group,
 with a name to be used in configurations.
 For example, a plugin class ``ExtensionClass`` defined in ``mypackage.mymodule``
