@@ -37,6 +37,18 @@ if __name__ == '__main__':
             'console_scripts': [
                 'cobald = cobald.daemon.core.main:cli_run',
             ],
+            'cobald.config.yaml_constructors': [
+                '%s = %s:%s' % (name, module, name)
+                for name, module in
+                (
+                    ('LinearController', 'cobald.controller.linear'),
+                    ('RelativeSupplyController', 'cobald.controller.relative_supply'),
+                    ('Buffer', 'cobald.decorator.buffer'),
+                    ('Limiter', 'cobald.decorator.limiter'),
+                    ('Logger', 'cobald.decorator.logger'),
+                    ('Standardiser', 'cobald.decorator.standardiser'),
+                )
+            ],
         },
         # >>> Dependencies
         install_requires=[

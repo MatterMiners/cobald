@@ -5,7 +5,8 @@ Using and Distributing Extensions
 Extensions for :py:mod:`cobald` are regular Python code accessible to the interpreter.
 For specific problems, extensions can be defined directly in a Python configuration file.
 General purpose and reusable code should be made available as a Python package.
-This ensures proper installation and dependency management.
+This ensures proper installation and dependency management,
+and allows quick access from YAML configuration files.
 
 Configuration Files
 ===================
@@ -93,7 +94,47 @@ keywords should mention ``cobald`` for findability.
         ...
     )
 
-There are currently no ``entry_points`` used by :py:mod:`cobald`.
+Configuration Plugins
+*********************
+
+In order to use extensions in YAML configuration files,
+packages can declare any callable as a plugin.
+Plugins are added as ``entry_points`` of the ``cobald.config.yaml_constructors`` group,
+with a name to be used in configurations.
+For example, a plugin class ``ExtensionClass`` defined in ``mypackage.mymodule``
+can be made available as ``MyExtension`` in this way:
+
+.. code:: python3
+
+    setup(
+        ...,
+        entry_points={
+            'cobald.config.yaml_constructors': [
+                'MyExtension = mypackage.mymodule:ExtensionClass',
+            ],
+        },
+        ...
+    )
+
+This allows using the extension as elements with YAML tag syntax,
+such as ``!MyExtension``.
+Extensions are treated as callables and
+receive arguments depending on the type of their element:
+mappings are used as keyword arguments,
+and
+sequences are used as positional arguments.
+
+.. code:: YAML
+
+    # resolves to ExtensionClass(foo=2, bar="Hello World!")
+    - !MyExtension
+      foo: 2
+      bar: "Hello World!"
+    # resolves to ExtensionClass(2, "Hello World!")
+    - !MyExtension
+      - 2
+      - "Hello World!"
+
 
 The ``cobald`` Namespace
 ************************
