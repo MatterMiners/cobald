@@ -44,6 +44,12 @@ class LineProtocolFormatter(Formatter):
     The ``tags`` act as a whitelist for record keys if they are an iterable.
     When a dictionary is supplied, its values act as default values if the
     key is not in a record.
+
+    The ``resolution`` allows summarising data by downsampling the timestamps
+    to the given resolution, e.g. for a ``resolution`` of ``10`` you can expect
+    timestamps 10, 20, 30, ...
+    If ``resolution`` is ``None`` the timestamp is omitted from the Line Protocol
+    and Telegraf will take care on setting the current timestamp.
     """
     def __init__(
             self,
@@ -62,6 +68,8 @@ class LineProtocolFormatter(Formatter):
             args = {}
         assert isinstance(args, Mapping), \
             'monitor record argument must be a mapping, not %r' % type(args)
+        assert all(elem is not None for elem in args.values()), \
+            'line protocol values must not be None'
         record.asctime = self.formatTime(record, self.datefmt)
         record.message = record.getMessage() if args else record.msg
         tags = self._default_tags.copy()
