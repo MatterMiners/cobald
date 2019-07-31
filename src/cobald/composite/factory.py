@@ -56,7 +56,7 @@ class FactoryPool(CompositePool):
 
     @property
     def utilisation(self):
-        active_children = [child for child in self._hatchery if child.supply > 0]
+        active_children = [child for child in self.children if child.supply > 0]
         try:
             return sum(
                 child.utilisation for child in active_children
@@ -66,7 +66,7 @@ class FactoryPool(CompositePool):
 
     @property
     def allocation(self):
-        active_children = [child for child in self._hatchery if child.supply > 0]
+        active_children = [child for child in self.children if child.supply > 0]
         try:
             return sum(
                 child.allocation for child in active_children
