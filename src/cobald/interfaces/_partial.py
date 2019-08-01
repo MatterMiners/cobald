@@ -135,5 +135,7 @@ class PartialBind(Generic[C_co]):
             for owner in reversed(self.targets[:-1]):
                 pool = owner >> pool
             return self.parent >> pool
+        elif isinstance(other, Partial) and other.leaf:
+            return self >> other.__construct__()
         else:
             return PartialBind(self.parent, *self.targets, other)
