@@ -32,6 +32,8 @@ class Partial(Generic[C_co]):
         # apply target by chaining
         pipeline = control >> Decorator() >> Pool()
 
+    :note: The keyword argument ``__leaf__`` is reserved for internal usage.
+
     :note: Binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator`\ s
            creates a temporary :py:class:`~.PartialBind`. Only binding to a
            :py:class:`~.Pool` as the last element creates a concrete binding.
@@ -67,7 +69,12 @@ class Partial(Generic[C_co]):
             ) from err
 
     def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
-        return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
+        return Partial(
+            self.ctor,
+            *self.args, *args,
+            __leaf__=self.leaf,
+            **self.kwargs, **kwargs
+        )
 
     def __construct__(self, *args, **kwargs):
         return self.ctor(*args, *self.args, **kwargs, **self.kwargs)
@@ -91,7 +98,7 @@ class Partial(Generic[C_co]):
     def __repr__(self):
         return '{self.__class__.__name__}(ctor={self.ctor.__name__}'.format(self=self)\
                + 'args={self.args}, kwargs={self.kwargs}, '.format(self=self) \
-               + 'target={self.target})'.format(self=self)
+               + 'leaf={self.leaf})'.format(self=self)
 
 
 class PartialBind(Generic[C_co]):
