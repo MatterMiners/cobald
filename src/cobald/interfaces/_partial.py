@@ -81,7 +81,9 @@ class Partial(Generic[C_co]):
         ...
 
     def __rshift__(self, other):  # noqa: F811
-        if isinstance(other, (Partial, PartialBind)):
+        if isinstance(other, PartialBind):
+            return PartialBind(self, other.parent, *other.targets)
+        elif isinstance(other, Partial):
             return PartialBind(self, other)
         else:
             return self.__construct__(other)
