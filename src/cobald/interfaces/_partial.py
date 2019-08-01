@@ -1,5 +1,5 @@
 from inspect import Signature, BoundArguments
-from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING, Union, overload
+from typing import Type, Generic, TypeVar, TYPE_CHECKING, Union, overload
 
 from . import _pool
 
