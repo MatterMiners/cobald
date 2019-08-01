@@ -1,11 +1,12 @@
 from inspect import Signature, BoundArguments
 from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING, Union, overload
 
-from ._pool import Pool
+from . import _pool
 
 if TYPE_CHECKING:
     from ._controller import Controller
     from ._proxy import PoolDecorator
+    from ._pool import Pool
     Owner = Union[Controller, PoolDecorator]
     C_co = TypeVar('C_co', bound=Owner)
 else:
@@ -44,7 +45,7 @@ class Partial(Generic[C_co]):
         self._check_signature(args, kwargs)
 
     def _check_signature(self, args: Tuple, kwargs: Dict):
-        if 'target' in kwargs or (args and isinstance(args[0], Pool)):
+        if 'target' in kwargs or (args and isinstance(args[0], _pool.Pool)):
             raise TypeError(
                 "%s[%s] cannot bind 'target' by calling. "
                 "Use `this >> target` instead." % (
@@ -98,11 +99,11 @@ class PartialBind(Generic[C_co]):
         ...
 
     @overload  # noqa: F811
-    def __rshift__(self, other: Pool) -> 'C_co':
+    def __rshift__(self, other: 'Pool') -> 'C_co':
         ...
 
-    def __rshift__(self, other: Union[Pool, Partial[Owner]]):  # noqa: F811
-        if isinstance(other, Pool):
+    def __rshift__(self, other: 'Union[Pool, Partial[Owner]]'):  # noqa: F811
+        if isinstance(other, _pool.Pool):
             pool = self.targets[-1] >> other
             for owner in reversed(self.targets[:-1]):
                 pool = owner >> pool
