@@ -45,6 +45,18 @@ class TestPartial(object):
         pipeline = partial_control >> FullMockPool()
         assert isinstance(pipeline, MockController)
 
+    def test_pool_curry_bind(self):
+        """Curry and bind the last element of a pipeline"""
+        partial_pool = FullMockPool.s()
+        assert isinstance(partial_pool, Partial)
+        partial_pool = partial_pool(demand=10)
+        assert isinstance(partial_pool, Partial)
+        partial_control = MockController.s()
+        pipeline = partial_control >> partial_pool
+        assert isinstance(pipeline, MockController)
+        assert isinstance(pipeline.target, FullMockPool)
+        assert pipeline.target.demand == 10
+
     def test_signature_check(self):
         class ArgController(Controller):
             def __init__(self, target, a, b, c=3, *, kwa=2, kwb=3):
