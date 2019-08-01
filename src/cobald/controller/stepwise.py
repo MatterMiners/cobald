@@ -187,7 +187,7 @@ class UnboundStepwise(object):
         :note: The partial rules are sealed, and :py:meth:`~.UnboundStepwise.add`
                cannot be called on it.
         """
-        return Partial(Stepwise, self.base, *self.rules, *args, **kwargs)
+        return Partial(Stepwise, self.base, *self.rules, *args, __leaf__=True, **kwargs)
 
     def __call__(self, target: Pool, interval: float = None):
         if interval is None:
