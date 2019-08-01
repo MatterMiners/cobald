@@ -53,8 +53,10 @@ class Partial(Generic[C_co]):
                 )
             )
         try:
+            if not issubclass(self.ctor, _pool.Pool):
+                args = None, *args
             _ = Signature.from_callable(self.ctor).bind_partial(
-                None, *args, **kwargs
+                *args, **kwargs
             )  # type: BoundArguments
         except TypeError as err:
             message = err.args[0]
