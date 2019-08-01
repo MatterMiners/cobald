@@ -57,6 +57,20 @@ class TestPartial(object):
         assert isinstance(pipeline.target, FullMockPool)
         assert pipeline.target.demand == 10
 
+    def test_pool_recursive(self):
+        """Curry and bind the last element of a long pipeline"""
+        partial_pool = FullMockPool.s(demand=10)
+        for _ in range(3):
+            partial_pool = partial_pool()
+            assert isinstance(partial_pool, Partial)
+        pipeline = MockController.s() >> MockDecorator.s() >> MockDecorator.s()\
+            >> partial_pool
+        assert isinstance(pipeline, MockController)
+        assert isinstance(pipeline.target, MockDecorator)
+        assert isinstance(pipeline.target.target, MockDecorator)
+        assert isinstance(pipeline.target.target.target, FullMockPool)
+        assert pipeline.target.target.target.demand == 10
+
     def test_signature_check(self):
         class ArgController(Controller):
             def __init__(self, target, a, b, c=3, *, kwa=2, kwb=3):
