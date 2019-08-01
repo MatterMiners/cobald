@@ -69,6 +69,9 @@ class Partial(Generic[C_co]):
     def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
         return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
 
+    def __construct__(self, *args, **kwargs):
+        return self.ctor(*args, *self.args, **kwargs, **self.kwargs)
+
     @overload  # noqa: F811
     def __rshift__(self, other: 'Union[Partial, PartialBind]') -> 'PartialBind[C_co]':
         ...
@@ -81,7 +84,12 @@ class Partial(Generic[C_co]):
         if isinstance(other, (Partial, PartialBind)):
             return PartialBind(self, other)
         else:
-            return self.ctor(other, *self.args, **self.kwargs)
+            return self.__construct__(other)
+
+    def __repr__(self):
+        return '{self.__class__.__name__}(ctor={self.ctor.__name__}'.format(self=self)\
+               + 'args={self.args}, kwargs={self.kwargs}, '.format(self=self) \
+               + 'target={self.target})'.format(self=self)
 
 
 class PartialBind(Generic[C_co]):
@@ -94,7 +102,11 @@ class PartialBind(Generic[C_co]):
     """
     __slots__ = ('parent', 'targets')
 
-    def __init__(self, parent: Partial[C_co], *targets: Partial[Owner]):
+    def __init__(
+            self,
+            parent: Partial[C_co],
+            *targets: 'Union[Partial[Owner], PartialBind[Owner]]'
+    ):
         self.parent = parent
         self.targets = targets
 
