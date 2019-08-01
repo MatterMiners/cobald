@@ -36,15 +36,17 @@ class Partial(Generic[C_co]):
            creates a temporary :py:class:`~.PartialBind`. Only binding to a
            :py:class:`~.Pool` as the last element creates a concrete binding.
     """
-    __slots__ = ('ctor', 'args', 'kwargs')
+    __slots__ = ('ctor', 'args', 'kwargs', 'target')
 
-    def __init__(self, ctor: Type[C_co], *args, **kwargs):
+    def __init__(self, ctor: Type[C_co], *args, __target__=True, **kwargs):
         self.ctor = ctor
         self.args = args
         self.kwargs = kwargs
-        self._check_signature(args, kwargs)
+        self.target = __target__
+        self._check_signature()
 
-    def _check_signature(self, args: Tuple, kwargs: Dict):
+    def _check_signature(self):
+        args, kwargs = self.args, self.kwargs
         if 'target' in kwargs or (args and isinstance(args[0], _pool.Pool)):
             raise TypeError(
                 "%s[%s] cannot bind 'target' by calling. "
@@ -53,7 +55,7 @@ class Partial(Generic[C_co]):
                 )
             )
         try:
-            if not issubclass(self.ctor, _pool.Pool):
+            if self.target:
                 args = None, *args
             _ = Signature.from_callable(self.ctor).bind_partial(
                 *args, **kwargs
