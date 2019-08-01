@@ -99,8 +99,8 @@ class Partial(Generic[C_co]):
 
     def __repr__(self):
         return '{self.__class__.__name__}(ctor={self.ctor.__name__}'.format(self=self)\
-               + 'args={self.args}, kwargs={self.kwargs}, '.format(self=self) \
-               + 'leaf={self.leaf})'.format(self=self)
+               + ', args={self.args}, kwargs={self.kwargs}'.format(self=self) \
+               + ', leaf={self.leaf})'.format(self=self)
 
 
 class PartialBind(Generic[C_co]):
