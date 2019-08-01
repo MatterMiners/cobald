@@ -40,7 +40,7 @@ class Partial(Generic[C_co]):
     """
     __slots__ = ('ctor', 'args', 'kwargs', 'leaf')
 
-    def __init__(self, ctor: Type[C_co], *args, __leaf__=False, **kwargs):
+    def __init__(self, ctor: Type[C_co], *args, __leaf__, **kwargs):
         self.ctor = ctor
         self.args = args
         self.kwargs = kwargs
