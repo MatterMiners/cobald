@@ -36,13 +36,13 @@ class Partial(Generic[C_co]):
            creates a temporary :py:class:`~.PartialBind`. Only binding to a
            :py:class:`~.Pool` as the last element creates a concrete binding.
     """
-    __slots__ = ('ctor', 'args', 'kwargs', 'target')
+    __slots__ = ('ctor', 'args', 'kwargs', 'leaf')
 
-    def __init__(self, ctor: Type[C_co], *args, __target__=True, **kwargs):
+    def __init__(self, ctor: Type[C_co], *args, __leaf__=False, **kwargs):
         self.ctor = ctor
         self.args = args
         self.kwargs = kwargs
-        self.target = __target__
+        self.leaf = __leaf__
         self._check_signature()
 
     def _check_signature(self):
@@ -55,7 +55,7 @@ class Partial(Generic[C_co]):
                 )
             )
         try:
-            if self.target:
+            if not self.leaf:
                 args = None, *args
             _ = Signature.from_callable(self.ctor).bind_partial(
                 *args, **kwargs
