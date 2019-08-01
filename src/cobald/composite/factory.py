@@ -23,13 +23,13 @@ class FactoryPool(CompositePool):
       and free any resources and tasks.
 
     Once spawned, children are free to adjust their demand if required.
-    A child may disable itself permanently by setting its own ``demand=0``.
+    A child may disable itself permanently by setting its own ``demand = 0``.
     The :py:class:`FactoryPool` inspects the demand for all its children
     before spawning or disabling any children.
 
     Any child which satisfies ``supply > 0`` **or** ``demand > 0`` is considered
     active and contributes to the :py:class:`FactoryPool`
-    ``supply``, ``demand``, ``allocation`` and ``utilisation``.
+    ``supply``, ``demand``, ``allocation``, and ``utilisation``.
     The :py:class:`FactoryPool` makes no assumption about the validity or fitness
     of active children.
     It is the responsibility of children to report their status accordingly.
