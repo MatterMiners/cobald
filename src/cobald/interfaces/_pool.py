@@ -1,4 +1,10 @@
 import abc
+from typing import TypeVar, Type
+
+from ._partial import Partial
+
+
+C = TypeVar('C', bound='Controller')
 
 
 class Pool(metaclass=abc.ABCMeta):
@@ -33,3 +39,16 @@ class Pool(metaclass=abc.ABCMeta):
     def allocation(self) -> float:
         """Fraction of the provided resources which are assigned for usage"""
         raise NotImplementedError
+
+    @classmethod
+    def s(cls: Type[C], *args, **kwargs) -> Partial[C]:
+        """
+        Create an unbound prototype of this class, partially applying arguments
+
+        .. code:: python
+
+            pool = RemotePool.s(port=1337)
+
+            pipeline = controller >> pool(host='localhost')
+        """
+        return Partial(cls, *args, __leaf__=True, **kwargs)

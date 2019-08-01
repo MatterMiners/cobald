@@ -80,17 +80,19 @@ class Partial(Generic[C_co]):
         return self.ctor(*args, *self.args, **kwargs, **self.kwargs)
 
     @overload  # noqa: F811
-    def __rshift__(self, other: 'Union[Partial, PartialBind]') -> 'PartialBind[C_co]':
+    def __rshift__(self, other: 'Union[Owner, Pool, PartialBind[Pool]]') -> 'C_co':
         ...
 
     @overload  # noqa: F811
-    def __rshift__(self, other: 'Union[Owner, Pool]') -> 'C_co':
+    def __rshift__(self, other: 'Union[Partial, PartialBind]') -> 'PartialBind[C_co]':
         ...
 
     def __rshift__(self, other):  # noqa: F811
         if isinstance(other, PartialBind):
             return PartialBind(self, other.parent, *other.targets)
         elif isinstance(other, Partial):
+            if other.leaf:
+                return self >> other.__construct__()
             return PartialBind(self, other)
         else:
             return self.__construct__(other)
