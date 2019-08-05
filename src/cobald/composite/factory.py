@@ -23,16 +23,18 @@ class FactoryPool(CompositePool):
       and free any resources and tasks.
 
     Once spawned, children are free to adjust their demand if required.
-    A child may disable itself permanently by setting ``demand=0``.
-    The :py:class:`FactoryPool` re-inspects child demand before spawning
-    or disabling children.
+    A child may disable itself permanently by setting its own ``demand = 0``.
+    The :py:class:`FactoryPool` inspects the demand for all its children
+    before spawning or disabling any children.
 
-    Note that both ``allocation`` and ``utilisation`` are computed only
-    from children which satisfy ``supply > 0`` and ``demand > 0``.
-    We consider all other children as not fully functional --
-    and thus as not representative due to not aiming for ideal usage.
-    The ``children``, ``demand`` and ``supply`` reflect all available
-    resources, however.
+    Any child which satisfies ``supply > 0`` **or** ``demand > 0`` is considered
+    active and contributes to the :py:class:`FactoryPool`
+    ``supply``, ``demand``, ``allocation``, and ``utilisation``.
+    The :py:class:`FactoryPool` makes no assumption about the validity or fitness
+    of active children.
+    It is the responsibility of children to report their status accordingly.
+    For example, if a child shuts down and does not allocate its ``supply`` further,
+    it should scale its reported ``allocation`` accordingly.
     """
     @property
     def children(self):
@@ -54,7 +56,7 @@ class FactoryPool(CompositePool):
 
     @property
     def utilisation(self):
-        active_children = [child for child in self._hatchery if child.supply > 0]
+        active_children = [child for child in self.children if child.supply > 0]
         try:
             return sum(
                 child.utilisation for child in active_children
@@ -64,7 +66,7 @@ class FactoryPool(CompositePool):
 
     @property
     def allocation(self):
-        active_children = [child for child in self._hatchery if child.supply > 0]
+        active_children = [child for child in self.children if child.supply > 0]
         try:
             return sum(
                 child.allocation for child in active_children
