@@ -28,4 +28,4 @@ class Controller(metaclass=abc.ABCMeta):
 
             pipeline = controller(rate=10) >> pool
         """
-        return Partial(cls, *args, **kwargs)
+        return Partial(cls, *args, __leaf__=False, **kwargs)
