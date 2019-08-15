@@ -1,0 +1,11 @@
+category: added
+short: "YAML configuration files support plugins via ``!MyPlugin`` tags"
+pull requests:
+  - 43
+issues:
+  - 41
+long:
+  Plugins can be registered for use in YAML configuration files.
+  Packages register plugins via the ``cobald.config.yaml_constructors`` entry
+  point; plugins can then be used with YAML tags such as ``!MyPlugin``.
+  The ``cobald`` package provides its Controllers and Decorators as YAML plugins.

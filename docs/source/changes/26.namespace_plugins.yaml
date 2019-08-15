@@ -1,0 +1,10 @@
+category: added
+short: "the ``cobald`` namespace allows for external plugin packages"
+pull requests:
+  - 26
+issues:
+  - 23
+long:
+  The ``cobald`` package is changed into a namespace package.
+  This allows adding external packages as plugins to the namespace,
+  for example ``cobald.remote``.
