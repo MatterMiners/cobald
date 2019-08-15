@@ -54,19 +54,19 @@ COMPILE_CLI = SUB_CLI.add_parser(
     help='compile a changelog',
 )
 COMPILE_CLI.set_defaults(action=compile)
-CLI.add_argument(
+COMPILE_CLI.add_argument(
     '-o',
     '--output',
     help='output path or "-" for stdout',
     default='-',
 )
-CLI.add_argument(
+COMPILE_CLI.add_argument(
     '-f',
     '--item_format',
     default='* {short}',
     help='format of individual changes'
 )
-CLI.add_argument(
+COMPILE_CLI.add_argument(
     '-c',
     '--categories',
     nargs='+',
@@ -201,14 +201,14 @@ def format_release(
 
 
 CHANGELOG_HEADER = f"""
-.. Created by {APP_NAME} at {TODAY}
-
-   command '{" ".join(sys.argv)}'
+.. Created by {APP_NAME} at {TODAY}, command
+   '{" ".join(sys.argv)}'
 
 #########
 CHANGELOG
 #########
-"""
+
+""".lstrip()
 
 
 def compile_changelog(fragment_dir, output, item_format, categories: List[str]):
@@ -219,7 +219,8 @@ def compile_changelog(fragment_dir, output, item_format, categories: List[str]):
         raise RuntimeError(
             'Fragments include unknown versions: "%s"' % '", "'.join(unknown_versions)
         )
-    out_context = contextlib.nullcontext(sys.stdout) if output == '-' else open(output)
+    out_context = contextlib.nullcontext(sys.stdout) if output == '-'\
+        else open(output, 'w')
     with out_context as out_stream:
         out_stream.write(CHANGELOG_HEADER)
         for release in releases:
