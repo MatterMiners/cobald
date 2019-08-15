@@ -200,6 +200,17 @@ def format_release(
     return lines
 
 
+CHANGELOG_HEADER = f"""
+.. Created by {APP_NAME} at {TODAY}
+
+   command '{" ".join(sys.argv)}'
+
+#########
+CHANGELOG
+#########
+"""
+
+
 def compile_changelog(fragment_dir, output, item_format, categories: List[str]):
     """Compile a changelog and write it to ``output``"""
     releases, versioned_fragments = load_metadata(fragment_dir=fragment_dir)
@@ -210,7 +221,7 @@ def compile_changelog(fragment_dir, output, item_format, categories: List[str]):
         )
     out_context = contextlib.nullcontext(sys.stdout) if output == '-' else open(output)
     with out_context as out_stream:
-        out_stream.write(f'.. Created by {APP_NAME} at {TODAY}\n\n')
+        out_stream.write(CHANGELOG_HEADER)
         for release in releases:
             for line in format_release(
                 release, versioned_fragments[release.semver], item_format, categories
