@@ -49,4 +49,8 @@ the more likely and faster we can include your contribution.
     For new features, prepend ``WIP:`` to the title to show that it needs discussion.
   * Provide a description of the changes, ideally with a short example.
     Include references to all related issues and pull requests.
-* We will review your changes before merging
+* Keep available while we review and inspect your contribution
+  * A contribution MUST pass the continuous integration inspection.
+    This runs ``pytest`` and ``flake8`` on the code and unit tests.
+  * A contribution MUST include unit tests if it adds new features.
+    It SHOULD NOT decrease the unit test coverage.
