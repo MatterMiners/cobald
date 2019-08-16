@@ -70,7 +70,7 @@ RELEASE_CLI = SUB_CLI.add_parser(
     'release',
     help='prepare unreleased fragments'
 )
-RELEASE_CLI.set_defaults(action=print)
+RELEASE_CLI.set_defaults(action=release)
 RELEASE_CLI.add_argument(
     'SEMVER',
     help='version of unreleased fragments',
@@ -142,7 +142,11 @@ class Release(NamedTuple):
     def to_file(path, instances: 'List[Release]'):
         """Store all release to a file at ``path``"""
         with open(path, 'w') as out_stream:
-            yaml.safe_dump(instances, out_stream)
+            yaml.safe_dump(
+                [dict(instance._asdict()) for instance in instances],
+                out_stream,
+                sort_keys=False,
+            )
 
     def __gt__(self, other):
         if not isinstance(other, Release):
@@ -181,10 +185,19 @@ class Fragment(NamedTuple):
         return cls(path=path, **meta_data)
 
     def to_file(self):
-        meta_data = self._asdict()
-        meta_data.pop('path')
+        meta_data = {
+            'category': self.category,
+            'short': self.short,
+            'long': self.long,
+        }
+        if self.issues:
+            meta_data['issues'] = self.issues
+        if self.pulls:
+            meta_data['pull requests'] = self.pulls
+        if self.version != UNRELEASED.semver:
+            meta_data['version'] = self.version
         with open(self.path, 'w') as out_stream:
-            yaml.safe_dump(meta_data, out_stream)
+            yaml.safe_dump(meta_data, out_stream, sort_keys=False)
 
 
 def categorise(fragments: Iterable[Fragment], field: str) -> Dict[str, List[Fragment]]:
