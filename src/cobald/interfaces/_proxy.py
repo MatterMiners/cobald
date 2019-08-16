@@ -28,7 +28,7 @@ class PoolDecorator(Pool):
 
             pipeline = controller >> decorator >> pool
         """
-        return Partial(cls, *args, **kwargs)
+        return Partial(cls, *args, __leaf__=False, **kwargs)
 
     @property
     def supply(self):
