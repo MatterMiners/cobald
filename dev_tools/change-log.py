@@ -20,6 +20,19 @@ TODAY = datetime.date.today().isoformat()
 APP_NAME = os.path.basename(__file__)
 
 
+def is_semver(argument: str) -> str:
+    parts = argument.split('.')
+    if len(parts) != 3:
+        raise argparse.ArgumentTypeError(
+            'expected 3 version parts separate by %r, got %d' % ('.', len(parts))
+        )
+    try:
+        list(map(int, parts))
+    except ValueError:
+        raise argparse.ArgumentTypeError('all version parts must be integers')
+    return argument
+
+
 def main():
     options = CLI.parse_args()
     action = options.action
@@ -35,6 +48,13 @@ def compile(options: argparse.Namespace):
     )
 
 
+def release(options: argparse.Namespace):
+    release_changes(
+        fragment_dir=options.FRAGMENT_DIR,
+        new_ver=options.SEMVER,
+    )
+
+
 CLI = argparse.ArgumentParser(
     description="dynamically create changelogs from fragment files"
 )
@@ -44,11 +64,20 @@ CLI.add_argument(
     help='path to directory containing fragments'
 )
 SUB_CLI = CLI.add_subparsers(required=True, dest='SUBCMD')
+
+# CLI for updating release metadata
 RELEASE_CLI = SUB_CLI.add_parser(
     'release',
     help='prepare unreleased fragments'
 )
 RELEASE_CLI.set_defaults(action=print)
+RELEASE_CLI.add_argument(
+    'SEMVER',
+    help='version of unreleased fragments',
+    type=is_semver,
+)
+
+# CLI for writing changelogs
 COMPILE_CLI = SUB_CLI.add_parser(
     'compile',
     help='compile a changelog',
@@ -75,7 +104,6 @@ COMPILE_CLI.add_argument(
 
 
 # General components
-
 @functools.total_ordering
 class Release(NamedTuple):
     """
@@ -98,14 +126,23 @@ class Release(NamedTuple):
     @classmethod
     def from_file(cls, path) -> 'List[Release]':
         """Load all releases from a file at ``path``"""
-        with open(path) as in_stream:
-            meta_data = yaml.safe_load(in_stream)
-        if meta_data is None:
+        try:
+            with open(path) as in_stream:
+                meta_data = yaml.safe_load(in_stream)
+            if meta_data is None:
+                raise FileNotFoundError
+        except FileNotFoundError:
             return []
         return [
             cls(**version)
             for version in meta_data
         ]
+
+    @staticmethod
+    def to_file(path, instances: 'List[Release]'):
+        """Store all release to a file at ``path``"""
+        with open(path, 'w') as out_stream:
+            yaml.safe_dump(instances, out_stream)
 
     def __gt__(self, other):
         if not isinstance(other, Release):
@@ -125,6 +162,7 @@ class Fragment(NamedTuple):
     """
     Metadata of a single change
     """
+    path: str
     category: str
     short: str
     long: str
@@ -140,7 +178,13 @@ class Fragment(NamedTuple):
         if meta_data is None:
             raise RuntimeError(f'failed to load YAML data from {path}')
         meta_data['pulls'] = meta_data.pop('pull requests', [])
-        return cls(**meta_data)
+        return cls(path=path, **meta_data)
+
+    def to_file(self):
+        meta_data = self._asdict()
+        meta_data.pop('path')
+        with open(self.path, 'w') as out_stream:
+            yaml.safe_dump(meta_data, out_stream)
 
 
 def categorise(fragments: Iterable[Fragment], field: str) -> Dict[str, List[Fragment]]:
@@ -155,13 +199,13 @@ def categorise(fragments: Iterable[Fragment], field: str) -> Dict[str, List[Frag
     }
 
 
-def underline(line: str, symbol: str) -> List[str]:
-    """Underline a single-line ``.rst`` string"""
-    return [line, symbol * len(line), '']
-
-
-# Changelog compilation
 def load_metadata(fragment_dir: str) -> Tuple[List[Release], Dict[str, List[Fragment]]]:
+    """
+    Load all metadata from ``fragment_dir``
+
+    Returns a list of currently stored :py:class:`Release` \ s
+    and a mapping from version number to :py:class:`Fragment` \ s.
+    """
     releases = Release.from_file(os.path.join(fragment_dir, 'versions.yaml'))
     versioned_fragments = categorise(
         (
@@ -177,6 +221,34 @@ def load_metadata(fragment_dir: str) -> Tuple[List[Release], Dict[str, List[Frag
     return releases, versioned_fragments
 
 
+def underline(line: str, symbol: str) -> List[str]:
+    """Underline a single-line ``.rst`` string"""
+    return [line, symbol * len(line), '']
+
+
+# Release information update
+def release_changes(fragment_dir, new_ver: str):
+    releases, versioned_fragments = load_metadata(fragment_dir=fragment_dir)
+    # no releases, no fragments
+    if not releases:
+        Release.to_file(
+            os.path.join(fragment_dir, 'versions.yaml'),
+            [Release(new_ver, TODAY)]
+        )
+    else:
+        if releases[0] == UNRELEASED:
+            releases[0] = Release(new_ver, TODAY)
+            for fragment in versioned_fragments[UNRELEASED.semver]:
+                fragment._replace(version=new_ver).to_file()
+        else:
+            releases.insert(0, Release(new_ver, TODAY))
+        Release.to_file(
+            os.path.join(fragment_dir, 'versions.yaml'),
+            releases
+        )
+
+
+# Changelog compilation
 def format_release(
         release: Release,
         fragments: List[Fragment],
@@ -203,6 +275,7 @@ def format_release(
 CHANGELOG_HEADER = f"""
 .. Created by {APP_NAME} at {TODAY}, command
    '{" ".join(sys.argv)}'
+   based on the format of 'https://keepachangelog.com/'
 
 #########
 CHANGELOG
