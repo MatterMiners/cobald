@@ -104,6 +104,18 @@ COMPILE_CLI.add_argument(
 
 
 # General components
+def yaml_block_representer(dumper, data: str):
+    if '\n' in data:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='|')
+    elif data.count(' ') > 1:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='"')
+    else:
+        return dumper.represent_scalar('tag:yaml.org,2002:str', data, style='')
+
+
+yaml.SafeDumper.add_representer(str, yaml_block_representer)
+
+
 @functools.total_ordering
 class Release(NamedTuple):
     """
