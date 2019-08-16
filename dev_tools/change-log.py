@@ -225,11 +225,11 @@ def categorise(fragments: Iterable[Fragment], field: str) -> Dict[str, List[Frag
 
 
 def load_metadata(fragment_dir: str) -> Tuple[List[Release], Dict[str, List[Fragment]]]:
-    """
+    r"""
     Load all metadata from ``fragment_dir``
 
-    Returns a list of currently stored :py:class:`Release` \ s
-    and a mapping from version number to :py:class:`Fragment` \ s.
+    Returns a list of currently stored :py:class:`Release`\ s
+    and a mapping from version number to :py:class:`Fragment`\ s.
     """
     releases = Release.from_file(os.path.join(fragment_dir, 'versions.yaml'))
     versioned_fragments = categorise(
