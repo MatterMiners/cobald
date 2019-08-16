@@ -5,7 +5,7 @@ pull requests:
   - 44
 issues:
   - 42
-long:
+long: |
   The Line Protocol implementation has been extended to remove case that
   previously led to illegal output. ``None`` values are
   forbidden, and strings are escaped in field values, tags and measurements.

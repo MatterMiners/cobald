@@ -4,7 +4,7 @@ pull requests:
   - 46
 issues:
   - 32
-long:
+long: |
   Like Controllers and Decorators, Pool classes have a ``Pool.s`` classmethod
   to create a template with default parameters for instances. Templates are
   instantiated when used in a chain, e.g. ``control_template >> pool_template``.
