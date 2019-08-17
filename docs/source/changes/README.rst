@@ -25,9 +25,9 @@ Both ``short`` and ``long`` descriptions are interpreted as reStructured Text.
       - 42
     # long description of changes
     long:
-      The Line Protocol implementation has been extended to remove case that
+      The Line Protocol implementation has been extended to remove cases that
       previously led to illegal output. ``None`` values are
-      forbidden, and strings are escaped in field values, tags and measurements.
+      forbidden, and strings are escaped in field values, tags, and measurements.
 
 New changes are assigned to the "next" release. Release information is added
 automatically when a release is prepared.

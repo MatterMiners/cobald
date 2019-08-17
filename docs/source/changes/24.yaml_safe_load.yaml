@@ -5,4 +5,4 @@ pull requests:
 long: |
   Parsing of YAML configuration files uses ``yaml.safe_load``,
   which does not load arbitrary Python objects of ``!!python/object`` tags.
-  This avoids known security issue that allows executing arbitrary code.
+  This avoids a known security issue that allows executing arbitrary code.
