@@ -92,7 +92,7 @@ COMPILE_CLI.add_argument(
 COMPILE_CLI.add_argument(
     '-f',
     '--item_format',
-    default='* {short}',
+    default='* {summary}',
     help='format of individual changes'
 )
 COMPILE_CLI.add_argument(
