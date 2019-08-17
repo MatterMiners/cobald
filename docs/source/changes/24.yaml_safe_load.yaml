@@ -1,8 +1,8 @@
 category: security
-short: "YAML configuration files no longer allow arbitrary ``!!python/object`` tags"
+summary: "YAML configuration files no longer allow arbitrary ``!!python/object`` tags"
 pull requests:
   - 24
-long: |
+description: |
   Parsing of YAML configuration files uses ``yaml.safe_load``,
   which does not load arbitrary Python objects of ``!!python/object`` tags.
   This avoids a known security issue that allows executing arbitrary code.

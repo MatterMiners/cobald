@@ -1,10 +1,10 @@
 category: added
-short: "Pools can be templated via ``.s`` in Python configuration files"
+summary: "Pools can be templated via ``.s`` in Python configuration files"
 pull requests:
   - 46
 issues:
   - 32
-long: |
+description: |
   Like Controllers and Decorators, Pool classes have a ``Pool.s`` classmethod
   to create a template with default parameters for instances. Templates are
   instantiated when used in a chain, e.g. ``control_template >> pool_template``.

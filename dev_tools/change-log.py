@@ -180,10 +180,10 @@ class Fragment(NamedTuple):
     """
     path: str
     category: str
-    short: str
-    long: str
+    summary: str
+    description: str
     version: str = UNRELEASED.semver
-    pulls: List[str] = []
+    pull_requests: List[str] = []
     issues: List[str] = []
 
     @classmethod
@@ -193,19 +193,19 @@ class Fragment(NamedTuple):
             meta_data = yaml.safe_load(in_stream)
         if meta_data is None:
             raise RuntimeError(f'failed to load YAML data from {path}')
-        meta_data['pulls'] = meta_data.pop('pull requests', [])
+        meta_data['pull_requests'] = meta_data.pop('pull requests', [])
         return cls(path=path, **meta_data)
 
     def to_file(self):
         meta_data = {
             'category': self.category,
-            'short': self.short,
-            'long': self.long,
+            'summary': self.summary,
+            'description': self.description,
         }
         if self.issues:
             meta_data['issues'] = self.issues
         if self.pulls:
-            meta_data['pull requests'] = self.pulls
+            meta_data['pull requests'] = self.pull_requests
         if self.version != UNRELEASED.semver:
             meta_data['version'] = self.version
         with open(self.path, 'w') as out_stream:

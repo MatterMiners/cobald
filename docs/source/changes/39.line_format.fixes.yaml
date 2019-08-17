@@ -1,11 +1,11 @@
 category: fixed
-short: "fixed Line Protocol sending illegal content"
+summary: "fixed Line Protocol sending illegal content"
 pull requests:
   - 39
   - 44
 issues:
   - 42
-long: |
+description: |
   The Line Protocol implementation has been extended to remove cases that
   previously led to illegal output. ``None`` values are
   forbidden, and strings are escaped in field values, tags, and measurements.
