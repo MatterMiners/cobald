@@ -1,4 +1,4 @@
-.. Created by change-log.py at 2019-08-16, command
+.. Created by change-log.py at 2019-09-03, command
    './dev_tools/change-log.py docs/source/changes/ compile -o ./docs/source/changelog.rst'
    based on the format of 'https://keepachangelog.com/'
 
@@ -6,8 +6,8 @@
 CHANGELOG
 #########
 
-[Unreleased] - 2019-08-16
-=========================
+[0.10.0] - 2019-09-03
+=====================
 
 Added
 -----
