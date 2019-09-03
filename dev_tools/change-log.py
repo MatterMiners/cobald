@@ -204,7 +204,7 @@ class Fragment(NamedTuple):
         }
         if self.issues:
             meta_data['issues'] = self.issues
-        if self.pulls:
+        if self.pull_requests:
             meta_data['pull requests'] = self.pull_requests
         if self.version != UNRELEASED.semver:
             meta_data['version'] = self.version
