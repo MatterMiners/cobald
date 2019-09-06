@@ -1,0 +1,9 @@
+category: changed
+summary: "COBalD configuration files may include additional sections"
+description: |
+  When COBalD encounters unused sections in its configuration, it only emits
+  a log message. This allows adding configuration sections for plugins.
+issues:
+- 50
+pull requests:
+- 51
