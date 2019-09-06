@@ -1,4 +1,6 @@
 from typing import Type
+import logging
+
 from yaml import SafeLoader, BaseLoader, nodes
 
 from .mapping import configure_logging, Translator, ConfigurationError
@@ -27,9 +29,10 @@ def load_configuration(
         raise ConfigurationError(where='root', what=err)
     else:
         if config_data:
-            raise ConfigurationError(
-                where='root',
-                what='dangling configuration keys (%s)' % ', '.join(config_data),
+            logger = logging.getLogger("cobald.runtime.config")
+            logger.info(
+                "COBalD core ignores configuration sections '%s'",
+                "', '".join(config_data)
             )
         return translator.translate_hierarchy({'pipeline': root_pipeline})
 
