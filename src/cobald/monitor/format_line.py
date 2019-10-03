@@ -1,8 +1,22 @@
 from collections.abc import Mapping
 from logging import Formatter, LogRecord
-from typing import Dict, Set, Union, Any
+from typing import Dict, Set, Union, Any, TypeVar
 
 from .format_json import RECORD_ATTRIBUTES
+
+
+T = TypeVar('T')
+
+
+def escape_key(key: str) -> str:
+    assert isinstance(key, str)
+    return key.replace(r',', r'\,').replace(r'=', r'\=').replace(r' ', r'\ ')
+
+
+def escape_field(field: T) -> T:
+    if isinstance(field, str):
+        return '"' + field.replace("\\", r"\\").replace('"', r'\"') + '"'
+    return field
 
 
 def line_protocol(
@@ -16,16 +30,18 @@ def line_protocol(
     :param fields: measurements of the report
     :param timestamp: when the measurement was taken, in **seconds** since the epoch
     """
-    output_str = name
+    _escape_key = escape_key
+    _escape_field = escape_field
+    output_str = name.replace(r',', r'\,').replace(r' ', r'\ ')
     if tags:
         output_str += ','
         output_str += ','.join(
-            '%s=%s' % (key, value)
+            '%s=%s' % (_escape_key(key), _escape_key(value))
             for key, value in sorted(tags.items())
         )
     output_str += ' '
     output_str += ','.join(
-        ('%s=%r' % (key, value)).replace("'", '"')
+        ('%s=%s' % (_escape_key(key), _escape_field(value))).replace("'", '"')
         for key, value in sorted(fields.items())
     )
     if timestamp is not None:

@@ -78,3 +78,19 @@ class TestFormatLine(object):
         assert len(tags) == 0
         assert tags == {}
         assert timestamp is None
+
+    def test_special_character_escape(self):
+        # https://docs.influxdata.com/influxdb/v1.7/write_protocols/
+        # line_protocol_reference/#special-characters
+        slash = r'\"'[0]
+        logger, handler = make_test_logger(__name__)
+        handler.formatter = LineProtocolFormatter(tags={r'tag key with sp🚀ces'})
+        logger.critical(r'"measurement with quo⚡️es and emoji"', {
+            r'tag key with sp🚀ces': r'tag,value,with"commas"',
+            r'field_k\ey': r'string field value, only " need be esc🍭ped',
+        })
+        assert handler.content.rstrip('\n') == (
+            r'"measurement\ with\ quo⚡️es\ and\ emoji",'
+            r'tag\ key\ with\ sp🚀ces=tag\,value\,with"commas"'
+            r' field_k\ey="string field value, only %s" need be esc🍭ped"' % slash
+        )

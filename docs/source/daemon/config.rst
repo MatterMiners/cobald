@@ -16,15 +16,53 @@ The file extension determines the type of configuration interface to use -
     $ python3 -m cobald.daemon /etc/cobald/config.py
 
 The YAML Interface
-------------------
+==================
 
 The top level of a YAML configuration file is a mapping with two sections:
 the ``pipeline`` section setting up a pool control pipeline,
 and the ``logging`` section setting up the logging facilities.
-The ``logging`` section is optional and follows the standard `configuration dictionary schema`_.
+The ``logging`` section is optional and follows the standard
+`configuration dictionary schema`_.
 
-The ``pipeline`` section contains a sequence of :py:class:`~cobald.interface.Controller`,
-:py:class:`~cobald.interface.Decorator` and :py:class:`~cobald.interface.Pool`\ s.
+The ``pipeline`` section must contain a sequence of
+:py:class:`~cobald.interface.Controller`\ s,
+:py:class:`~cobald.interface.Decorator`\ s
+and :py:class:`~cobald.interface.Pool`\ s.
+Each ``pipeline`` is constructed in reverse order:
+the *last* element should be a :py:class:`~cobald.interface.Pool`
+and is constructed first,
+then recursively passed to its predecessor for construction.
+
+.. code:: yaml
+
+    # pool becomes the target of the controller
+    pipeline:
+        - !LinearController
+          low_utilisation: 0.9
+          high_utilisation: 1.1
+        - !CpuPool
+          interval: 1
+
+Object References
+*****************
+
+YAML configurations support ``!!`` tag and ``!`` constructor syntax.
+These allow to use arbitrary Python objects and registered plugins, respectively.
+Both support keyword and positional arguments.
+
+.. code:: yaml
+
+    # generic python tag for arbitrary objects
+    !!python/object:cobald.controller.linear.LinearController {low_utilisation: 0.9}
+    # constructor tag for registered plugin
+    !LinearController
+    low_utilisation: 0.9
+
+.. versionadded:: 0.9.3
+
+.. seealso:: The `PyYAML`_ documentation on "YAML tags and Python types".
+
+A legacy format using explicit type references is available, but discouraged.
 This uses an invocation mechanism that can use arbitrary callables to construct objects:
 each mapping with a ``__type__`` key is invoked with its items as keyword arguments,
 and the optional ``__args__`` as positional arguments.
@@ -40,18 +78,19 @@ and the optional ``__args__`` as positional arguments.
           keyword1: one
           keyword2: two
 
-Each ``pipeline`` is constructed in order:
-the *last* element should be a :py:class:`~cobald.interface.Pool`,
-and subsequent elements recursively receive their predecessor as the ``target`` keyword.
+.. deprecated:: 0.9.3
+    Use YAML tags and constructors instead.
 
-:note: To read the yaml configuration ``yaml.SafeLoader`` is used. Implications can be found in the
-       `PyYAML <https://pyyaml.org/wiki/PyYAMLDocumentation>`_ documentation
+:note: To read the yaml configuration ``yaml.SafeLoader`` is used. See the
+       `PyYAML`_ documentation for details.
 
 Python Code Inclusion
----------------------
+=====================
 
 Python configuration files are loaded like regular modules.
 This allows to define arbitrary types and functions, and directly chain components or configure logging.
 At least one :py:class:`~.cobald.daemon.service.service` should be instantiated.
 
 .. _`configuration dictionary schema`: https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
+
+.. _`PyYAML`: https://pyyaml.org/wiki/PyYAMLDocumentation

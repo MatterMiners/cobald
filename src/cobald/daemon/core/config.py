@@ -1,9 +1,45 @@
 import os
 from contextlib import contextmanager
+from typing import Type
 
-from ..config.yaml import load_configuration as load_yaml_configuration
+from yaml import SafeLoader, BaseLoader
+
+from ..config.yaml import load_configuration as load_yaml_configuration,\
+    yaml_constructor
 from ..config.python import load_configuration as load_python_configuration
 from ..config.mapping import Translator
+
+
+class COBalDLoader(SafeLoader):
+    """Loader with access to COBalD configuration constructors"""
+
+
+def add_constructor_plugins(
+        entry_point_group: str,
+        loader: Type[BaseLoader]
+) -> None:
+    """
+    Add PyYAML constructors from an entry point group to a loader
+
+    :param loader: the PyYAML loader which uses the plugins
+    :param entry_point_group: entry point group to search
+    """
+    from pkg_resources import iter_entry_points
+    for entry in iter_entry_points(entry_point_group):
+        if entry.name[0] == '!':
+            raise RuntimeError(
+                "plugin name %r in entry point group %r may not start with '!'" % (
+                    entry.name, entry_point_group
+                )
+            )
+        try:
+            pipeline_factory = entry.load().s
+        except AttributeError:
+            pipeline_factory = entry.load()
+        loader.add_constructor(
+            tag='!' + entry.name,
+            constructor=yaml_constructor(pipeline_factory),
+        )
 
 
 @contextmanager
@@ -15,7 +51,15 @@ def load(config_path: str):
     """
     # we bind the config to _ to keep it alive
     if os.path.splitext(config_path)[1] in ('.yaml', '.yml'):
-        _ = load_yaml_configuration(config_path, translator=PipelineTranslator())
+        add_constructor_plugins(
+            'cobald.config.yaml_constructors',
+            COBalDLoader,  # type: ignore
+        )
+        _ = load_yaml_configuration(
+            config_path,
+            loader=COBalDLoader,  # type: ignore
+            translator=PipelineTranslator()
+        )
     elif os.path.splitext(config_path)[1] == '.py':
         _ = load_python_configuration(config_path)
     else:
@@ -53,9 +97,14 @@ class PipelineTranslator(Translator):
             prev_item, items = None, []
             for index, item in reversed(list(enumerate(pipeline))):
                 if prev_item is not None:
-                    prev_item = self.translate_hierarchy(
-                        item, where='%s[%s]' % (where, index), target=prev_item
-                    )
+                    try:
+                        # fully constructed object from !constructor
+                        prev_item = item >> prev_item
+                    except TypeError:
+                        # encoded object from __type__: constructor
+                        prev_item = self.translate_hierarchy(
+                            item, where='%s[%s]' % (where, index), target=prev_item
+                        )
                 else:
                     prev_item = self.translate_hierarchy(
                         item, where='%s[%s]' % (where, index)

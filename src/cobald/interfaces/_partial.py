@@ -1,11 +1,12 @@
 from inspect import Signature, BoundArguments
-from typing import Type, Generic, TypeVar, Tuple, Dict, TYPE_CHECKING, Union, overload
+from typing import Type, Generic, TypeVar, TYPE_CHECKING, Union, overload
 
-from ._pool import Pool
+from . import _pool
 
 if TYPE_CHECKING:
     from ._controller import Controller
     from ._proxy import PoolDecorator
+    from ._pool import Pool
     Owner = Union[Controller, PoolDecorator]
     C_co = TypeVar('C_co', bound=Owner)
 else:
@@ -31,20 +32,24 @@ class Partial(Generic[C_co]):
         # apply target by chaining
         pipeline = control >> Decorator() >> Pool()
 
+    :note: The keyword argument ``__leaf__`` is reserved for internal usage.
+
     :note: Binding :py:class:`~.Controller`\ s and :py:class:`~.Decorator`\ s
            creates a temporary :py:class:`~.PartialBind`. Only binding to a
            :py:class:`~.Pool` as the last element creates a concrete binding.
     """
-    __slots__ = ('ctor', 'args', 'kwargs')
+    __slots__ = ('ctor', 'args', 'kwargs', 'leaf')
 
-    def __init__(self, ctor: Type[C_co], *args, **kwargs):
+    def __init__(self, ctor: Type[C_co], *args, __leaf__, **kwargs):
         self.ctor = ctor
         self.args = args
         self.kwargs = kwargs
-        self._check_signature(args, kwargs)
+        self.leaf = __leaf__
+        self._check_signature()
 
-    def _check_signature(self, args: Tuple, kwargs: Dict):
-        if 'target' in kwargs or (args and isinstance(args[0], Pool)):
+    def _check_signature(self):
+        args, kwargs = self.args, self.kwargs
+        if 'target' in kwargs or (args and isinstance(args[0], _pool.Pool)):
             raise TypeError(
                 "%s[%s] cannot bind 'target' by calling. "
                 "Use `this >> target` instead." % (
@@ -52,8 +57,10 @@ class Partial(Generic[C_co]):
                 )
             )
         try:
+            if not self.leaf:
+                args = None, *args
             _ = Signature.from_callable(self.ctor).bind_partial(
-                None, *args, **kwargs
+                *args, **kwargs
             )  # type: BoundArguments
         except TypeError as err:
             message = err.args[0]
@@ -62,21 +69,38 @@ class Partial(Generic[C_co]):
             ) from err
 
     def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
-        return Partial(self.ctor, *self.args, *args, **self.kwargs, **kwargs)
+        return Partial(
+            self.ctor,
+            *self.args, *args,
+            __leaf__=self.leaf,
+            **self.kwargs, **kwargs
+        )
+
+    def __construct__(self, *args, **kwargs):
+        return self.ctor(*args, *self.args, **kwargs, **self.kwargs)
+
+    @overload  # noqa: F811
+    def __rshift__(self, other: 'Union[Owner, Pool, PartialBind[Pool]]') -> 'C_co':
+        ...
 
     @overload  # noqa: F811
     def __rshift__(self, other: 'Union[Partial, PartialBind]') -> 'PartialBind[C_co]':
         ...
 
-    @overload  # noqa: F811
-    def __rshift__(self, other: 'Union[Owner, Pool]') -> 'C_co':
-        ...
-
     def __rshift__(self, other):  # noqa: F811
-        if isinstance(other, (Partial, PartialBind)):
+        if isinstance(other, PartialBind):
+            return PartialBind(self, other.parent, *other.targets)
+        elif isinstance(other, Partial):
+            if other.leaf:
+                return self >> other.__construct__()
             return PartialBind(self, other)
         else:
-            return self.ctor(other, *self.args, **self.kwargs)
+            return self.__construct__(other)
+
+    def __repr__(self):
+        return '{self.__class__.__name__}(ctor={self.ctor.__name__}'.format(self=self)\
+               + ', args={self.args}, kwargs={self.kwargs}'.format(self=self) \
+               + ', leaf={self.leaf})'.format(self=self)
 
 
 class PartialBind(Generic[C_co]):
@@ -89,7 +113,11 @@ class PartialBind(Generic[C_co]):
     """
     __slots__ = ('parent', 'targets')
 
-    def __init__(self, parent: Partial[C_co], *targets: Partial[Owner]):
+    def __init__(
+            self,
+            parent: Partial[C_co],
+            *targets: 'Union[Partial[Owner], PartialBind[Owner]]'
+    ):
         self.parent = parent
         self.targets = targets
 
@@ -98,14 +126,16 @@ class PartialBind(Generic[C_co]):
         ...
 
     @overload  # noqa: F811
-    def __rshift__(self, other: Pool) -> 'C_co':
+    def __rshift__(self, other: 'Pool') -> 'C_co':
         ...
 
-    def __rshift__(self, other: Union[Pool, Partial[Owner]]):  # noqa: F811
-        if isinstance(other, Pool):
+    def __rshift__(self, other: 'Union[Pool, Partial[Owner]]'):  # noqa: F811
+        if isinstance(other, _pool.Pool):
             pool = self.targets[-1] >> other
             for owner in reversed(self.targets[:-1]):
                 pool = owner >> pool
             return self.parent >> pool
+        elif isinstance(other, Partial) and other.leaf:
+            return self >> other.__construct__()
         else:
             return PartialBind(self.parent, *self.targets, other)

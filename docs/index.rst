@@ -34,6 +34,7 @@ COBalD -- the Opportunistic Balancing Daemon
     /source/model/overview
     /source/daemon/overview
     /source/custom/overview
+    /source/changelog
     /source/glossary
     Module Index <source/api/modules>
 
