@@ -94,6 +94,8 @@ keywords should mention ``cobald`` for findability.
         ...
     )
 
+.. _extension_config_plugins:
+
 Configuration Plugins
 *********************
 

@@ -4,7 +4,7 @@ Component Configuration
 
 Configuration of the :py:mod:`cobald.daemon` is performed at startup via one of two methods:
 a YAML file or Python code.
-While the former is more structured and easier to verify, the later allows for greater freedom.
+While the former is more structured and easier to verify, the latter allows for greater freedom.
 
 The configuration file is the only positional argument when launching the :py:mod:`cobald.daemon`.
 The file extension determines the type of configuration interface to use -
@@ -60,7 +60,12 @@ Both support keyword and positional arguments.
 
 .. versionadded:: 0.9.3
 
-.. seealso:: The `PyYAML`_ documentation on "YAML tags and Python types".
+.. note::
+
+    The YAML configuration is read using ``yaml.SafeLoader`` to avoid arbitrary code execution.
+    Objects must be marked as safe for loading,
+    either as :ref:`COBalD plugins <extension_config_plugins>`
+    or using `PyYAML`_ directly.
 
 A legacy format using explicit type references is available, but discouraged.
 This uses an invocation mechanism that can use arbitrary callables to construct objects:
@@ -80,9 +85,6 @@ and the optional ``__args__`` as positional arguments.
 
 .. deprecated:: 0.9.3
     Use YAML tags and constructors instead.
-
-:note: To read the yaml configuration ``yaml.SafeLoader`` is used. See the
-       `PyYAML`_ documentation for details.
 
 Python Code Inclusion
 =====================
