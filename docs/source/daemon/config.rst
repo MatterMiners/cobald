@@ -91,7 +91,25 @@ Python Code Inclusion
 
 Python configuration files are loaded like regular modules.
 This allows to define arbitrary types and functions, and directly chain components or configure logging.
-At least one :py:class:`~.cobald.daemon.service.service` should be instantiated.
+At least one pipeline of :py:class:`~cobald.interface.Controller`\ s,
+:py:class:`~cobald.interface.Decorator`\ s
+and :py:class:`~cobald.interface.Pool`\ s should be instantiated.
+
+.. code:: python3
+
+    from cobald.controller.linear import LinearController
+
+    from cobald_demo.cpu_pool import CpuPool
+    from cobald_demo.draw_line import DrawLineHook
+
+    pipeline = LinearController.s(
+        low_utilisation=0.9, high_allocation=1.1
+    ) >> CpuPool()
+
+As regular modules, Python configurations must explicitly import the components they use.
+In addition, everything not bound to a name will be garbage collected.
+This allows configurations to use temporary objects, e.g. reading from files or sockets,
+but means persistent objects (such as a pipeline) must be bound to a name.
 
 .. [#dangling] YAML configurations allow for additional sections to configure plugins.
                Additional sections are :ref:`logged <daemon_logging>` to the
