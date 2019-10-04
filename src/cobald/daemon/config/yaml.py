@@ -30,7 +30,7 @@ def load_configuration(
     else:
         if config_data:
             logger = logging.getLogger("cobald.runtime.config")
-            logger.info(
+            logger.warning(
                 "COBalD core ignores configuration sections '%s'",
                 "', '".join(config_data)
             )
