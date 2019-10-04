@@ -22,7 +22,7 @@ The top level of a YAML configuration file is a mapping with two sections:
 the ``pipeline`` section setting up a pool control pipeline,
 and the ``logging`` section setting up the logging facilities.
 The ``logging`` section is optional and follows the standard
-`configuration dictionary schema`_.
+`configuration dictionary schema`_. [#dangling]_
 
 The ``pipeline`` section must contain a sequence of
 :py:class:`~cobald.interface.Controller`\ s,
@@ -90,6 +90,10 @@ Python Code Inclusion
 Python configuration files are loaded like regular modules.
 This allows to define arbitrary types and functions, and directly chain components or configure logging.
 At least one :py:class:`~.cobald.daemon.service.service` should be instantiated.
+
+.. [#dangling] YAML configurations allow for additional sections to configure plugins.
+               Additional sections are :ref:`logged <daemon_logging>` to the
+               ``"cobald.runtime.config"`` channel.
 
 .. _`configuration dictionary schema`: https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
 

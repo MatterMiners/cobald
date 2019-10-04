@@ -1,3 +1,5 @@
+.. _daemon_logging:
+
 ===========================
 Standard Logging Facilities
 ===========================
