@@ -52,7 +52,7 @@ if __name__ == '__main__':
         },
         # >>> Dependencies
         install_requires=[
-            'typing',
+            'typing; python_version < "3.5"',
             'pyyaml',
             'trio>=0.4.0',
             'include',
