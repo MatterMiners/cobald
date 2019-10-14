@@ -1,5 +1,4 @@
 from typing import Type
-import logging
 
 from yaml import SafeLoader, BaseLoader, nodes
 
