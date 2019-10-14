@@ -2,9 +2,12 @@ import logging
 import logging.config
 import sys
 
-from typing import Any
+from typing import Any, Dict, TypeVar
 
 _logger = logging.getLogger(__package__)
+
+
+T = TypeVar('T')
 
 
 class ConfigurationError(Exception):
@@ -29,7 +32,7 @@ class Translator(object):
     """
     Translator from a mapping to an initialised object hierarchy
     """
-    def translate_hierarchy(self, structure, *, where='', **construct_kwargs):
+    def translate_hierarchy(self, structure: T, *, where='', **construct_kwargs) -> T:
         try:
             if isinstance(structure, dict):
                 structure = {
@@ -91,3 +94,27 @@ class Translator(object):
                 return obj
         else:  # ImportError is not raised if ``absolute_name`` points to a valid module
             return sys.modules[absolute_name]
+
+
+def load_configuration(
+        config_data: Dict[str, Any],
+        translator=Translator(),
+) -> Dict[str, Any]:
+    try:
+        logging_mapping = config_data.pop('logging')
+    except KeyError:
+        pass
+    else:
+        configure_logging(logging_mapping)
+    try:
+        root_pipeline = config_data.pop('pipeline')
+    except KeyError as err:
+        raise ConfigurationError(where='root', what=err)
+    else:
+        if config_data:
+            logger = logging.getLogger("cobald.runtime.config")
+            logger.warning(
+                "COBalD core ignores configuration sections '%s'",
+                "', '".join(config_data)
+            )
+        return translator.translate_hierarchy({'pipeline': root_pipeline})
