@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from typing import Type
 
 from yaml import SafeLoader, BaseLoader
+from entrypoints import get_group_all as get_entrypoints, EntryPoint
 
 from ..config.yaml import load_configuration as load_yaml_configuration,\
     yaml_constructor
@@ -23,9 +24,13 @@ def add_constructor_plugins(
 
     :param loader: the PyYAML loader which uses the plugins
     :param entry_point_group: entry point group to search
+
+    .. note::
+
+        This directly modifies the ``loader`` by
+        calling :py:meth:`~.BaseLoader.add_constructor`.
     """
-    from pkg_resources import iter_entry_points
-    for entry in iter_entry_points(entry_point_group):
+    for entry in get_entrypoints(entry_point_group):
         if entry.name[0] == '!':
             raise RuntimeError(
                 "plugin name %r in entry point group %r may not start with '!'" % (
