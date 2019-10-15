@@ -1,6 +1,6 @@
 import os
 from contextlib import contextmanager
-from typing import Type
+from typing import Type, Tuple
 
 from yaml import SafeLoader, BaseLoader
 from entrypoints import get_group_all as get_entrypoints
@@ -8,7 +8,7 @@ from entrypoints import get_group_all as get_entrypoints
 from ..config.yaml import load_configuration as load_yaml_configuration,\
     yaml_constructor
 from ..config.python import load_configuration as load_python_configuration
-from ..config.mapping import Translator
+from ..config.mapping import Translator, SectionPlugin
 
 
 class COBalDLoader(SafeLoader):
@@ -47,6 +47,19 @@ def add_constructor_plugins(
         )
 
 
+def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
+    """
+    Load configuration plugins from an entry point group
+
+    :param entry_point_group: entry point group to search
+    :return: all loaded plugins
+    """
+    return tuple(
+        SectionPlugin.load(entry_point)
+        for entry_point in get_entrypoints(entry_point_group)
+    )
+
+
 @contextmanager
 def load(config_path: str):
     """
@@ -60,10 +73,13 @@ def load(config_path: str):
             'cobald.config.yaml_constructors',
             COBalDLoader,  # type: ignore
         )
+        config_plugins = load_section_plugins(
+            'cobald.config.sections'
+        )
         _ = load_yaml_configuration(
             config_path,
             loader=COBalDLoader,  # type: ignore
-            translator=PipelineTranslator()
+            plugins=config_plugins,
         )
     elif os.path.splitext(config_path)[1] == '.py':
         _ = load_python_configuration(config_path)
@@ -72,6 +88,17 @@ def load(config_path: str):
             'Unknown configuration extension: %r' % os.path.splitext(config_path)[1]
         )
     yield
+
+
+def load_pipeline(content):
+    """
+    Load a cobald pipeline of Controller >> ... >> Pool from a configuration section
+
+    :param content: content of the configuration section
+    :return:
+    """
+    translator = PipelineTranslator()
+    return translator.translate_hierarchy({'pipeline': content})
 
 
 class PipelineTranslator(Translator):

@@ -1,15 +1,15 @@
-from typing import Type
+from typing import Type, Tuple
 
 from yaml import SafeLoader, BaseLoader, nodes
 
 from .mapping import load_configuration as load_mapping_configuration,\
-    Translator, ConfigurationError
+    ConfigurationError, SectionPlugin
 
 
 def load_configuration(
         path: str,
         loader: Type[BaseLoader] = SafeLoader,
-        translator=Translator()
+        plugins: Tuple[SectionPlugin] = (),
 ):
     with open(path) as yaml_stream:
         loader_instance = loader(yaml_stream)
@@ -17,7 +17,10 @@ def load_configuration(
             config_data = loader_instance.get_single_data()
         finally:
             loader_instance.dispose()
-    return load_mapping_configuration(config_data, translator)
+    return load_mapping_configuration(
+        config_data=config_data,
+        plugins=plugins
+    )
 
 
 def yaml_constructor(factory):

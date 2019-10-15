@@ -49,6 +49,9 @@ if __name__ == '__main__':
                     ('Standardiser', 'cobald.decorator.standardiser'),
                 )
             ],
+            'cobald.config.sections': [
+                'pipeline = cobald.daemon.core.config:load_pipeline'
+            ],
         },
         # >>> Dependencies
         install_requires=[
