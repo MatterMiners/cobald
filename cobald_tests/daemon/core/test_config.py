@@ -1,5 +1,8 @@
 from tempfile import NamedTemporaryFile
 
+import pytest
+
+from cobald.daemon.config.mapping import ConfigurationError
 from cobald.daemon.core.config import load, COBalDLoader, yaml_constructor
 
 from ...mock.pool import MockPool
@@ -45,6 +48,6 @@ class TestYamlConfig:
                         foo: bar
                     """
                 )
-            with load(config.name):
-                assert True
-            assert True
+            with pytest.raises(ConfigurationError):
+                with load(config.name):
+                    assert False
