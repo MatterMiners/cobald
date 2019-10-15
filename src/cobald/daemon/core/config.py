@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from typing import Type
 
 from yaml import SafeLoader, BaseLoader
-from entrypoints import get_group_all as get_entrypoints, EntryPoint
+from entrypoints import get_group_all as get_entrypoints
 
 from ..config.yaml import load_configuration as load_yaml_configuration,\
     yaml_constructor
