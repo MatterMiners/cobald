@@ -96,30 +96,24 @@ keywords should mention ``cobald`` for findability.
 
 .. _extension_config_plugins:
 
-Configuration Plugins
-*********************
+YAML Configuration Plugins
+**************************
 
-In order to use extensions in YAML configuration files,
-packages can declare any callable as a plugin.
-Plugins are added as ``entry_points`` of the ``cobald.config.yaml_constructors`` group,
-with a name to be used in configurations.
-For example, a plugin class ``ExtensionClass`` defined in ``mypackage.mymodule``
-can be made available as ``MyExtension`` in this way:
+Packages may define two different types of plugins for the
+:ref:`YAML configuration <yaml_configuration>` format:
+readers for entire configuration sections, and
+tags for individual configuration elements.
 
-.. code:: python3
+.. note::
 
-    setup(
-        ...,
-        entry_points={
-            'cobald.config.yaml_constructors': [
-                'MyExtension = mypackage.mymodule:ExtensionClass',
-            ],
-        },
-        ...
-    )
+    YAML Plugins only apply to the YAML configuration format.
+    They have no effect if the Python configuration format is used.
 
-This allows using the extension as elements with YAML tag syntax,
-such as ``!MyExtension``.
+YAML Tag Plugins
+----------------
+
+Tag Plugins allow to execute extensions as configuration elements
+by using YAML tag syntax, such as ``!MyExtension``.
 Extensions are treated as callables and
 receive arguments depending on the type of their element:
 mappings are used as keyword arguments,
@@ -137,6 +131,74 @@ sequences are used as positional arguments.
       - 2
       - "Hello World!"
 
+A packages can declare any callable as a Tag Plugin
+by adding it to the ``cobald.config.yaml_constructors`` group of ``entry_points``;
+the name of the entry is converted to a Tag when evaluating the configuration.
+For example, a plugin class ``ExtensionClass`` defined in ``mypackage.mymodule``
+can be made available as ``MyExtension`` in this way:
+
+.. code:: python3
+
+    setup(
+        ...,
+        entry_points={
+            'cobald.config.yaml_constructors': [
+                'MyExtension = mypackage.mymodule:ExtensionClass',
+            ],
+        },
+        ...
+    )
+
+.. hint::
+
+    Tag Plugins are primarily intended to add custom
+    :py:class:`~cobald.interfaces.Controller`, :py:class:`~cobald.interfaces.Decorator`,
+    and :py:class:`~cobald.interfaces.Pool` types for a COBalD ``pipeline``.
+    If a plugin implements a :py:meth:`~cobald.interfaces.Controller.s` method,
+    this is used automatically.
+
+Section Plugins
+---------------
+
+Section Plugins allow to accept and digest new configuration sections.
+In addition, the ``cobald`` daemon verify that there are no unexpected
+configuration sections to protect against typos and misconfiguration.
+Extensions are entire top-level sections in the YAML file,
+which are passed to the plugin after parsing and tag evaluation:
+
+.. code:: YAML
+
+    # resolves to ExtensionClass(foo=2, bar="Hello World!")
+    pipeline:
+      # standard cobald pipeline
+    my_plugin:
+      - some_map_key: a
+        more_map_key: b
+      - foobar
+      - !TagPlugin
+
+A packages can declare any callable as a Section Plugin
+by adding it to the ``cobald.config.sections`` group of ``entry_points``;
+the name of the entry is the top-level name of the configuration section.
+For example, a plugin callable ``ConfigReader`` defined in ``mypackage.mymodule``
+can request the configuration section ``my_plugin`` in this way:
+
+.. code:: python3
+
+    setup(
+        ...,
+        entry_points={
+            'cobald.config.sections': [
+                'my_plugin = mypackage.mymodule:ConfigReader',
+            ],
+        },
+        ...
+    )
+
+.. note::
+
+    Any options for Section Plugins entry points are currently implementation details.
+    In specific, *do not* use the ``[optional]`` flag used by ``cobald`` itself.
 
 The ``cobald`` Namespace
 ************************
