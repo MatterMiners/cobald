@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import sys
-from typing import Any, Dict, TypeVar, Callable, Tuple
+from typing import Any, Dict, TypeVar, Callable, Tuple, Generic
 
 from entrypoints import EntryPoint
 
@@ -9,6 +9,8 @@ _logger = logging.getLogger(__package__)
 
 
 T = TypeVar('T')
+#: type of a mapping element, matching JSON/YAML
+M = TypeVar('M', str, int, float, bool, dict, list)
 
 
 class ConfigurationError(Exception):
@@ -18,7 +20,7 @@ class ConfigurationError(Exception):
         super().__init__("invalid configuration element '%s': %s" % (where, what))
 
 
-def configure_logging(logging_mapping):
+def configure_logging(logging_mapping: dict):
     _logger.info('Configuring logging')
     # > takes a default parameter, disable_existing_loggers, which defaults to True
     # > for reasons of backward compatibility. This may or may not be what you want
@@ -33,7 +35,9 @@ class Translator(object):
     """
     Translator from a mapping to an initialised object hierarchy
     """
-    def translate_hierarchy(self, structure: T, *, where='', **construct_kwargs) -> T:
+    def translate_hierarchy(
+        self, structure: M, *, where: str = '', **construct_kwargs
+    ) -> M:
         try:
             if isinstance(structure, dict):
                 structure = {
@@ -97,12 +101,14 @@ class Translator(object):
             return sys.modules[absolute_name]
 
 
-class SectionPlugin:
+class SectionPlugin(Generic[M]):
     __slots__ = 'section', 'digest', 'optional'
 
     __entry_point_flags__ = {'optional'}
 
-    def __init__(self, section: str, digest: Callable[[Any], Any], optional=False):
+    def __init__(
+        self, section: str, digest: Callable[[M], Any], optional: bool = False
+    ):
         self.section = section
         self.digest = digest
         self.optional = optional

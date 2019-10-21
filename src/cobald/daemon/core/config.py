@@ -90,7 +90,7 @@ def load(config_path: str):
     yield
 
 
-def load_pipeline(content):
+def load_pipeline(content: list):
     """
     Load a cobald pipeline of Controller >> ... >> Pool from a configuration section
 
