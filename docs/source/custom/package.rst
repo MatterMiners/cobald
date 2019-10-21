@@ -168,12 +168,14 @@ which are passed to the plugin after parsing and tag evaluation:
 
 .. code:: YAML
 
-    # resolves to ExtensionClass(foo=2, bar="Hello World!")
+    # standard cobald pipeline
     pipeline:
-      # standard cobald pipeline
+        - !DummyPool
+    # passes [{'some_key': 'a', 'more_key': 'b'}, 'foobar', TagPlugin()]
+    # to the Plugin requesting 'my_plugin'
     my_plugin:
-      - some_map_key: a
-        more_map_key: b
+      - some_key: a
+        more_key: b
       - foobar
       - !TagPlugin
 
