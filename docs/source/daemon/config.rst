@@ -15,6 +15,8 @@ The file extension determines the type of configuration interface to use -
     $ python3 -m cobald.daemon /etc/cobald/config.yaml
     $ python3 -m cobald.daemon /etc/cobald/config.py
 
+.. _yaml_configuration:
+
 The YAML Interface
 ==================
 

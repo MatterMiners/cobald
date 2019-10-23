@@ -1,10 +1,16 @@
 import logging
 import logging.config
 import sys
+from typing import Any, Dict, TypeVar, Callable, Tuple, Generic
 
-from typing import Any
+from entrypoints import EntryPoint
 
 _logger = logging.getLogger(__package__)
+
+
+T = TypeVar('T')
+#: type of a mapping element, matching JSON/YAML
+M = TypeVar('M', str, int, float, bool, dict, list)
 
 
 class ConfigurationError(Exception):
@@ -14,7 +20,7 @@ class ConfigurationError(Exception):
         super().__init__("invalid configuration element '%s': %s" % (where, what))
 
 
-def configure_logging(logging_mapping):
+def configure_logging(logging_mapping: dict):
     _logger.info('Configuring logging')
     # > takes a default parameter, disable_existing_loggers, which defaults to True
     # > for reasons of backward compatibility. This may or may not be what you want
@@ -29,7 +35,9 @@ class Translator(object):
     """
     Translator from a mapping to an initialised object hierarchy
     """
-    def translate_hierarchy(self, structure, *, where='', **construct_kwargs):
+    def translate_hierarchy(
+        self, structure: M, *, where: str = '', **construct_kwargs
+    ) -> M:
         try:
             if isinstance(structure, dict):
                 structure = {
@@ -91,3 +99,65 @@ class Translator(object):
                 return obj
         else:  # ImportError is not raised if ``absolute_name`` points to a valid module
             return sys.modules[absolute_name]
+
+
+class SectionPlugin(Generic[M]):
+    __slots__ = 'section', 'digest', 'optional'
+
+    __entry_point_flags__ = {'optional'}
+
+    def __init__(
+        self, section: str, digest: Callable[[M], Any], optional: bool = False
+    ):
+        self.section = section
+        self.digest = digest
+        self.optional = optional
+
+    @classmethod
+    def load(cls, entry_point: EntryPoint) -> 'SectionPlugin':
+        digest = entry_point.load()
+        flags = set(entry_point.extras or [])
+        if not flags <= cls.__entry_point_flags__:
+            raise ValueError(
+                'unrecognized config section option %r for entry pint %r' % (
+                    flags - cls.__entry_point_flags__, entry_point
+                ))
+        return cls(
+            section=entry_point.name, digest=digest,
+            **{option: option in flags for option in cls.__entry_point_flags__}
+        )
+
+
+def load_configuration(
+        config_data: Dict[str, Any],
+        plugins: Tuple[SectionPlugin] = (),
+) -> Dict[SectionPlugin, Any]:
+    try:
+        logging_mapping = config_data.pop('logging')
+    except KeyError:
+        pass
+    else:
+        configure_logging(logging_mapping)
+    # see if there is any unexpected config content
+    unmatched = config_data.keys() - {plugin.section for plugin in plugins}
+    if unmatched:
+        raise ConfigurationError(
+            where='root', what='unknown config sections %s' % ', '.join(unmatched)
+        )
+    content = {}
+    for plugin in plugins:
+        try:
+            section_data = config_data[plugin.section]
+        except KeyError:
+            if not plugin.optional:
+                raise ConfigurationError(
+                    where='root',
+                    what='missing section %r' % plugin.section
+                )
+        else:
+            # invoke the plugin and store possible output
+            # to avoid it being garbage collected
+            plugin_content = plugin.digest(section_data)
+            if plugin_content is not None:
+                content[plugin] = plugin_content
+    return content

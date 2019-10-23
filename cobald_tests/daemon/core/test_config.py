@@ -1,5 +1,8 @@
 from tempfile import NamedTemporaryFile
 
+import pytest
+
+from cobald.daemon.config.mapping import ConfigurationError
 from cobald.daemon.core.config import load, COBalDLoader, yaml_constructor
 
 from ...mock.pool import MockPool
@@ -31,7 +34,7 @@ class TestYamlConfig:
             assert True
 
     def test_load_dangling(self):
-        """Load a YAML config with dangling content"""
+        """Forbid loading a YAML config with dangling content"""
         with NamedTemporaryFile(suffix='.yaml') as config:
             with open(config.name, 'w') as write_stream:
                 write_stream.write(
@@ -45,6 +48,20 @@ class TestYamlConfig:
                         foo: bar
                     """
                 )
-            with load(config.name):
-                assert True
-            assert True
+            with pytest.raises(ConfigurationError):
+                with load(config.name):
+                    assert False
+
+    def test_load_missing(self):
+        """Forbid loading a YAML config with missing content"""
+        with NamedTemporaryFile(suffix='.yaml') as config:
+            with open(config.name, 'w') as write_stream:
+                write_stream.write(
+                    """
+                    logging:
+                        version: 1.0
+                    """
+                )
+            with pytest.raises(ConfigurationError):
+                with load(config.name):
+                    assert False

@@ -1,9 +1,12 @@
 category: changed
 summary: "COBalD configuration files may include additional sections"
 description: |
-  When COBalD encounters unused sections in its configuration, it only emits
-  a log message. This allows adding configuration sections for plugins.
+  Packages may define Section Plugins for the COBalD YAML configuration. A plugin
+  receives the requested section of the configuration after parsing/evaluating it.
+  The COBalD daemon verifies that no unknown configuration sections are present
+  in the YAML configuration.
 issues:
 - 50
+- 56
 pull requests:
-- 51
+- 60

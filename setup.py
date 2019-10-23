@@ -49,12 +49,16 @@ if __name__ == '__main__':
                     ('Standardiser', 'cobald.decorator.standardiser'),
                 )
             ],
+            'cobald.config.sections': [
+                'pipeline = cobald.daemon.core.config:load_pipeline'
+            ],
         },
         # >>> Dependencies
         install_requires=[
             'pyyaml',
             'trio>=0.4.0',
             'include',
+            'entrypoints',
         ],
         extras_require={
             'docs': ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],

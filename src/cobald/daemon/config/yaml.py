@@ -1,15 +1,15 @@
-from typing import Type
-import logging
+from typing import Type, Tuple
 
 from yaml import SafeLoader, BaseLoader, nodes
 
-from .mapping import configure_logging, Translator, ConfigurationError
+from .mapping import load_configuration as load_mapping_configuration,\
+    ConfigurationError, SectionPlugin
 
 
 def load_configuration(
         path: str,
         loader: Type[BaseLoader] = SafeLoader,
-        translator=Translator()
+        plugins: Tuple[SectionPlugin] = (),
 ):
     with open(path) as yaml_stream:
         loader_instance = loader(yaml_stream)
@@ -17,24 +17,10 @@ def load_configuration(
             config_data = loader_instance.get_single_data()
         finally:
             loader_instance.dispose()
-    try:
-        logging_mapping = config_data.pop('logging')
-    except KeyError:
-        pass
-    else:
-        configure_logging(logging_mapping)
-    try:
-        root_pipeline = config_data.pop('pipeline')
-    except KeyError as err:
-        raise ConfigurationError(where='root', what=err)
-    else:
-        if config_data:
-            logger = logging.getLogger("cobald.runtime.config")
-            logger.warning(
-                "COBalD core ignores configuration sections '%s'",
-                "', '".join(config_data)
-            )
-        return translator.translate_hierarchy({'pipeline': root_pipeline})
+    return load_mapping_configuration(
+        config_data=config_data,
+        plugins=plugins
+    )
 
 
 def yaml_constructor(factory):
