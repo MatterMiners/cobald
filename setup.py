@@ -63,7 +63,7 @@ if __name__ == '__main__':
         extras_require={
             'docs': ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
             'test': TESTS_REQUIRE,
-            'contrib': ['flake8', 'flake8-bugbear'] + TESTS_REQUIRE,
+            'contrib': ['flake8', 'flake8-bugbear', 'black'] + TESTS_REQUIRE,
         },
         # metadata for package search
         license='MIT',

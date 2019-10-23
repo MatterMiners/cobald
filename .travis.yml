@@ -18,6 +18,7 @@ before_script:
   - export PYTEST_ADDOPTS=-v
 script:
   - python -m flake8 -v src/ cobald_tests/
+  - python -m black  --target-version py36 --check src/ cobald_tests/
   - coverage run setup.py test
 after_success:
   - coverage report && codecov
