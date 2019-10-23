@@ -15,8 +15,8 @@ class TestSwitchController(object):
         for _ in range(5):
             switch_controller.regulate(1)
             expected_demand += 1
-            assert(pool.demand == expected_demand)
+            assert pool.demand == expected_demand
         for _ in range(5):
-            assert(pool.demand == expected_demand)
+            assert pool.demand == expected_demand
             switch_controller.regulate(1)
             expected_demand += 2

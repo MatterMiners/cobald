@@ -5,6 +5,7 @@ class UniformComposite(CompositePool):
     """
     Uniform composition of several pools, with each pool weighted the same
     """
+
     children = []
 
     @property
@@ -25,20 +26,18 @@ class UniformComposite(CompositePool):
     @property
     def utilisation(self):
         try:
-            return sum(
-                child.utilisation for child in self.children
-            ) / len(self.children)
+            return sum(child.utilisation for child in self.children) / len(
+                self.children
+            )
         except ZeroDivisionError:
-            return 1.
+            return 1.0
 
     @property
     def allocation(self):
         try:
-            return sum(
-                child.allocation for child in self.children
-            ) / len(self.children)
+            return sum(child.allocation for child in self.children) / len(self.children)
         except ZeroDivisionError:
-            return 1.
+            return 1.0
 
     def __init__(self, *children: Pool):
         self._demand = sum(child.demand for child in children)

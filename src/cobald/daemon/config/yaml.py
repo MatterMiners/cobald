@@ -2,14 +2,15 @@ from typing import Type, Tuple
 
 from yaml import SafeLoader, BaseLoader, nodes
 
-from .mapping import load_configuration as load_mapping_configuration,\
-    ConfigurationError, SectionPlugin
+from .mapping import (
+    load_configuration as load_mapping_configuration,
+    ConfigurationError,
+    SectionPlugin,
+)
 
 
 def load_configuration(
-        path: str,
-        loader: Type[BaseLoader] = SafeLoader,
-        plugins: Tuple[SectionPlugin] = (),
+    path: str, loader: Type[BaseLoader] = SafeLoader, plugins: Tuple[SectionPlugin] = ()
 ):
     with open(path) as yaml_stream:
         loader_instance = loader(yaml_stream)
@@ -17,10 +18,7 @@ def load_configuration(
             config_data = loader_instance.get_single_data()
         finally:
             loader_instance.dispose()
-    return load_mapping_configuration(
-        config_data=config_data,
-        plugins=plugins
-    )
+    return load_mapping_configuration(config_data=config_data, plugins=plugins)
 
 
 def yaml_constructor(factory):
@@ -46,6 +44,7 @@ def yaml_constructor(factory):
           a: 0.3
           b: 0.7
     """
+
     def factory_constructor(loader: BaseLoader, node: nodes.Node):
         if isinstance(node, nodes.MappingNode):
             kwargs = loader.construct_mapping(node)
@@ -57,7 +56,8 @@ def yaml_constructor(factory):
             return factory(*args)
         else:
             raise ConfigurationError(
-                'YAML constructor %r on unsupported node type %s' % (
-                    node.tag, type(node).__name__
-                ))
+                "YAML constructor %r on unsupported node type %s"
+                % (node.tag, type(node).__name__)
+            )
+
     return factory_constructor

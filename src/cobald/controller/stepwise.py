@@ -7,7 +7,7 @@ import trio
 from ..interfaces import Pool, Controller, Partial
 from ..daemon import service
 
-C = TypeVar('C', bound='Controller')
+C = TypeVar("C", bound="Controller")
 
 #: Individual control rule for a pool on a given interval
 #:
@@ -31,6 +31,7 @@ class RangeSelector(object):
     :param base: base rule that has no lower bound
     :param rules: lower bound and its control rule
     """
+
     def __init__(self, base: ControlRule, *rules: Tuple[float, ControlRule]):
         self._lookup = self._compile_lookup(base, rules)
 
@@ -42,16 +43,16 @@ class RangeSelector(object):
     @staticmethod
     def _compile_lookup(base, rules) -> Dict[Tuple[float, float], ControlRule]:
         if not rules:
-            return {(0, float('inf')): base}
+            return {(0, float("inf")): base}
         lookup = {}
         thresholds, _rules = zip(*sorted(rules))
         for low, high, rule in zip(
             chain([0], thresholds),
-            chain(thresholds, [float('inf')]),
+            chain(thresholds, [float("inf")]),
             chain([base], _rules),
         ):
             if low == high:
-                raise ValueError('Duplicate entries for threshold %s' % low)
+                raise ValueError("Duplicate entries for threshold %s" % low)
             lookup[low, high] = rule
         return lookup
 
@@ -64,12 +65,13 @@ class Stepwise(Controller):
     :see: :py:class:`UnboundStepwise` allows creating :py:class:`Stepwise` instances
           via decorators.
     """
+
     def __init__(
-            self,
-            target: Pool,
-            base: ControlRule,
-            *rules: Tuple[float, ControlRule],
-            interval: float = 1
+        self,
+        target: Pool,
+        base: ControlRule,
+        *rules: Tuple[float, ControlRule],
+        interval: float = 1,
     ):
         super().__init__(target)
         self.interval = interval
@@ -125,6 +127,7 @@ class UnboundStepwise(object):
         # create controller from skeleton
         pipeline = control(pool, interval=10)
     """
+
     def __init__(self, base: ControlRule):
         self.base = base
         self.rules = []  # type: List[Tuple[float, ControlRule]]
@@ -164,7 +167,7 @@ class UnboundStepwise(object):
             )
         """
         if supply in self._thresholds:
-            raise ValueError('rule for threshold %s re-defined' % supply)
+            raise ValueError("rule for threshold %s re-defined" % supply)
         if rule is not None:
             self.rules.append((supply, rule))
             self._thresholds.add(supply)

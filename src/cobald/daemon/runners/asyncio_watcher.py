@@ -29,9 +29,10 @@ def asyncio_main_run(root_runner: BaseRunner):
     .. seealso:: The `issue #8 <https://github.com/MatterMiners/cobald/issues/8>`_
                  for details.
     """
-    assert threading.current_thread() == threading.main_thread(),\
-        'only main thread can accept asyncio subprocesses'
-    if sys.platform == 'win32':
+    assert (
+        threading.current_thread() == threading.main_thread()
+    ), "only main thread can accept asyncio subprocesses"
+    if sys.platform == "win32":
         event_loop = asyncio.ProactorEventLoop()
         asyncio.set_event_loop(event_loop)
     else:

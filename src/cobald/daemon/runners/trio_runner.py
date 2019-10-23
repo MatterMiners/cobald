@@ -8,6 +8,7 @@ from .async_tools import raise_return, AsyncExecution
 
 class TrioRunner(BaseRunner):
     """Runner for coroutines with :py:mod:`trio`"""
+
     flavour = trio
 
     def __init__(self):

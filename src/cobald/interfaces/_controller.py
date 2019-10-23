@@ -5,7 +5,7 @@ from ._pool import Pool
 from ._partial import Partial
 
 
-C = TypeVar('C', bound='Controller')
+C = TypeVar("C", bound="Controller")
 
 
 class Controller(metaclass=abc.ABCMeta):
@@ -14,6 +14,7 @@ class Controller(metaclass=abc.ABCMeta):
 
     :param target: the resource pool for which demand is adjusted
     """
+
     def __init__(self, target: Pool):
         self.target = target
 
