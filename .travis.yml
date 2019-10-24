@@ -17,7 +17,10 @@ before_script:
   - export PYTEST_ADDOPTS=-v
 script:
   - python -m flake8 -v src/ cobald_tests/
-  - python -m black  --target-version py36 --check src/ cobald_tests/
+  - |
+    if [[ $TRAVIS_PYTHON_VERSION != 'pypy3'* ]]; then
+      python -m black  --target-version py36 --check src/ cobald_tests/
+    fi
   - coverage run setup.py test
 after_success:
   - coverage report && codecov
