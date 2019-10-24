@@ -63,7 +63,7 @@ if __name__ == '__main__':
         extras_require={
             'docs': ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
             'test': TESTS_REQUIRE,
-            'contrib': ['flake8', 'flake8-bugbear'] + TESTS_REQUIRE,
+            'contrib': ['flake8', 'flake8-bugbear', 'black'] + TESTS_REQUIRE,
         },
         # metadata for package search
         license='MIT',
@@ -78,9 +78,8 @@ if __name__ == '__main__':
             'Topic :: Office/Business :: Scheduling',
             'Topic :: System :: Distributed Computing',
             'Programming Language :: Python :: 3',
-            'Programming Language :: Python :: 3.4',
-            'Programming Language :: Python :: 3.5',
             'Programming Language :: Python :: 3.6',
+            'Programming Language :: Python :: 3.7',
         ],
         keywords=package_about['__keywords__'],
         # unit tests

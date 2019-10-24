@@ -19,13 +19,14 @@ class ServiceUnit(object):
     :param service: the service to run
     :param flavour: runner flavour to use for running the service
     """
+
     __active_units__ = weakref.WeakSet()  # type: weakref.WeakSet[ServiceUnit]
 
     def __init__(self, service, flavour):
-        assert hasattr(service, 'run'), "service must implement a 'run' method"
-        assert any(flavour == runner.flavour for runner in MetaRunner.runner_types), \
-            "service flavour must be one of %s" % ','.join(
-                repr(runner.flavour) for runner in MetaRunner.runner_types
+        assert hasattr(service, "run"), "service must implement a 'run' method"
+        assert any(flavour == runner.flavour for runner in MetaRunner.runner_types), (
+            "service flavour must be one of %s"
+            % ",".join(repr(runner.flavour) for runner in MetaRunner.runner_types)
         )
         self.service = weakref.ref(service)
         self.flavour = flavour
@@ -50,10 +51,10 @@ class ServiceUnit(object):
             runner.register_payload(service.run, flavour=self.flavour)
 
     def __repr__(self):
-        return '%s(%r, flavour=%r)' % (
+        return "%s(%r, flavour=%r)" % (
             self.__class__.__name__,
-            self.service() or '<defunct>',
-            self.flavour
+            self.service() or "<defunct>",
+            self.flavour,
         )
 
 
@@ -70,6 +71,7 @@ def service(flavour):
     For each service instance, its :py:class:`~.ServiceUnit` is available at
     ``service_instance.__service_unit__``.
     """
+
     def service_unit_decorator(raw_cls):
         __new__ = raw_cls.__new__
 
@@ -86,6 +88,7 @@ def service(flavour):
         if raw_cls.run.__doc__ is None:
             raw_cls.run.__doc__ = "Service entry point"
         return raw_cls
+
     return service_unit_decorator
 
 
@@ -93,8 +96,9 @@ class ServiceRunner(object):
     """
     Runner for coroutines, subroutines and services
     """
+
     def __init__(self, accept_delay: float = 1):
-        self._logger = logging.getLogger('cobald.runtime.daemon.services')
+        self._logger = logging.getLogger("cobald.runtime.daemon.services")
         self._meta_runner = MetaRunner()
         self._must_shutdown = False
         self._is_shutdown = threading.Event()
@@ -132,9 +136,9 @@ class ServiceRunner(object):
         may :py:meth:`accept` payloads at any time.
         """
         if self._meta_runner:
-            raise RuntimeError('payloads scheduled for %s before being started' % self)
+            raise RuntimeError("payloads scheduled for %s before being started" % self)
         self._must_shutdown = False
-        self._logger.info('%s starting', self.__class__.__name__)
+        self._logger.info("%s starting", self.__class__.__name__)
         # force collecting objects so that defunct,
         # migrated and overwritten services are destroyed now
         gc.collect()
@@ -153,16 +157,16 @@ class ServiceRunner(object):
         self._is_shutdown.clear()
         self.running.set()
         try:
-            self._logger.info('%s started', self.__class__.__name__)
+            self._logger.info("%s started", self.__class__.__name__)
             while not self._must_shutdown:
                 self._adopt_services()
                 await trio.sleep(delay)
                 delay = min(delay + increase, max_delay)
         except Exception:
-            self._logger.exception('%s aborted', self.__class__.__name__)
+            self._logger.exception("%s aborted", self.__class__.__name__)
             raise
         else:
-            self._logger.info('%s stopped', self.__class__.__name__)
+            self._logger.info("%s stopped", self.__class__.__name__)
         finally:
             self.running.clear()
             self._is_shutdown.set()
@@ -171,5 +175,5 @@ class ServiceRunner(object):
         for unit in ServiceUnit.units():  # type: ServiceUnit
             if unit.running:
                 continue
-            self._logger.info('%s adopts %s', self.__class__.__name__, NameRepr(unit))
+            self._logger.info("%s adopts %s", self.__class__.__name__, NameRepr(unit))
             unit.start(self._meta_runner)

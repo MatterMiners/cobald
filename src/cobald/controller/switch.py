@@ -21,16 +21,18 @@ class DemandSwitch(Controller):
     :param slaves: pairs of minimum demand to switch and corresponding controller
     :param interval: interval between adjustments in seconds
     """
+
     def __init__(
-            self,
-            target: Pool,
-            default: Controller,
-            *slaves: Union[float, Controller], interval=1
+        self,
+        target: Pool,
+        default: Controller,
+        *slaves: Union[float, Controller],
+        interval=1,
     ):
         super().__init__(target)
         enforce(
             len(slaves) % 2 == 0,
-            InvariantError("slaves must be paired with required demands")
+            InvariantError("slaves must be paired with required demands"),
         )
         self._default = default
         self._slaves = tuple(sorted(pairwise(slaves)))
@@ -39,12 +41,12 @@ class DemandSwitch(Controller):
                 (isinstance(demand, (int, float)) and isinstance(slave, Controller))
                 for demand, slave in self._slaves
             ),
-            InvariantError("slaves must be paired with required demands (float, int)")
+            InvariantError("slaves must be paired with required demands (float, int)"),
         )
         enforce(
             default.target in (None, target)
             and all(slave.target in (None, target) for _, slave in self._slaves),
-            InvariantError("slaves must have None or same target as switch target")
+            InvariantError("slaves must have None or same target as switch target"),
         )
         default.target = target
         for _, slave in self._slaves:

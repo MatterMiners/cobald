@@ -38,4 +38,4 @@ class AsyncExecution(object):
             raise exception
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, self.payload)
+        return "%s(%s)" % (self.__class__.__name__, self.payload)

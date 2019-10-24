@@ -29,6 +29,6 @@ from ._pool import Pool
 from ._proxy import PoolDecorator
 from ._partial import Partial
 
-__all__ = [cls.__name__ for cls in (
-    Pool, PoolDecorator, Controller, CompositePool, Partial
-)]
+__all__ = [
+    cls.__name__ for cls in (Pool, PoolDecorator, Controller, CompositePool, Partial)
+]

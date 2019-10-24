@@ -5,8 +5,10 @@ from typing import Type, Tuple
 from yaml import SafeLoader, BaseLoader
 from entrypoints import get_group_all as get_entrypoints
 
-from ..config.yaml import load_configuration as load_yaml_configuration,\
-    yaml_constructor
+from ..config.yaml import (
+    load_configuration as load_yaml_configuration,
+    yaml_constructor,
+)
 from ..config.python import load_configuration as load_python_configuration
 from ..config.mapping import Translator, SectionPlugin
 
@@ -15,10 +17,7 @@ class COBalDLoader(SafeLoader):
     """Loader with access to COBalD configuration constructors"""
 
 
-def add_constructor_plugins(
-        entry_point_group: str,
-        loader: Type[BaseLoader]
-) -> None:
+def add_constructor_plugins(entry_point_group: str, loader: Type[BaseLoader]) -> None:
     """
     Add PyYAML constructors from an entry point group to a loader
 
@@ -31,19 +30,17 @@ def add_constructor_plugins(
         calling :py:meth:`~.BaseLoader.add_constructor`.
     """
     for entry in get_entrypoints(entry_point_group):
-        if entry.name[0] == '!':
+        if entry.name[0] == "!":
             raise RuntimeError(
-                "plugin name %r in entry point group %r may not start with '!'" % (
-                    entry.name, entry_point_group
-                )
+                "plugin name %r in entry point group %r may not start with '!'"
+                % (entry.name, entry_point_group)
             )
         try:
             pipeline_factory = entry.load().s
         except AttributeError:
             pipeline_factory = entry.load()
         loader.add_constructor(
-            tag='!' + entry.name,
-            constructor=yaml_constructor(pipeline_factory),
+            tag="!" + entry.name, constructor=yaml_constructor(pipeline_factory)
         )
 
 
@@ -68,24 +65,21 @@ def load(config_path: str):
     :param config_path: path to a configuration file
     """
     # we bind the config to _ to keep it alive
-    if os.path.splitext(config_path)[1] in ('.yaml', '.yml'):
+    if os.path.splitext(config_path)[1] in (".yaml", ".yml"):
         add_constructor_plugins(
-            'cobald.config.yaml_constructors',
-            COBalDLoader,  # type: ignore
+            "cobald.config.yaml_constructors", COBalDLoader  # type: ignore
         )
-        config_plugins = load_section_plugins(
-            'cobald.config.sections'
-        )
+        config_plugins = load_section_plugins("cobald.config.sections")
         _ = load_yaml_configuration(
             config_path,
             loader=COBalDLoader,  # type: ignore
             plugins=config_plugins,
         )
-    elif os.path.splitext(config_path)[1] == '.py':
+    elif os.path.splitext(config_path)[1] == ".py":
         _ = load_python_configuration(config_path)
     else:
         raise ValueError(
-            'Unknown configuration extension: %r' % os.path.splitext(config_path)[1]
+            "Unknown configuration extension: %r" % os.path.splitext(config_path)[1]
         )
     yield
 
@@ -98,7 +92,7 @@ def load_pipeline(content: list):
     :return:
     """
     translator = PipelineTranslator()
-    return translator.translate_hierarchy({'pipeline': content})
+    return translator.translate_hierarchy({"pipeline": content})
 
 
 class PipelineTranslator(Translator):
@@ -118,9 +112,10 @@ class PipelineTranslator(Translator):
               interval: 20
             - __type__: package.module.Pool
     """
-    def translate_hierarchy(self, structure, *, where='', **construct_kwargs):
+
+    def translate_hierarchy(self, structure, *, where="", **construct_kwargs):
         try:
-            pipeline = structure['pipeline']
+            pipeline = structure["pipeline"]
         except (KeyError, TypeError):
             return super().translate_hierarchy(
                 structure, where=where, **construct_kwargs
@@ -135,11 +130,11 @@ class PipelineTranslator(Translator):
                     except TypeError:
                         # encoded object from __type__: constructor
                         prev_item = self.translate_hierarchy(
-                            item, where='%s[%s]' % (where, index), target=prev_item
+                            item, where="%s[%s]" % (where, index), target=prev_item
                         )
                 else:
                     prev_item = self.translate_hierarchy(
-                        item, where='%s[%s]' % (where, index)
+                        item, where="%s[%s]" % (where, index)
                     )
                 items.append(prev_item)
             return list(reversed(items))

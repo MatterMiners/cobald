@@ -17,10 +17,15 @@ class RelativeSupplyController(Controller):
     :param high_scale: scale of ``target.supply`` when increasing resources
     :param interval: interval between adjustments in seconds
     """
+
     def __init__(
-            self, target: Pool,
-            low_utilisation=0.5, high_allocation=0.5, low_scale=0.9, high_scale=1.1,
-            interval=1,
+        self,
+        target: Pool,
+        low_utilisation=0.5,
+        high_allocation=0.5,
+        low_scale=0.9,
+        high_scale=1.1,
+        interval=1,
     ):
         super().__init__(target=target)
         self.interval = interval

@@ -3,10 +3,11 @@ import logging
 from cobald.interfaces import Pool, PoolDecorator
 
 
-_DEFAULT_MESSAGE = \
-    'demand = %(value)s '\
-    '[demand=%(demand)s, supply=%(supply)s, '\
-    'utilisation=%(utilisation).2f, consumption=%(consumption).2f]'
+_DEFAULT_MESSAGE = (
+    "demand = %(value)s "
+    "[demand=%(demand)s, supply=%(supply)s, "
+    "utilisation=%(utilisation).2f, consumption=%(consumption).2f]"
+)
 
 
 class Logger(PoolDecorator):
@@ -29,6 +30,7 @@ class Logger(PoolDecorator):
     ``target``
         for the raw ``target`` pool.
     """
+
     @property
     def demand(self):
         return self.target.demand
@@ -36,15 +38,17 @@ class Logger(PoolDecorator):
     @demand.setter
     def demand(self, value):
         self._logger.log(
-            self.level, self.message,
+            self.level,
+            self.message,
             {
-                'value': value,
-                'demand': self.target.demand,
-                'supply': self.target.supply,
-                'utilisation': self.target.utilisation,
-                'consumption': self.target.allocation,
-                'target': self.target,
-            })
+                "value": value,
+                "demand": self.target.demand,
+                "supply": self.target.supply,
+                "utilisation": self.target.utilisation,
+                "consumption": self.target.allocation,
+                "target": self.target,
+            },
+        )
         self.target.demand = value
 
     @property
@@ -58,11 +62,11 @@ class Logger(PoolDecorator):
         self._logger = logging.getLogger(value)
 
     def __init__(
-            self,
-            target: Pool,
-            name: str = None,
-            message: str = _DEFAULT_MESSAGE,
-            level: int = logging.INFO
+        self,
+        target: Pool,
+        name: str = None,
+        message: str = _DEFAULT_MESSAGE,
+        level: int = logging.INFO,
     ):
         super().__init__(target=target)
         self._logger = None  # type: logging.Logger

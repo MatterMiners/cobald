@@ -10,7 +10,7 @@ class BaseRunner(object):
 
     def __init__(self):
         self._logger = logging.getLogger(
-            'cobald.runtime.runner.%s' % NameRepr(self.flavour)
+            "cobald.runtime.runner.%s" % NameRepr(self.flavour)
         )
         self._payloads = []
         self._lock = threading.Lock()
@@ -51,19 +51,20 @@ class BaseRunner(object):
         Blocks and executes payloads until :py:meth:`stop` is called.
         It is an error for any orphaned payload to return or raise.
         """
-        self._logger.info('runner started: %s', self)
+        self._logger.info("runner started: %s", self)
         try:
             with self._lock:
-                assert not self.running.is_set() and self._stopped.is_set(),\
-                    'cannot re-run: %s' % self
+                assert not self.running.is_set() and self._stopped.is_set(), (
+                    "cannot re-run: %s" % self
+                )
                 self.running.set()
                 self._stopped.clear()
             self._run()
         except Exception:
-            self._logger.exception('runner aborted: %s', self)
+            self._logger.exception("runner aborted: %s", self)
             raise
         else:
-            self._logger.info('runner stopped: %s', self)
+            self._logger.info("runner stopped: %s", self)
         finally:
             with self._lock:
                 self.running.clear()
@@ -76,7 +77,7 @@ class BaseRunner(object):
         """Stop execution of all current and future payloads"""
         if not self.running.wait(0.2):
             return
-        self._logger.debug('runner disabled: %s', self)
+        self._logger.debug("runner disabled: %s", self)
         with self._lock:
             self.running.clear()
         self._stopped.wait()
@@ -84,7 +85,8 @@ class BaseRunner(object):
 
 class OrphanedReturn(Exception):
     """A runnable returned a value without anyone to receive it"""
+
     def __init__(self, who, value):
-        super().__init__('no caller to receive %s from %s' % (value, who))
+        super().__init__("no caller to receive %s from %s" % (value, who))
         self.who = who
         self.value = value

@@ -16,13 +16,9 @@ class LinearController(Controller):
     :param rate: maximum change of demand in resources per second
     :param interval: interval between adjustments in seconds
     """
+
     def __init__(
-            self,
-            target: Pool,
-            low_utilisation=0.5,
-            high_allocation=0.5,
-            rate=1,
-            interval=1
+        self, target: Pool, low_utilisation=0.5, high_allocation=0.5, rate=1, interval=1
     ):
         super().__init__(target=target)
         assert rate > 0

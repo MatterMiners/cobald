@@ -1,10 +1,9 @@
 dist: xenial
 language: python
 python:
-  - "3.5"
   - "3.6"
   - "3.7"
-  - "pypy3.5"
+  - "pypy3"
 os:
   - linux
 before_script:
@@ -18,6 +17,10 @@ before_script:
   - export PYTEST_ADDOPTS=-v
 script:
   - python -m flake8 -v src/ cobald_tests/
+  - |
+    if [[ $TRAVIS_PYTHON_VERSION != 'pypy3'* ]]; then
+      python -m black  --target-version py36 --check src/ cobald_tests/
+    fi
   - coverage run setup.py test
 after_success:
   - coverage report && codecov

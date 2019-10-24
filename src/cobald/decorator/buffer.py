@@ -16,9 +16,10 @@ class Buffer(PoolDecorator):
     Any changes made to :py:attr:`demand` are stored internally.
     Every ``window`` seconds, the final demand is applied to ``target``.
     """
+
     demand = 0.0
 
-    def __init__(self, target: Pool, window: float = 10.):
+    def __init__(self, target: Pool, window: float = 10.0):
         super().__init__(target=target)
         self.window = window
         self.demand = target.demand

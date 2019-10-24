@@ -17,13 +17,13 @@ class TestLinearController(object):
 
         expected_demand = 0
         for _ in range(2):
-            assert(pool.demand == expected_demand)
+            assert pool.demand == expected_demand
             controller.regulate(1)
             expected_demand += 1
 
         pool.utilisation = 0.0
         for _ in range(2):
-            assert (pool.demand == expected_demand)
+            assert pool.demand == expected_demand
             controller.regulate(1)
             expected_demand -= 1
 
@@ -34,27 +34,27 @@ class TestLinearController(object):
         old_demand = pool.demand = 1
         pool.utilisation = pool.allocation = 1.0
         controller.regulate(1)
-        assert(pool.demand - old_demand == 1)
+        assert pool.demand - old_demand == 1
 
         old_demand = pool.demand = 1
         pool.utilisation = pool.allocation = 0.0
         controller.regulate(1)
-        assert(pool.demand - old_demand == -1)
+        assert pool.demand - old_demand == -1
 
         old_demand = pool.demand = 1
         pool.utilisation = pool.allocation = controller.low_utilisation
         controller.regulate(1)
-        assert(pool.demand - old_demand == 0)
+        assert pool.demand - old_demand == 0
 
         old_demand = pool.demand = 1
-        pool.utilisation = pool.allocation = controller.low_utilisation - .01
+        pool.utilisation = pool.allocation = controller.low_utilisation - 0.01
         controller.regulate(1)
-        assert (pool.demand - old_demand == -1)
+        assert pool.demand - old_demand == -1
 
         old_demand = pool.demand = 1
-        pool.utilisation = pool.allocation = controller.low_utilisation + .01
+        pool.utilisation = pool.allocation = controller.low_utilisation + 0.01
         controller.regulate(1)
-        assert(pool.demand - old_demand == 1)
+        assert pool.demand - old_demand == 1
 
     def test_allocation(self):
         pool = MockPool()
@@ -63,34 +63,34 @@ class TestLinearController(object):
         old_demand = pool.demand = 1
         pool.allocation = pool.utilisation = 1.0
         controller.regulate(1)
-        assert(pool.demand - old_demand == 1)
+        assert pool.demand - old_demand == 1
 
         old_demand = pool.demand = 1
         pool.allocation = pool.utilisation = 0.0
         controller.regulate(1)
-        assert(pool.demand - old_demand == -1)
+        assert pool.demand - old_demand == -1
 
         old_demand = pool.demand = 1
         pool.allocation = pool.utilisation = controller.high_allocation
         controller.regulate(1)
-        assert(pool.demand - old_demand == 0)
+        assert pool.demand - old_demand == 0
 
         old_demand = pool.demand = 1
         pool.allocation = pool.utilisation = controller.high_allocation + 0.01
         controller.regulate(1)
-        assert (pool.demand - old_demand == 1)
+        assert pool.demand - old_demand == 1
 
         old_demand = pool.demand = 1
         pool.allocation = pool.utilisation = controller.high_allocation - 0.01
         controller.regulate(1)
-        assert (pool.demand - old_demand == -1)
+        assert pool.demand - old_demand == -1
 
     def test_low_high(self):
         pool = MockPool()
         with pytest.raises(AssertionError):
             LinearController(target=pool, low_utilisation=1, high_allocation=0)
-        assert(LinearController(target=pool, low_utilisation=.5, high_allocation=.5))
-        assert(LinearController(target=pool, low_utilisation=.1, high_allocation=.9))
+        assert LinearController(target=pool, low_utilisation=0.5, high_allocation=0.5)
+        assert LinearController(target=pool, low_utilisation=0.1, high_allocation=0.9)
 
     def test_rate(self):
         pool = MockPool()

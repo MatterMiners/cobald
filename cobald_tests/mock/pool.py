@@ -35,6 +35,7 @@ class MockPool(Pool):
 
 class FullMockPool(Pool):
     """Pool allowing to set every attribute"""
+
     demand, supply, allocation, utilisation = 0, 0, 0, 0
 
     def __init__(self, demand=0, supply=0, allocation=0.5, utilisation=0.5):

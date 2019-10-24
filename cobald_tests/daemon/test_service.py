@@ -25,7 +25,7 @@ def accept(payload: ServiceRunner, name=None):
     )
     thread.start()
     if not payload.running.wait(1):
-        raise RuntimeError('%s failed to start' % payload)
+        raise RuntimeError("%s failed to start" % payload)
     try:
         yield
     finally:
@@ -36,6 +36,7 @@ def accept(payload: ServiceRunner, name=None):
 class TestServiceRunner(object):
     def test_no_tainting(self):
         """Assert that no payloads may be scheduled before starting"""
+
         def payload():
             return
 
@@ -46,9 +47,9 @@ class TestServiceRunner(object):
 
     def test_unique_reaper(self):
         """Assert that no two runners may fetch services"""
-        with accept(ServiceRunner(accept_delay=0.1), name='outer'):
+        with accept(ServiceRunner(accept_delay=0.1), name="outer"):
             with pytest.raises(RuntimeError):
-                with accept(ServiceRunner(accept_delay=0.1), name='inner'):
+                with accept(ServiceRunner(accept_delay=0.1), name="inner"):
                     pass
 
     def test_service(self):
@@ -67,12 +68,12 @@ class TestServiceRunner(object):
                 self.done.set()
 
         a = Service()
-        with accept(runner, name='test_service'):
-            assert a.done.wait(timeout=5), 'service thread completed'
-            assert len(replies) == 1, 'pre-registered service ran'
+        with accept(runner, name="test_service"):
+            assert a.done.wait(timeout=5), "service thread completed"
+            assert len(replies) == 1, "pre-registered service ran"
             b = Service()
-            assert b.done.wait(timeout=5), 'service thread completed'
-            assert len(replies) == 2, 'post-registered service ran'
+            assert b.done.wait(timeout=5), "service thread completed"
+            assert len(replies) == 2, "post-registered service ran"
 
     def test_execute(self):
         """Test running payloads synchronously"""
@@ -85,7 +86,7 @@ class TestServiceRunner(object):
             return what
 
         runner = ServiceRunner(accept_delay=0.1)
-        with accept(runner, name='test_execute'):
+        with accept(runner, name="test_execute"):
             # do not pass in values - receive default
             assert runner.execute(sub_pingpong, flavour=threading) == default
             assert runner.execute(co_pingpong, flavour=trio) == default
@@ -111,7 +112,7 @@ class TestServiceRunner(object):
             reply_store.append(what)
 
         runner = ServiceRunner(accept_delay=0.1)
-        with accept(runner, name='test_adopt'):
+        with accept(runner, name="test_adopt"):
             # do not pass in values - receive default
             assert runner.adopt(sub_pingpong, flavour=threading) is None
             assert runner.adopt(co_pingpong, flavour=trio) is None

@@ -20,10 +20,10 @@ _test_index = 0
 _index_lock = threading.Lock()
 
 
-def make_logger(base_name: str = 'test_logger'):
+def make_logger(base_name: str = "test_logger"):
     global _test_index
     with _index_lock:
-        log_name = base_name + '.test%d' % _test_index
+        log_name = base_name + ".test%d" % _test_index
         _test_index += 1
     logger = logging.getLogger(log_name)
     logger.propagate = False
@@ -45,9 +45,9 @@ class TestLogger(object):
 
     def test_name(self):
         pool = FullMockPool()
-        chain = Logger(target=pool, name='default')
-        assert chain.name == 'default'
+        chain = Logger(target=pool, name="default")
+        assert chain.name == "default"
         chain.name = None
         assert chain.name == pool.__class__.__name__
-        chain.name = 'final'
-        assert chain.name == 'final'
+        chain.name = "final"
+        assert chain.name == "final"

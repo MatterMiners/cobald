@@ -9,6 +9,7 @@ class CompositePool(Pool):
     """
     Concatenation of multiple providers for a number of indistinguishable resources
     """
+
     @property
     @abc.abstractmethod
     def supply(self):

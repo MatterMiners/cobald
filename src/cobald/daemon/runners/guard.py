@@ -13,6 +13,7 @@ def exclusive(via=threading.Lock):
 
     :note: If applied to a method, it is exclusive across all instances.
     """
+
     def make_exclusive(fnc):
         fnc_guard = via()
 
@@ -24,6 +25,8 @@ def exclusive(via=threading.Lock):
                 finally:
                     fnc_guard.release()
             else:
-                raise RuntimeError('exclusive call to %s violated')
+                raise RuntimeError("exclusive call to %s violated")
+
         return exclusive_call
+
     return make_exclusive

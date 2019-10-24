@@ -7,11 +7,12 @@ if TYPE_CHECKING:
     from ._controller import Controller
     from ._proxy import PoolDecorator
     from ._pool import Pool
+
     Owner = Union[Controller, PoolDecorator]
-    C_co = TypeVar('C_co', bound=Owner)
+    C_co = TypeVar("C_co", bound=Owner)
 else:
     Owner = Union[object]
-    C_co = TypeVar('C_co')
+    C_co = TypeVar("C_co")
 
 
 class Partial(Generic[C_co]):
@@ -38,7 +39,7 @@ class Partial(Generic[C_co]):
            creates a temporary :py:class:`~.PartialBind`. Only binding to a
            :py:class:`~.Pool` as the last element creates a concrete binding.
     """
-    __slots__ = ('ctor', 'args', 'kwargs', 'leaf')
+    __slots__ = ("ctor", "args", "kwargs", "leaf")
 
     def __init__(self, ctor: Type[C_co], *args, __leaf__, **kwargs):
         self.ctor = ctor
@@ -49,12 +50,10 @@ class Partial(Generic[C_co]):
 
     def _check_signature(self):
         args, kwargs = self.args, self.kwargs
-        if 'target' in kwargs or (args and isinstance(args[0], _pool.Pool)):
+        if "target" in kwargs or (args and isinstance(args[0], _pool.Pool)):
             raise TypeError(
                 "%s[%s] cannot bind 'target' by calling. "
-                "Use `this >> target` instead." % (
-                    self.__class__.__name__, self.ctor
-                )
+                "Use `this >> target` instead." % (self.__class__.__name__, self.ctor)
             )
         try:
             if not self.leaf:
@@ -65,26 +64,23 @@ class Partial(Generic[C_co]):
         except TypeError as err:
             message = err.args[0]
             raise TypeError(
-                '%s[%s] %s' % (self.__class__.__name__, self.ctor, message)
+                "%s[%s] %s" % (self.__class__.__name__, self.ctor, message)
             ) from err
 
-    def __call__(self, *args, **kwargs) -> 'Partial[C_co]':
+    def __call__(self, *args, **kwargs) -> "Partial[C_co]":
         return Partial(
-            self.ctor,
-            *self.args, *args,
-            __leaf__=self.leaf,
-            **self.kwargs, **kwargs
+            self.ctor, *self.args, *args, __leaf__=self.leaf, **self.kwargs, **kwargs
         )
 
     def __construct__(self, *args, **kwargs):
         return self.ctor(*args, *self.args, **kwargs, **self.kwargs)
 
     @overload  # noqa: F811
-    def __rshift__(self, other: 'Union[Owner, Pool, PartialBind[Pool]]') -> 'C_co':
+    def __rshift__(self, other: "Union[Owner, Pool, PartialBind[Pool]]") -> "C_co":
         ...
 
     @overload  # noqa: F811
-    def __rshift__(self, other: 'Union[Partial, PartialBind]') -> 'PartialBind[C_co]':
+    def __rshift__(self, other: "Union[Partial, PartialBind]") -> "PartialBind[C_co]":
         ...
 
     def __rshift__(self, other):  # noqa: F811
@@ -98,9 +94,11 @@ class Partial(Generic[C_co]):
             return self.__construct__(other)
 
     def __repr__(self):
-        return '{self.__class__.__name__}(ctor={self.ctor.__name__}'.format(self=self)\
-               + ', args={self.args}, kwargs={self.kwargs}'.format(self=self) \
-               + ', leaf={self.leaf})'.format(self=self)
+        return (
+            "{self.__class__.__name__}(ctor={self.ctor.__name__}".format(self=self)
+            + ", args={self.args}, kwargs={self.kwargs}".format(self=self)
+            + ", leaf={self.leaf})".format(self=self)
+        )
 
 
 class PartialBind(Generic[C_co]):
@@ -111,25 +109,25 @@ class PartialBind(Generic[C_co]):
     This helper is used to invert the operator precedence of ``>>``,
     allowing the last pair to be bound first.
     """
-    __slots__ = ('parent', 'targets')
+    __slots__ = ("parent", "targets")
 
     def __init__(
-            self,
-            parent: Partial[C_co],
-            *targets: 'Union[Partial[Owner], PartialBind[Owner]]'
+        self,
+        parent: Partial[C_co],
+        *targets: "Union[Partial[Owner], PartialBind[Owner]]",
     ):
         self.parent = parent
         self.targets = targets
 
     @overload  # noqa: F811
-    def __rshift__(self, other: Partial[Owner]) -> 'PartialBind[C_co]':
+    def __rshift__(self, other: Partial[Owner]) -> "PartialBind[C_co]":
         ...
 
     @overload  # noqa: F811
-    def __rshift__(self, other: 'Pool') -> 'C_co':
+    def __rshift__(self, other: "Pool") -> "C_co":
         ...
 
-    def __rshift__(self, other: 'Union[Pool, Partial[Owner]]'):  # noqa: F811
+    def __rshift__(self, other: "Union[Pool, Partial[Owner]]"):  # noqa: F811
         if isinstance(other, _pool.Pool):
             pool = self.targets[-1] >> other
             for owner in reversed(self.targets[:-1]):

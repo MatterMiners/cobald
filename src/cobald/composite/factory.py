@@ -36,6 +36,7 @@ class FactoryPool(CompositePool):
     For example, if a child shuts down and does not allocate its ``supply`` further,
     it should scale its reported ``allocation`` accordingly.
     """
+
     @property
     def children(self):
         return [*self._hatchery, *self._mortuary]
@@ -58,27 +59,24 @@ class FactoryPool(CompositePool):
     def utilisation(self):
         active_children = [child for child in self.children if child.supply > 0]
         try:
-            return sum(
-                child.utilisation for child in active_children
-            ) / len(active_children)
+            return sum(child.utilisation for child in active_children) / len(
+                active_children
+            )
         except ZeroDivisionError:
-            return 1.
+            return 1.0
 
     @property
     def allocation(self):
         active_children = [child for child in self.children if child.supply > 0]
         try:
-            return sum(
-                child.allocation for child in active_children
-            ) / len(active_children)
+            return sum(child.allocation for child in active_children) / len(
+                active_children
+            )
         except ZeroDivisionError:
-            return 1.
+            return 1.0
 
     def __init__(
-            self,
-            *children: Pool,
-            factory: Callable[[], Pool],
-            interval: float = 30
+        self, *children: Pool, factory: Callable[[], Pool], interval: float = 30
     ):
         self._demand = sum(child.demand for child in children)
         #: children fulfilling our demand
@@ -119,8 +117,9 @@ class FactoryPool(CompositePool):
         while missing_demand > 0:
             new_child = self.factory()
             self._hatchery.add(new_child)
-            assert new_child.demand > 0, \
-                'factory must produce children with initial demand'
+            assert (
+                new_child.demand > 0
+            ), "factory must produce children with initial demand"
             missing_demand -= new_child.demand
         self._reap_children()
 

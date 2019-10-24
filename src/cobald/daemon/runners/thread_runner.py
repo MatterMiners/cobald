@@ -9,6 +9,7 @@ class CapturingThread(threading.Thread):
     """
     Daemonic threads that capture any return value or exception from their ``target``
     """
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs, daemon=True)
         self._exception = None
@@ -38,6 +39,7 @@ class CapturingThread(threading.Thread):
 
 class ThreadRunner(BaseRunner):
     """Runner for subroutines with :py:mod:`threading`"""
+
     flavour = threading
 
     def __init__(self):
@@ -67,7 +69,7 @@ class ThreadRunner(BaseRunner):
             thread = CapturingThread(target=subroutine)
             thread.start()
             self._threads.add(thread)
-            self._logger.debug('booted thread %s', thread)
+            self._logger.debug("booted thread %s", thread)
         time.sleep(0)
 
     def _reap_payloads(self):
@@ -76,4 +78,4 @@ class ThreadRunner(BaseRunner):
             # CapturingThread.join will throw
             if thread.join(timeout=0):
                 self._threads.remove(thread)
-                self._logger.debug('reaped thread %s', thread)
+                self._logger.debug("reaped thread %s", thread)

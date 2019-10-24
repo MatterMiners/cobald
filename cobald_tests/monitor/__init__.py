@@ -22,12 +22,21 @@ _index_lock = threading.Lock()
 
 class ExtraLogger(logging.Logger):
     def makeRecord(
-            self, name, level, fn, lno, msg, args, exc_info,
-            func=None, extra=None, sinfo=None
+        self,
+        name,
+        level,
+        fn,
+        lno,
+        msg,
+        args,
+        exc_info,
+        func=None,
+        extra=None,
+        sinfo=None,
     ):
         """Replacement for Logger.makeRecord to overwrite fields via ``extra``"""
         try:
-            created = extra and extra.pop('created')
+            created = extra and extra.pop("created")
         except KeyError:
             created = None
         rv = super().makeRecord(
@@ -43,10 +52,10 @@ class ExtraLogger(logging.Logger):
         return rv
 
 
-def make_test_logger(base_name: str = 'test_logger'):
+def make_test_logger(base_name: str = "test_logger"):
     with _index_lock:
         global _test_index
-        log_name = base_name + '.test%d' % _test_index
+        log_name = base_name + ".test%d" % _test_index
         _test_index += 1
     logger = logging.getLogger(log_name)
     logger.propagate = False

@@ -5,9 +5,9 @@ import logging.handlers
 
 def create_handler(target: str):
     """Create a handler for logging to ``target``"""
-    if target == 'stderr':
+    if target == "stderr":
         return logging.StreamHandler(sys.stderr)
-    elif target == 'stdout':
+    elif target == "stdout":
         return logging.StreamHandler(sys.stdout)
     else:
         return logging.handlers.WatchedFileHandler(filename=target)
@@ -25,8 +25,9 @@ def initialise_logging(level: str, target: str, short_format: bool):
     handler = create_handler(target=target)
     logging.basicConfig(
         level=log_level,
-        format='%(asctime)-15s (%(process)d) %(message)s'
-               if not short_format else '%(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        handlers=[handler]
+        format="%(asctime)-15s (%(process)d) %(message)s"
+        if not short_format
+        else "%(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        handlers=[handler],
     )

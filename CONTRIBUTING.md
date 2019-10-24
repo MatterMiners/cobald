@@ -51,6 +51,6 @@ the more likely and faster we can include your contribution.
     Include references to all related issues and pull requests.
 * Stand by while we review and inspect your contribution
   * A contribution MUST pass the continuous integration inspection.
-    This runs ``pytest`` and ``flake8`` on the code and unit tests.
+    This runs ``pytest``, ``black`` and ``flake8`` on the code and unit tests.
   * A contribution MUST include unit tests if it adds new features.
     It SHOULD NOT decrease the unit test coverage.
