@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import os
+import platform
 from setuptools import setup, find_packages
 
 repo_base_dir = os.path.abspath(os.path.dirname(__file__))
@@ -63,7 +64,9 @@ if __name__ == '__main__':
         extras_require={
             'docs': ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
             'test': TESTS_REQUIRE,
-            'contrib': ['flake8', 'flake8-bugbear', 'black'] + TESTS_REQUIRE,
+            'contrib': ['flake8', 'flake8-bugbear'] + TESTS_REQUIRE + (
+                ['black'] if platform.python_implementation() == 'CPython' else []
+            ),
         },
         # metadata for package search
         license='MIT',
