@@ -57,9 +57,12 @@ if __name__ == "__main__":
         extras_require={
             "docs": ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
             "test": TESTS_REQUIRE,
-            "contrib": ["flake8", "flake8-bugbear"]
-            + TESTS_REQUIRE
-            + (["black"] if platform.python_implementation() == "CPython" else []),
+            "contrib": [
+                "flake8",
+                "flake8-bugbear",
+                "black; implementation_name=='cpython'",
+            ]
+            + TESTS_REQUIRE,
         },
         # metadata for package search
         license="MIT",
