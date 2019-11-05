@@ -200,7 +200,7 @@ can request the configuration section ``my_plugin`` in this way:
 .. note::
 
     Any options for Section Plugins entry points are currently implementation details.
-    In specific, *do not* use the ``[optional]`` flag used by ``cobald`` itself.
+    In specific, *do not* use the ``[required]`` flag used by ``cobald`` itself.
 
 The ``cobald`` Namespace
 ************************
