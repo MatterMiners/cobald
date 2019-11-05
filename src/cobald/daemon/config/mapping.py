@@ -109,16 +109,16 @@ class Translator(object):
 
 
 class SectionPlugin(Generic[M]):
-    __slots__ = "section", "digest", "optional"
+    __slots__ = "section", "digest", "required"
 
-    __entry_point_flags__ = {"optional"}
+    __entry_point_flags__ = {"required"}
 
     def __init__(
-        self, section: str, digest: Callable[[M], Any], optional: bool = False
+        self, section: str, digest: Callable[[M], Any], required: bool = False
     ):
         self.section = section
         self.digest = digest
-        self.optional = optional
+        self.required = required
 
     @classmethod
     def load(cls, entry_point: EntryPoint) -> "SectionPlugin":
@@ -156,7 +156,7 @@ def load_configuration(
         try:
             section_data = config_data[plugin.section]
         except KeyError:
-            if not plugin.optional:
+            if plugin.required:
                 raise ConfigurationError(
                     where="root", what="missing section %r" % plugin.section
                 )
