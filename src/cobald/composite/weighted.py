@@ -3,7 +3,8 @@ from ..interfaces import Pool, CompositePool
 
 class WeightedComposite(CompositePool):
     """
-    Weighted composition of several pools, with each pool weighted by its supply
+    Weighted composition of several pools, with each pool weighted by its
+    supply, utilisation or allocation.
     """
 
     children = []
@@ -15,11 +16,11 @@ class WeightedComposite(CompositePool):
     @demand.setter
     def demand(self, value):
         self._demand = value
-        total_supply = self.supply
+        total_weight = sum(getattr(child, self._weight) for child in self.children)
         child_count = len(self.children)
         for pool in self.children:
             try:
-                pool.demand = value * pool.supply / total_supply
+                pool.demand = value * getattr(pool, self._weight) / total_weight
             except ZeroDivisionError:
                 pool.demand = value / child_count
 
@@ -47,6 +48,12 @@ class WeightedComposite(CompositePool):
         except ZeroDivisionError:
             return 1.0
 
-    def __init__(self, *children: Pool):
+    def __init__(self, *children: Pool, weight="supply"):
+        assert weight in (
+            "supply",
+            "utilisation",
+            "allocation",
+        ), "weight must be either supply, utilisation or allocation"
+        self._weight = weight
         self._demand = sum(child.demand for child in children)
         self.children = list(children)
