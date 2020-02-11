@@ -19,7 +19,7 @@ class WeightedComposite(CompositePool):
         child_count = len(self.children)
         for pool in self.children:
             try:
-                pool.demand = value * getattr(pool, self._weight) / self.total_weight
+                pool.demand = value * getattr(pool, self._weight) / self._total_weight
             except ZeroDivisionError:
                 pool.demand = value / child_count
 
@@ -35,7 +35,7 @@ class WeightedComposite(CompositePool):
                     child.utilisation * getattr(child, self._weight)
                     for child in self.children
                 )
-                / self.total_weight
+                / self._total_weight
             )
         except ZeroDivisionError:
             return 1.0
@@ -48,13 +48,13 @@ class WeightedComposite(CompositePool):
                     child.allocation * getattr(child, self._weight)
                     for child in self.children
                 )
-                / self.total_weight
+                / self._total_weight
             )
         except ZeroDivisionError:
             return 1.0
 
     @property
-    def total_weight(self):
+    def _total_weight(self):
         return sum(getattr(child, self._weight) for child in self.children)
 
     def __init__(self, *children: Pool, weight="supply"):
