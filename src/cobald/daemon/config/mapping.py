@@ -5,6 +5,8 @@ from typing import Any, Dict, TypeVar, Callable, Tuple, Generic, Set
 
 from entrypoints import EntryPoint
 
+from ..plugins import PluginRequirements
+
 _logger = logging.getLogger(__package__)
 
 
@@ -115,26 +117,28 @@ class SectionPlugin(Generic[M]):
     :param section: Name of the section to digest
     :param digest: callable that receive the section
     :param required: whether the section must be present
-    :param order: index of evaluating this plugin
     """
 
-    __slots__ = "section", "digest", "required", "before", "after"
+    __slots__ = "section", "digest", "requirements"
 
-    __entry_point_flags__ = {"required"}
+    @property
+    def required(self):
+        return self.requirements.required
+
+    @property
+    def before(self):
+        return self.requirements.before
+
+    @property
+    def after(self):
+        return self.requirements.after
 
     def __init__(
-        self,
-        section: str,
-        digest: Callable[[M], Any],
-        required: bool = False,
-        before: Set[str] = frozenset(),
-        after: Set[str] = frozenset(),
+        self, section: str, digest: Callable[[M], Any], requirements: PluginRequirements
     ):
         self.section = section
         self.digest = digest
-        self.required = required
-        self.before = before
-        self.after = after
+        self.requirements = requirements
 
     @classmethod
     def load(cls, entry_point: EntryPoint) -> "SectionPlugin":
@@ -153,22 +157,13 @@ class SectionPlugin(Generic[M]):
             This plugin must be processed after ``other``.
         """
         digest = entry_point.load()
-        options = {"before": set(), "after": set(), "required": False}
-        for option in entry_point.extras or []:  # type: str
-            # flags
-            if option == "required":
-                options["required"] = True
-            # settings
-            else:
-                key, _, value = map(str.strip, option.partition("="))
-                if key in ("before", "after"):
-                    options[key].add(value)
-                else:
-                    raise ValueError(
-                        f"unrecognized config section option {key}"
-                        f" for SectionPlugin {entry_point.name}"
-                    )
-        return cls(section=entry_point.name, digest=digest, **options)
+        requirements = getattr(digest, "__requirements__", PluginRequirements())
+        if entry_point.extras:
+            raise ValueError(
+                f"SectionPlugin entry point '{entry_point.name}':"
+                f" extras are no longer supported"
+            )
+        return cls(section=entry_point.name, digest=digest, requirements=requirements)
 
 
 def load_configuration(

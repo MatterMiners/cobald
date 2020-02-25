@@ -6,6 +6,7 @@ from yaml import SafeLoader, BaseLoader
 from entrypoints import get_group_all as get_entrypoints
 from toposort import toposort_flatten
 
+from ..plugins import constraints as plugin_constraints
 from ..config.yaml import (
     load_configuration as load_yaml_configuration,
     yaml_constructor,
@@ -96,6 +97,7 @@ def load(config_path: str):
     yield
 
 
+@plugin_constraints(required=True)
 def load_pipeline(content: list):
     """
     Load a cobald pipeline of Controller >> ... >> Pool from a configuration section
