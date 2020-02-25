@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import sys
-from typing import Any, Dict, TypeVar, Callable, Tuple, Generic, Set
+from typing import Any, Dict, TypeVar, Callable, Tuple, Generic
 
 from entrypoints import EntryPoint
 
