@@ -1,0 +1,9 @@
+category: changed
+summary: "Section Plugin settings are now specified via decorators"
+description: |
+  Configuration section plugins may now be assigned loading constraints using the
+  decorator :py:func:`cobald.daemon.plugins.constraints`. This allows marking a plugin
+  as ``required`` (it is an error if it cannot be run), and to set ordering relations
+  to other plugins.
+pull requests:
+- 70
