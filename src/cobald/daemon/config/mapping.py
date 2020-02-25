@@ -165,6 +165,14 @@ class SectionPlugin(Generic[M]):
             )
         return cls(section=entry_point.name, digest=digest, requirements=requirements)
 
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}"
+            f"(section={self.section},"
+            f" digest={self.digest},"
+            f" requirements={self.requirements})"
+        )
+
 
 def load_configuration(
     config_data: Dict[str, Any], plugins: Tuple[SectionPlugin] = ()

@@ -22,12 +22,17 @@ class PluginRequirements:
         self.before = before
         self.after = after
 
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}"
+            f"(required={self.required},"
+            f" before={self.before},"
+            f" after={self.after})"
+        )
+
 
 def constraints(
-    *,
-    before: Iterable[str] = (),
-    after: Iterable[str] = (),
-    required: bool = False,
+    *, before: Iterable[str] = (), after: Iterable[str] = (), required: bool = False
 ):
     """
     Mark a callable as a plugin with constraints
