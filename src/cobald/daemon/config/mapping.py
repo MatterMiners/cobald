@@ -117,6 +117,7 @@ class SectionPlugin(Generic[M]):
     :param required: whether the section must be present
     :param order: index of evaluating this plugin
     """
+
     __slots__ = "section", "digest", "required", "before", "after"
 
     __entry_point_flags__ = {"required"}
@@ -153,13 +154,13 @@ class SectionPlugin(Generic[M]):
         """
         digest = entry_point.load()
         options = {"before": set(), "after": set(), "required": False}
-        for option in (entry_point.extras or []):  # type: str
+        for option in entry_point.extras or []:  # type: str
             # flags
             if option == "required":
                 options["required"] = True
             # settings
             else:
-                key, _, value = map(str.strip, option.partition('='))
+                key, _, value = map(str.strip, option.partition("="))
                 if key in ("before", "after"):
                     options[key].add(value)
                 else:
@@ -167,11 +168,7 @@ class SectionPlugin(Generic[M]):
                         f"unrecognized config section option {key}"
                         f" for SectionPlugin {entry_point.name}"
                     )
-        return cls(
-            section=entry_point.name,
-            digest=digest,
-            **options,
-        )
+        return cls(section=entry_point.name, digest=digest, **options)
 
 
 def load_configuration(

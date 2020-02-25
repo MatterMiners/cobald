@@ -52,7 +52,13 @@ if __name__ == "__main__":
             ],
         },
         # >>> Dependencies
-        install_requires=["pyyaml", "trio>=0.4.0", "include", "entrypoints", "toposort"],
+        install_requires=[
+            "pyyaml",
+            "trio>=0.4.0",
+            "include",
+            "entrypoints",
+            "toposort",
+        ],
         extras_require={
             "docs": ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
             "test": TESTS_REQUIRE,

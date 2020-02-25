@@ -54,20 +54,17 @@ def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
     """
     plugins: Dict[str, SectionPlugin] = {
         plugin.section: plugin
-        for plugin in
-        map(SectionPlugin.load, get_entrypoints(entry_point_group))
+        for plugin in map(SectionPlugin.load, get_entrypoints(entry_point_group))
     }
     dependencies: Dict[str, Set[str]] = {
-        plugin.section: set(plugin.after)
-        for plugin in plugins.values()
+        plugin.section: set(plugin.after) for plugin in plugins.values()
     }
     for plugin in plugins.values():
         for before in plugin.before:
             dependencies[before].add(plugin.section)
     return tuple(
         plugins[plugin_name]
-        for plugin_name in
-        toposort_flatten(dependencies, sort=False)
+        for plugin_name in toposort_flatten(dependencies, sort=False)
         if plugin_name in plugins
     )
 
