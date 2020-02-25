@@ -144,6 +144,12 @@ class SectionPlugin(Generic[M]):
 
         ``required``
             If present implies ``required=True``.
+
+        ``before=other``
+            This plugin must be processed before ``other``.
+
+        ``after=other``
+            This plugin must be processed after ``other``.
         """
         digest = entry_point.load()
         options = {"before": set(), "after": set(), "required": False}
@@ -171,6 +177,13 @@ class SectionPlugin(Generic[M]):
 def load_configuration(
     config_data: Dict[str, Any], plugins: Tuple[SectionPlugin] = ()
 ) -> Dict[SectionPlugin, Any]:
+    """
+    Load the configuration from a mapping
+
+    :param config_data:
+    :param plugins:
+    :return:
+    """
     try:
         logging_mapping = config_data.pop("logging")
     except KeyError:
