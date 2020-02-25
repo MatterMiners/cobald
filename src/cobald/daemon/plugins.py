@@ -1,7 +1,7 @@
 """
 Tools and helpers to declare plugins
 """
-from typing import FrozenSet, TypeVar
+from typing import Iterable, FrozenSet, TypeVar
 
 
 T = TypeVar("T")
@@ -25,8 +25,8 @@ class PluginRequirements:
 
 def constraints(
     *,
-    before: FrozenSet[str] = frozenset(),
-    after: FrozenSet[str] = frozenset(),
+    before: Iterable[str] = (),
+    after: Iterable[str] = (),
     required: bool = False,
 ):
     """
@@ -44,7 +44,7 @@ def constraints(
 
     def section_wrapper(plugin: T) -> T:
         plugin.__requirements__ = PluginRequirements(
-            required=required, before=before, after=after
+            required=required, before=frozenset(before), after=frozenset(after)
         )
         return plugin
 
