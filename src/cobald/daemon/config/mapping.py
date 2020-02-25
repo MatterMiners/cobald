@@ -1,7 +1,7 @@
 import logging
 import logging.config
 import sys
-from typing import Any, Dict, TypeVar, Callable, Tuple, Generic
+from typing import Any, Dict, TypeVar, Callable, Tuple, Generic, Set
 
 from entrypoints import EntryPoint
 
@@ -109,30 +109,62 @@ class Translator(object):
 
 
 class SectionPlugin(Generic[M]):
-    __slots__ = "section", "digest", "required"
+    """
+    Plugin to digest a top-level configuration section
+
+    :param section: Name of the section to digest
+    :param digest: callable that receive the section
+    :param required: whether the section must be present
+    :param order: index of evaluating this plugin
+    """
+    __slots__ = "section", "digest", "required", "before", "after"
 
     __entry_point_flags__ = {"required"}
 
     def __init__(
-        self, section: str, digest: Callable[[M], Any], required: bool = False
+        self,
+        section: str,
+        digest: Callable[[M], Any],
+        required: bool = False,
+        before: Set[str] = frozenset(),
+        after: Set[str] = frozenset(),
     ):
         self.section = section
         self.digest = digest
         self.required = required
+        self.before = before
+        self.after = after
 
     @classmethod
     def load(cls, entry_point: EntryPoint) -> "SectionPlugin":
+        """
+        Load a plugin from a pre-parsed entry point
+
+        Parses the following options:
+
+        ``required``
+            If present implies ``required=True``.
+        """
         digest = entry_point.load()
-        flags = set(entry_point.extras or [])
-        if not flags <= cls.__entry_point_flags__:
-            raise ValueError(
-                "unrecognized config section option %r for entry pint %r"
-                % (flags - cls.__entry_point_flags__, entry_point)
-            )
+        options = {"before": set(), "after": set(), "required": False}
+        for option in (entry_point.extras or []):  # type: str
+            # flags
+            if option == "required":
+                options["required"] = True
+            # settings
+            else:
+                key, _, value = map(str.strip, option.partition('='))
+                if key in ("before", "after"):
+                    options[key].add(value)
+                else:
+                    raise ValueError(
+                        f"unrecognized config section option {key}"
+                        f" for SectionPlugin {entry_point.name}"
+                    )
         return cls(
             section=entry_point.name,
             digest=digest,
-            **{option: option in flags for option in cls.__entry_point_flags__},
+            **options,
         )
 
 
