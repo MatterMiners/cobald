@@ -1,10 +1,12 @@
 import os
 from contextlib import contextmanager
-from typing import Type, Tuple
+from typing import Type, Tuple, Dict, Set
 
 from yaml import SafeLoader, BaseLoader
 from entrypoints import get_group_all as get_entrypoints
+from toposort import toposort_flatten
 
+from ..plugins import constraints as plugin_constraints
 from ..config.yaml import (
     load_configuration as load_yaml_configuration,
     yaml_constructor,
@@ -51,9 +53,20 @@ def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
     :param entry_point_group: entry point group to search
     :return: all loaded plugins
     """
+    plugins: Dict[str, SectionPlugin] = {
+        plugin.section: plugin
+        for plugin in map(SectionPlugin.load, get_entrypoints(entry_point_group))
+    }
+    dependencies: Dict[str, Set[str]] = {
+        plugin.section: set(plugin.after) for plugin in plugins.values()
+    }
+    for plugin in plugins.values():
+        for before in plugin.before:
+            dependencies[before].add(plugin.section)
     return tuple(
-        SectionPlugin.load(entry_point)
-        for entry_point in get_entrypoints(entry_point_group)
+        plugins[plugin_name]
+        for plugin_name in toposort_flatten(dependencies, sort=False)
+        if plugin_name in plugins
     )
 
 
@@ -84,6 +97,7 @@ def load(config_path: str):
     yield
 
 
+@plugin_constraints(required=True)
 def load_pipeline(content: list):
     """
     Load a cobald pipeline of Controller >> ... >> Pool from a configuration section

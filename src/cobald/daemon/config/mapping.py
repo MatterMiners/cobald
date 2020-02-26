@@ -5,6 +5,8 @@ from typing import Any, Dict, TypeVar, Callable, Tuple, Generic
 
 from entrypoints import EntryPoint
 
+from ..plugins import PluginRequirements
+
 _logger = logging.getLogger(__package__)
 
 
@@ -109,36 +111,79 @@ class Translator(object):
 
 
 class SectionPlugin(Generic[M]):
-    __slots__ = "section", "digest", "required"
+    """
+    Plugin to digest a top-level configuration section
 
-    __entry_point_flags__ = {"required"}
+    :param section: Name of the section to digest
+    :param digest: callable that receives the section
+    :param requirements: plugin requirements
+    """
+
+    __slots__ = "section", "digest", "requirements"
+
+    @property
+    def required(self):
+        return self.requirements.required
+
+    @property
+    def before(self):
+        return self.requirements.before
+
+    @property
+    def after(self):
+        return self.requirements.after
 
     def __init__(
-        self, section: str, digest: Callable[[M], Any], required: bool = False
+        self, section: str, digest: Callable[[M], Any], requirements: PluginRequirements
     ):
         self.section = section
         self.digest = digest
-        self.required = required
+        self.requirements = requirements
 
     @classmethod
     def load(cls, entry_point: EntryPoint) -> "SectionPlugin":
+        """
+        Load a plugin from a pre-parsed entry point
+
+        Parses the following options:
+
+        ``required``
+            If present implies ``required=True``.
+
+        ``before=other``
+            This plugin must be processed before ``other``.
+
+        ``after=other``
+            This plugin must be processed after ``other``.
+        """
         digest = entry_point.load()
-        flags = set(entry_point.extras or [])
-        if not flags <= cls.__entry_point_flags__:
+        requirements = getattr(digest, "__requirements__", PluginRequirements())
+        if entry_point.extras:
             raise ValueError(
-                "unrecognized config section option %r for entry pint %r"
-                % (flags - cls.__entry_point_flags__, entry_point)
+                f"SectionPlugin entry point '{entry_point.name}':"
+                f" extras are no longer supported"
             )
-        return cls(
-            section=entry_point.name,
-            digest=digest,
-            **{option: option in flags for option in cls.__entry_point_flags__},
+        return cls(section=entry_point.name, digest=digest, requirements=requirements)
+
+    def __repr__(self):
+        return (
+            f"{self.__class__.__name__}"
+            f"(section={self.section},"
+            f" digest={self.digest},"
+            f" requirements={self.requirements})"
         )
 
 
 def load_configuration(
     config_data: Dict[str, Any], plugins: Tuple[SectionPlugin] = ()
 ) -> Dict[SectionPlugin, Any]:
+    """
+    Load the configuration from a mapping, applying plugins to sections
+
+    :param config_data: the raw configuration without any plugins applied
+    :param plugins: all plugins that *might* apply, in order
+    :return: the output of all applied plugins
+    """
     try:
         logging_mapping = config_data.pop("logging")
     except KeyError:

@@ -199,8 +199,13 @@ can request the configuration section ``my_plugin`` in this way:
 
 .. note::
 
-    Any options for Section Plugins entry points are currently implementation details.
-    In specific, *do not* use the ``[required]`` flag used by ``cobald`` itself.
+    If a plugin must always be covered by configuration,
+    or should run before or after another plugin,
+    decorate it with :py:func:`cobald.daemon.plugins.constraints`.
+
+.. versionadded:: 0.12
+
+    The :py:func:`cobald.daemon.plugins.constraints` and dependency resolution.
 
 The ``cobald`` Namespace
 ************************

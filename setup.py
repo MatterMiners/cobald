@@ -48,11 +48,17 @@ if __name__ == "__main__":
                 )
             ],
             "cobald.config.sections": [
-                "pipeline = cobald.daemon.core.config:load_pipeline [required]"
+                "pipeline = cobald.daemon.core.config:load_pipeline"
             ],
         },
         # >>> Dependencies
-        install_requires=["pyyaml", "trio>=0.4.0", "include", "entrypoints"],
+        install_requires=[
+            "pyyaml",
+            "trio>=0.4.0",
+            "include",
+            "entrypoints",
+            "toposort",
+        ],
         extras_require={
             "docs": ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
             "test": TESTS_REQUIRE,
