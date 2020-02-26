@@ -1,9 +1,17 @@
-.. Created by log.py at 2020-02-24, command
+.. Created by log.py at 2020-02-26, command
    '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.7/site-packages/change/__main__.py log docs/source/changes compile --output docs/source/changelog.rst'
    based on the format of 'https://keepachangelog.com/'
 #########
 ChangeLog
 #########
+
+0.12 Series
+===========
+
+Version [0.12.0] - 2020-02-26
++++++++++++++++++++++++++++++
+
+* **[Changed]** Section Plugin settings are now specified via decorators
 
 0.11 Series
 ===========
