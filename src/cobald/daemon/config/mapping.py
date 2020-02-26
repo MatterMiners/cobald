@@ -115,8 +115,8 @@ class SectionPlugin(Generic[M]):
     Plugin to digest a top-level configuration section
 
     :param section: Name of the section to digest
-    :param digest: callable that receive the section
-    :param required: whether the section must be present
+    :param digest: callable that receives the section
+    :param requirements: plugin requirements
     """
 
     __slots__ = "section", "digest", "requirements"
