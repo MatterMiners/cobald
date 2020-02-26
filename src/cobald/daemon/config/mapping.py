@@ -178,11 +178,11 @@ def load_configuration(
     config_data: Dict[str, Any], plugins: Tuple[SectionPlugin] = ()
 ) -> Dict[SectionPlugin, Any]:
     """
-    Load the configuration from a mapping
+    Load the configuration from a mapping, applying plugins to sections
 
-    :param config_data:
-    :param plugins:
-    :return:
+    :param config_data: the raw configuration without any plugins applied
+    :param plugins: all plugins that *might* apply, in order
+    :return: the output of all applied plugins
     """
     try:
         logging_mapping = config_data.pop("logging")
