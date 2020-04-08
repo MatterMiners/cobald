@@ -1,10 +1,29 @@
+from typing_extensions import Literal
+
 from ..interfaces import Pool, CompositePool
 
 
 class WeightedComposite(CompositePool):
     """
-    Weighted composition of several pools, with each pool weighted by its
-    supply, utilisation or allocation.
+    Composition of pools weighted by their current state
+
+    The aggregation of children's :py:attr:`~.Pool.demand`,
+    :py:attr:`~.Pool.utilisation` and :py:attr:`~.Pool.allocation`
+    is weighted by each child's ``weight``.
+    Children can be weighted by their :py:attr:`~.Pool.supply`,
+    :py:attr:`~.Pool.utilisation` or :py:attr:`~.Pool.allocation`.
+    Note that weighting the :py:attr:`~.Pool.demand` only applies to
+    *distributing* it to children; the composite's :py:attr:`~.Pool.demand`
+    is always exactly as set by its controller.
+
+    If the total weight is 0, the following fallback applies:
+
+    * :py:attr:`~.Pool.demand` is applied uniformly, and
+    * :py:attr:`~.Pool.utilisation` and :py:attr:`~.Pool.allocation` are assumed
+      1 if there are no children, 0 otherwise.
+
+    The latter rule expresses that the total fitness of a Pool is 0 either if the
+    fitness of all its children is 0, or there are no children.
     """
 
     children = []
@@ -72,7 +91,7 @@ class WeightedComposite(CompositePool):
     def _total_weight(self):
         return sum(getattr(child, self._weight) for child in self.children)
 
-    def __init__(self, *children: Pool, weight="supply"):
+    def __init__(self, *children: Pool, weight: Literal["supply", "utilisation", "allocation"] = "supply"):
         assert weight in (
             "supply",
             "utilisation",

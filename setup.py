@@ -58,6 +58,7 @@ if __name__ == "__main__":
             "include",
             "entrypoints",
             "toposort",
+            "typing_extensions",
         ],
         extras_require={
             "docs": ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
