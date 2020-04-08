@@ -94,7 +94,7 @@ class WeightedComposite(CompositePool):
     def __init__(
         self,
         *children: Pool,
-        weight: Literal["supply", "utilisation", "allocation"] = "supply"
+        weight: Literal["supply", "utilisation", "allocation"] = "supply",
     ):
         assert weight in (
             "supply",
