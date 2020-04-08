@@ -91,7 +91,11 @@ class WeightedComposite(CompositePool):
     def _total_weight(self):
         return sum(getattr(child, self._weight) for child in self.children)
 
-    def __init__(self, *children: Pool, weight: Literal["supply", "utilisation", "allocation"] = "supply"):
+    def __init__(
+        self,
+        *children: Pool,
+        weight: Literal["supply", "utilisation", "allocation"] = "supply"
+    ):
         assert weight in (
             "supply",
             "utilisation",

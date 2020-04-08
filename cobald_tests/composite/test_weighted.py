@@ -85,7 +85,7 @@ class TestWeightedComposite(object):
 
         assert composite.allocation == 0.7
 
-    @pytest.mark.parametrize('weight', ['supply', 'allocation', 'utilisation'])
+    @pytest.mark.parametrize("weight", ["supply", "allocation", "utilisation"])
     def test_fitness_fallback(self, weight):
         # empty composite should always assume perfect fitness
         composite = WeightedComposite(weight=weight)
