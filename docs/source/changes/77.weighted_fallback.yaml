@@ -1,0 +1,12 @@
+category: changed
+summary: "fallback for fitness of WeightedComposite depends on supply"
+description: |
+  Computing the fitness of :py:class:`~cobald.composite.weighted.WeightedComposite`
+  is undefined whenever its ``weight`` is zero. The fallback previously unconditionally
+  asserted perfect fitness -- this is not appropriate for the new weights added in #67.
+  With this change, perfect fitness is only assumed when the supply is zero, meaning
+  that fitness is truly unknown. In any other case, the actual fitness is used.
+pull requests:
+- 77
+issues:
+- 75

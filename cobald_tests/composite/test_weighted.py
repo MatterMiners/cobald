@@ -84,3 +84,25 @@ class TestWeightedComposite(object):
         pools[1].allocation = 0.6
 
         assert composite.allocation == 0.7
+
+    @pytest.mark.parametrize("weight", ["supply", "allocation", "utilisation"])
+    def test_fitness_fallback(self, weight):
+        # empty composite should always assume perfect fitness
+        composite = WeightedComposite(weight=weight)
+        assert composite.supply == 0
+        assert composite.allocation == 1
+        assert composite.utilisation == 1
+        children = [
+            FullMockPool(demand=0, supply=0, allocation=0.0, utilisation=0.0)
+            for _ in range(5)
+        ]
+        composite.children.extend(children)
+        assert composite.supply == 0
+        assert composite.allocation == 1
+        assert composite.utilisation == 1
+        # full composite fitness is correct
+        for child in children:
+            child.supply = 1
+        assert composite.supply == len(children)
+        assert composite.allocation == 0
+        assert composite.utilisation == 0
