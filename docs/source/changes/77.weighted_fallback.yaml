@@ -1,4 +1,4 @@
-category: changed
+category: fixed
 summary: "fallback for fitness of WeightedComposite depends on supply"
 description: |
   Computing the fitness of :py:class:`~cobald.composite.weighted.WeightedComposite`
