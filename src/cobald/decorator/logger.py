@@ -6,7 +6,7 @@ from cobald.interfaces import Pool, PoolDecorator
 _DEFAULT_MESSAGE = (
     "demand = %(value)s "
     "[demand=%(demand)s, supply=%(supply)s, "
-    "utilisation=%(utilisation).2f, consumption=%(consumption).2f]"
+    "utilisation=%(utilisation).2f, allocation=%(allocation).2f]"
 )
 
 
@@ -24,11 +24,13 @@ class Logger(PoolDecorator):
     ``value``
         for the new demand to set,
 
-    ``demand``, ``supply``, ``utilisation`` and ``consumption``
+    ``demand``, ``supply``, ``utilisation`` and ``allocation``
         for the current state of ``target``, and
 
     ``target``
         for the raw ``target`` pool.
+
+    For historical reasons, ``consumption`` is available as an alias of ``allocation``.
     """
 
     @property
@@ -45,6 +47,7 @@ class Logger(PoolDecorator):
                 "demand": self.target.demand,
                 "supply": self.target.supply,
                 "utilisation": self.target.utilisation,
+                "allocation": self.target.allocation,
                 "consumption": self.target.allocation,
                 "target": self.target,
             },
