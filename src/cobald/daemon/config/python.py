@@ -19,7 +19,7 @@ def load_configuration(path):
     spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None:
         extension = pathlib.Path(path).suffix
-        raise RuntimeError(f"Failed to load {path} of type {extension}")
+        raise RuntimeError(f"Unrecognized file type {extension} for config {path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
