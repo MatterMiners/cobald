@@ -13,6 +13,8 @@ def load_configuration(path):
 
     The ``path`` must end in a valid file extension for the appropriate module type,
     such as ``.py`` or ``.pyc`` for a plaintext or bytecode python module.
+
+    :raises ValueError: if the extension does not mark a known module type
     """
     # largely based on "Importing a source file directly"
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
@@ -25,7 +27,7 @@ def load_configuration(path):
     spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None:
         extension = pathlib.Path(path).suffix
-        raise RuntimeError(f"Unrecognized file type {extension} for config {path}")
+        raise ValueError(f"Unrecognized file extension {extension} for config {path}")
     module = importlib.util.module_from_spec(spec)
     sys.modules[module_name] = module
     spec.loader.exec_module(module)
