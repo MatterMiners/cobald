@@ -13,9 +13,15 @@ def load_configuration(path):
     The ``path`` must end in a valid file extension for the appropriate module type,
     such as ``.py`` or ``.pyc`` for a plaintext or bytecode python module.
     """
+    # largely based on "Importing a source file directly"
+    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
     global _loaded
     current_index = _loaded = _loaded + 1
     module_name = f"<cobald config {current_index}>"
+    # the following replicates the regular import machinery:
+    #     1. create the module metadata (spec)
+    #     2. create a module object base on the metadata
+    #     3. execute the source to populate the module
     spec = importlib.util.spec_from_file_location(module_name, path)
     if spec is None:
         extension = pathlib.Path(path).suffix
