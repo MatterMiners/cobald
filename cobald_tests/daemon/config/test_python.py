@@ -1,5 +1,5 @@
 import tempfile
-import os
+import pytest
 
 from cobald.daemon.config.python import load_configuration
 
@@ -27,3 +27,12 @@ def test_load_pyconfig_many():
             modules.append((ident, load_configuration(test_file.name)))
     for ident, module in modules:
         assert ident == module.identifier
+
+
+@pytest.mark.parametrize("extension", [".pyi", ".yml", ""])
+def test_load_pyconfig_invalid(extension):
+    with pytest.raises(ValueError):
+        with tempfile.NamedTemporaryFile(mode="w+", suffix=extension) as test_file:
+            test_file.write(module_content("'unused'"))
+            test_file.flush()
+            _ = load_configuration(test_file.name)
