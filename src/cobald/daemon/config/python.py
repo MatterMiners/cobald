@@ -1,9 +1,10 @@
 import pathlib
 import importlib.util
 import sys
+import itertools
 
 
-_loaded = -1
+_unique_module_id = itertools.count()
 
 
 def load_configuration(path):
@@ -15,8 +16,7 @@ def load_configuration(path):
     """
     # largely based on "Importing a source file directly"
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
-    global _loaded
-    current_index = _loaded = _loaded + 1
+    current_index = next(_unique_module_id)
     module_name = f"<cobald config {current_index}>"
     # the following replicates the regular import machinery:
     #     1. create the module metadata (spec)
