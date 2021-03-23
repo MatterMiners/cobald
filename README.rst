@@ -10,9 +10,13 @@ COBalD -- the Opportunistic Balancing Daemon
     :target: https://gitter.im/MatterMiners/community
     :alt: Development and Help Chat
 
-.. image:: https://travis-ci.org/MatterMiners/cobald.svg?branch=master
-    :target: https://travis-ci.org/MatterMiners/cobald
-    :alt: Test Status
+.. image:: https://github.com/MatterMiners/cobald/actions/workflows/unittests.yml/badge.svg
+    :target: https://github.com/maxfischer2781/bootpeg/actions/workflows/unittests.yml
+    :alt: Unit Tests (master)
+
+.. image:: https://github.com/MatterMiners/cobaldactions/workflows/verification.yml/badge.svg
+    :target: https://github.com/maxfischer2781/bootpeg/actions/workflows/verification.yml
+    :alt: Verification (master)
 
 .. image:: https://codecov.io/gh/MatterMiners/cobald/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/MatterMiners/cobald

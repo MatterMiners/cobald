@@ -66,6 +66,7 @@ if __name__ == "__main__":
                 "flake8",
                 "flake8-bugbear",
                 "black; implementation_name=='cpython'",
+                "pytest-cov",
             ]
             + TESTS_REQUIRE,
         },
@@ -84,6 +85,8 @@ if __name__ == "__main__":
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.6",
             "Programming Language :: Python :: 3.7",
+            "Programming Language :: Python :: 3.8",
+            "Programming Language :: Python :: 3.9",
         ],
         keywords=package_about["__keywords__"],
         # unit tests

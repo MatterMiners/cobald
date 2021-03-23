@@ -1,7 +1,10 @@
 import abc
-from typing import TypeVar, Type
+from typing import TypeVar, Type, TYPE_CHECKING
 
 from ._partial import Partial
+
+if TYPE_CHECKING:
+    from ._controller import Controller
 
 
 C = TypeVar("C", bound="Controller")

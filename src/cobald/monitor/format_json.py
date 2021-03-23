@@ -39,7 +39,7 @@ class JsonFormatter(Formatter):
     :param datefmt: format for timestamps
 
     The ``datefmt`` parameter has almost the same meaning as
-   :py:class:`~.Formatter`.
+    :py:class:`~.Formatter`.
     Setting it to ``None`` uses the default time format.
     However, setting it to any other value that is boolean
     false excludes the timestamp from reports.
