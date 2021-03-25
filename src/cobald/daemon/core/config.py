@@ -1,3 +1,23 @@
+"""
+The configuration machinery to load and apply the configuration based on plugins
+
+Configuration is geared towards digesting structured mappings/YAML,
+with plugins for digesting either entire sections or individual nodes.
+
+* *Constructor Plugins* are callables that receive part of a YAML during loading.
+* *Section Plugins* are callables that receive a top-level section of the
+  configuration after loading.
+
+The plugins are loaded from Python
+`entry points <https://packaging.python.org/specifications/entry-points/>`_
+which point at callables inside normal Python packages
+(the section ``"logging"`` being the only exception).
+The machinery is implemented by :py:func:`~.load`,
+which in turn uses helpers to load plugins of each type.
+
+The core part of cobald's functionality, a controller >> pool pipeline,
+is itself a section plugin as :py:func:`~.load_pipeline`.
+"""
 import os
 from contextlib import contextmanager
 from typing import Type, Tuple, Dict, Set
@@ -16,15 +36,16 @@ from ..config.mapping import Translator, SectionPlugin
 
 
 class COBalDLoader(SafeLoader):
-    """Loader with access to COBalD configuration constructors"""
+    """YAML loader with access to COBalD configuration constructors"""
 
 
+# Loading of plugins from entry_points
 def add_constructor_plugins(entry_point_group: str, loader: Type[BaseLoader]) -> None:
     """
     Add PyYAML constructors from an entry point group to a loader
 
     :param loader: the PyYAML loader which uses the plugins
-    :param entry_point_group: entry point group to search
+    :param entry_point_group: name of entry point group to search
 
     .. note::
 
@@ -48,10 +69,10 @@ def add_constructor_plugins(entry_point_group: str, loader: Type[BaseLoader]) ->
 
 def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
     """
-    Load configuration plugins from an entry point group
+    Load configuration section plugins from an entry point group
 
-    :param entry_point_group: entry point group to search
-    :return: all loaded plugins
+    :param entry_point_group: name of entry point group to search
+    :return: all loaded plugins sorted by before/after dependencies
     """
     plugins: Dict[str, SectionPlugin] = {
         plugin.section: plugin
@@ -70,6 +91,7 @@ def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
     )
 
 
+# The high-level config machinery implementation itself
 @contextmanager
 def load(config_path: str):
     """
@@ -97,6 +119,7 @@ def load(config_path: str):
     yield
 
 
+# The plugin for loading a cobald pipeline
 @plugin_constraints(required=True)
 def load_pipeline(content: list):
     """
