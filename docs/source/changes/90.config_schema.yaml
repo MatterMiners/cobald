@@ -1,0 +1,16 @@
+category: changed
+summary: "YAML configuration validation/conversion via schemas"
+description: |
+  Plugins for YAML configurations can define a schema for their configuration section.
+  Schemas can validate and optionally convert the configuration to match the plugin,
+  and promptly report any failures.
+
+  Schemas are defined via :py:func:`cobald.daemon.plugins.constraints`,
+  just like any other plugin settings.
+  The only currently supported schema type is a :py:mod:`pydantic`
+  :py:class:`~pydantic.BaseModel`.
+issues:
+- 75
+pull requests:
+- 77
+version: 0.12.1
