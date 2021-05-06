@@ -138,10 +138,10 @@ class PipelineTranslator(Translator):
             prev_item, items = None, []
             for index, item in reversed(list(enumerate(pipeline))):
                 if prev_item is not None:
-                    try:
+                    if hasattr(item, '__rshift__'):
                         # fully constructed object from !constructor
                         prev_item = item >> prev_item
-                    except TypeError:
+                    else:
                         # encoded object from __type__: constructor
                         prev_item = self.translate_hierarchy(
                             item, where="%s[%s]" % (where, index), target=prev_item
