@@ -199,6 +199,8 @@ def load_configuration(
                     where="root", what="missing section %r" % plugin.section
                 )
         else:
+            if plugin.requirements.schema is not None:
+                section_data = plugin.requirements.schema(section_data)
             # invoke the plugin and store possible output
             # to avoid it being garbage collected
             plugin_content = plugin.digest(section_data)
