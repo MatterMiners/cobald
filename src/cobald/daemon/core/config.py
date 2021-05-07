@@ -13,6 +13,7 @@ from ..config.yaml import (
 )
 from ..config.python import load_configuration as load_python_configuration
 from ..config.mapping import Translator, SectionPlugin
+from ...interfaces._partial import Partial
 
 
 class COBalDLoader(SafeLoader):
@@ -150,5 +151,8 @@ class PipelineTranslator(Translator):
                     prev_item = self.translate_hierarchy(
                         item, where="%s[%s]" % (where, index)
                     )
+                    if isinstance(prev_item, Partial):  # got form __type__
+                        prev_item = prev_item.__construct__()
+                assert(not isinstance(prev_item, Partial))
                 items.append(prev_item)
             return list(reversed(items))
