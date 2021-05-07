@@ -138,7 +138,7 @@ class PipelineTranslator(Translator):
             prev_item, items = None, []
             for index, item in reversed(list(enumerate(pipeline))):
                 if prev_item is not None:
-                    if hasattr(item, '__rshift__'):
+                    if hasattr(item, "__rshift__"):
                         # fully constructed object from !constructor
                         prev_item = item >> prev_item
                     else:
