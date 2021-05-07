@@ -22,7 +22,7 @@ class TestYamlConfig:
                     pipeline:
                         - !LinearController
                           low_utilisation: 0.9
-                          high_utilisation: 1.1
+                          high_allocation: 1.1
                         - !MockPool
                     """
                 )
@@ -39,7 +39,7 @@ class TestYamlConfig:
                     pipeline:
                         - !LinearController
                           low_utilisation: 0.9
-                          high_utilisation: 1.1
+                          high_allocation: 1.1
                         - !MockPool
                     random_things:
                         foo: bar
