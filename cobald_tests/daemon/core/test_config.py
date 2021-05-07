@@ -30,6 +30,27 @@ class TestYamlConfig:
                 assert True
             assert True
 
+    def test_load_invalid(self):
+        """Load a invalid YAML config (dangling parameter)"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - !LinearController
+                          low_utilisation: 0.9
+                          foo: 0
+                        - !MockPool
+                    """
+                )
+            try:
+                with load(config.name):
+                    assert False
+            except TypeError:
+                assert True
+            else:
+                assert False
+
     def test_load_dangling(self):
         """Forbid loading a YAML config with dangling content"""
         with NamedTemporaryFile(suffix=".yaml") as config:
