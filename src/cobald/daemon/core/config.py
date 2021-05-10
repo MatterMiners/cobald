@@ -153,6 +153,6 @@ class PipelineTranslator(Translator):
                     )
                     if isinstance(prev_item, Partial):  # got form __type__
                         prev_item = prev_item.__construct__()
-                assert(not isinstance(prev_item, Partial))
+                assert not isinstance(prev_item, Partial)
                 items.append(prev_item)
             return list(reversed(items))
