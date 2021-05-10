@@ -4,6 +4,7 @@ import pytest
 
 from cobald.daemon.config.mapping import ConfigurationError
 from cobald.daemon.core.config import load, COBalDLoader, yaml_constructor
+from cobald.controller.linear import LinearController
 
 from ...mock.pool import MockPool
 
@@ -78,3 +79,25 @@ class TestYamlConfig:
             with pytest.raises(ConfigurationError):
                 load(config.name)
                 assert False
+
+    def test_load_mixed_creation(self):
+        """Load a YAML config with mixed pipeline step creation methods"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - __type__: cobald.controller.linear.LinearController
+                          low_utilisation: 0.9
+                          high_allocation: 0.9
+                        - !MockPool
+                    """
+                )
+            config = load(config.name)
+            pipeline = next(
+                content
+                for plugin, content in config.items()
+                if plugin.section == "pipeline"
+            )
+            assert isinstance(pipeline[0], LinearController)
+            assert isinstance(pipeline[0].target, MockPool)
