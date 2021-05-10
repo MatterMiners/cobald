@@ -26,8 +26,7 @@ class TestYamlConfig:
                         - !MockPool
                     """
                 )
-            with load(config.name):
-                assert True
+            load(config.name)
             assert True
 
     def test_load_invalid(self):
@@ -43,12 +42,8 @@ class TestYamlConfig:
                         - !MockPool
                     """
                 )
-            try:
-                with load(config.name):
-                    assert False
-            except TypeError:
-                assert True
-            else:
+            with pytest.raises(TypeError):
+                load(config.name)
                 assert False
 
     def test_load_dangling(self):
@@ -67,8 +62,8 @@ class TestYamlConfig:
                     """
                 )
             with pytest.raises(ConfigurationError):
-                with load(config.name):
-                    assert False
+                load(config.name)
+                assert False
 
     def test_load_missing(self):
         """Forbid loading a YAML config with missing content"""
@@ -81,5 +76,5 @@ class TestYamlConfig:
                     """
                 )
             with pytest.raises(ConfigurationError):
-                with load(config.name):
-                    assert False
+                load(config.name)
+                assert False

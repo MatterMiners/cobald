@@ -1,5 +1,4 @@
 import os
-from contextlib import contextmanager
 from typing import Type, Tuple, Dict, Set
 
 from yaml import SafeLoader, BaseLoader
@@ -71,31 +70,32 @@ def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
     )
 
 
-@contextmanager
 def load(config_path: str):
     """
     Load a configuration and keep it alive for the given context
 
     :param config_path: path to a configuration file
     """
-    # we bind the config to _ to keep it alive
+    # we bind the config to c to keep it alive
     if os.path.splitext(config_path)[1] in (".yaml", ".yml"):
         add_constructor_plugins(
             "cobald.config.yaml_constructors", COBalDLoader  # type: ignore
         )
         config_plugins = load_section_plugins("cobald.config.sections")
-        _ = load_yaml_configuration(
+        c = load_yaml_configuration(
             config_path,
             loader=COBalDLoader,  # type: ignore
             plugins=config_plugins,
         )
     elif os.path.splitext(config_path)[1] == ".py":
-        _ = load_python_configuration(config_path)
+        c = load_python_configuration(config_path)
     else:
         raise ValueError(
             "Unknown configuration extension: %r" % os.path.splitext(config_path)[1]
         )
-    yield
+    # result returned here is only needed for unit tests. Constructors are ran
+    # when configuration is loaded and tasks are spawend by their runners
+    return c
 
 
 @plugin_constraints(required=True)
