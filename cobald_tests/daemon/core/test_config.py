@@ -31,7 +31,7 @@ class TestYamlConfig:
             assert True
 
     def test_load_invalid(self):
-        """Load a invalid YAML config (dangling parameter)"""
+        """Load a invalid YAML config (invalid keyword argument)"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
                 write_stream.write(
@@ -43,13 +43,9 @@ class TestYamlConfig:
                         - !MockPool
                     """
                 )
-            try:
+            with pytest.raises(TypeError):
                 with load(config.name):
                     assert False
-            except TypeError:
-                assert True
-            else:
-                assert False
 
     def test_load_dangling(self):
         """Forbid loading a YAML config with dangling content"""
