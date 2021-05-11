@@ -27,9 +27,9 @@ def run(configuration: str, level: str, target: str, short_format: bool):
     )
     logger.debug(cobald.__about__.__file__)
     logger.info("Using configuration %s", configuration)
-    load(configuration)
-    logger.info("Starting daemon services...")
-    runtime.accept()
+    with load(configuration):
+        logger.info("Starting daemon services...")
+        runtime.accept()
 
 
 def cli_run():

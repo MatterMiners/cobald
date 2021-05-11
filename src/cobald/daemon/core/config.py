@@ -1,4 +1,5 @@
 import os
+from contextlib import contextmanager
 from typing import Type, Tuple, Dict, Set
 
 from yaml import SafeLoader, BaseLoader
@@ -70,6 +71,7 @@ def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
     )
 
 
+@contextmanager
 def load(config_path: str):
     """
     Load a configuration and keep it alive for the given context
@@ -93,9 +95,8 @@ def load(config_path: str):
         raise ValueError(
             "Unknown configuration extension: %r" % os.path.splitext(config_path)[1]
         )
-    # result returned here is only needed for unit tests. Constructors are ran
-    # when configuration is loaded and tasks are spawend by their runners
-    return c
+    # yielded value used in tests, runtime does not use configuration result
+    yield c
 
 
 @plugin_constraints(required=True)

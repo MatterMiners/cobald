@@ -27,7 +27,8 @@ class TestYamlConfig:
                         - !MockPool
                     """
                 )
-            load(config.name)
+            with load(config.name):
+                assert True
             assert True
 
     def test_load_invalid(self):
@@ -43,8 +44,12 @@ class TestYamlConfig:
                         - !MockPool
                     """
                 )
-            with pytest.raises(TypeError):
-                load(config.name)
+            try:
+                with load(config.name):
+                    assert False
+            except TypeError:
+                assert True
+            else:
                 assert False
 
     def test_load_dangling(self):
@@ -63,8 +68,8 @@ class TestYamlConfig:
                     """
                 )
             with pytest.raises(ConfigurationError):
-                load(config.name)
-                assert False
+                with load(config.name):
+                    assert False
 
     def test_load_missing(self):
         """Forbid loading a YAML config with missing content"""
@@ -77,8 +82,8 @@ class TestYamlConfig:
                     """
                 )
             with pytest.raises(ConfigurationError):
-                load(config.name)
-                assert False
+                with load(config.name):
+                    assert False
 
     def test_load_mixed_creation(self):
         """Load a YAML config with mixed pipeline step creation methods"""
@@ -93,11 +98,11 @@ class TestYamlConfig:
                         - !MockPool
                     """
                 )
-            config = load(config.name)
-            pipeline = next(
-                content
-                for plugin, content in config.items()
-                if plugin.section == "pipeline"
-            )
-            assert isinstance(pipeline[0], LinearController)
-            assert isinstance(pipeline[0].target, MockPool)
+            with load(config.name) as config:
+                pipeline = next(
+                    content
+                    for plugin, content in config.items()
+                    if plugin.section == "pipeline"
+                )
+                assert isinstance(pipeline[0], LinearController)
+                assert isinstance(pipeline[0].target, MockPool)
