@@ -22,13 +22,30 @@ class TestYamlConfig:
                     pipeline:
                         - !LinearController
                           low_utilisation: 0.9
-                          high_utilisation: 1.1
+                          high_allocation: 1.1
                         - !MockPool
                     """
                 )
             with load(config.name):
                 assert True
             assert True
+
+    def test_load_invalid(self):
+        """Load a invalid YAML config (invalid keyword argument)"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - !LinearController
+                          low_utilisation: 0.9
+                          foo: 0
+                        - !MockPool
+                    """
+                )
+            with pytest.raises(TypeError):
+                with load(config.name):
+                    assert False
 
     def test_load_dangling(self):
         """Forbid loading a YAML config with dangling content"""
@@ -39,7 +56,7 @@ class TestYamlConfig:
                     pipeline:
                         - !LinearController
                           low_utilisation: 0.9
-                          high_utilisation: 1.1
+                          high_allocation: 1.1
                         - !MockPool
                     random_things:
                         foo: bar
