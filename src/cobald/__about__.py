@@ -16,6 +16,6 @@ __url__ = "https://github.com/MatterMiners/cobald"
 
 __version__ = "0.12.2"
 __author__ = "Eileen Kuehn, Max Fischer"
-__email__ = "mainekuehn@gmail.com"
+__email__ = "matterminers@lists.kit.edu"
 __copyright__ = "2018 - 2021 %s" % __author__
 __keywords__ = "opportunistic scheduling scheduler demand feedback-loop cobald"
