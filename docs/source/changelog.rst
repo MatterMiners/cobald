@@ -5,17 +5,14 @@
 ChangeLog
 #########
 
-Upcoming
-========
+0.12 Series
+===========
 
-Version [Unreleased] - 2021-09-15
-+++++++++++++++++++++++++++++++++
+Version [0.12.2] - 2021-09-15
++++++++++++++++++++++++++++++
 
 * **[Fixed]** pipeline configuration may combine ``__type__`` and ``!yaml`` style
 * **[Fixed]** pipeline configuration no longer suppresses ``TypeError``
-
-0.12 Series
-===========
 
 Version [0.12.1] - 2020-04-15
 +++++++++++++++++++++++++++++

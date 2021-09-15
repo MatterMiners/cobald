@@ -6,3 +6,4 @@ description: |
   any unrelated ``TypeError`` from misconfigurations.
 pull requests:
 - 91
+version: 0.12.2
