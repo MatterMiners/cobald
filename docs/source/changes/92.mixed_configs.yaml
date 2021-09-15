@@ -1,0 +1,8 @@
+category: fixed
+summary: "pipeline configuration may combine ``__type__`` and ``!yaml`` style"
+description: |
+  Mixing the ``__type__`` and ``!yaml`` configuration styles could previously
+  lead to partially initialised pipelines. Such configurations are now correctly
+  digested and checked for success.
+pull requests:
+- 92
