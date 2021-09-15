@@ -1,5 +1,5 @@
 category: fixed
-summary: "pipeline configuration no longer suppresses TypeError"
+summary: "pipeline configuration no longer suppresses ``TypeError``"
 description: |
   The configuration processing previously decided between two paths depending
   on whether some operation raised a ``TypeError``. This erroneously silenced
