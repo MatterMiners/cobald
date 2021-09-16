@@ -47,7 +47,7 @@ The following illustrates several scenarios how to define the two consistently.
 
 Multi-Dimensional Allocations
 
-.. figure:: images/pool_allocation_cpu_ram.png
+.. figure:: /images/pool_allocation_cpu_ram.png
     :alt: Cobald Logo
     :height: 150
     :align: right

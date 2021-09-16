@@ -44,7 +44,7 @@ COBalD -- the Opportunistic Balancing Daemon
 
     /source/changelog
 
-.. image:: images/cobald_logo_120.png
+.. image:: /images/cobald_logo_120.png
     :alt: Cobald Logo
     :height: 150
     :align: right
