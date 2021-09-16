@@ -67,10 +67,10 @@ class Translator(object):
                 return structure
         except ConfigurationError as err:
             if err.where is None:
-                raise ConfigurationError(what=err.what, where=where)
+                raise ConfigurationError(what=err.what, where=where) from err
             raise
         except Exception as err:
-            raise ConfigurationError(where=where, what=err)
+            raise ConfigurationError(where=where, what=err) from err
 
     def construct(self, mapping: dict, **kwargs):
         """
@@ -96,15 +96,15 @@ class Translator(object):
             try:
                 obj = sys.modules[path[0]]
             except KeyError:
-                raise ImportError("No module named %r" % path[0])
+                raise ImportError("No module named %r" % path[0]) from None
             else:
                 for component in path[1:]:
                     try:
                         obj = getattr(obj, component)
                     except AttributeError as err:
                         raise ConfigurationError(
-                            what="no such object %r: %s" % (absolute_name, err)
-                        )
+                            what="no such object %r" % absolute_name
+                        ) from err
                 return obj
         else:  # ImportError is not raised if ``absolute_name`` points to a valid module
             return sys.modules[absolute_name]
@@ -204,7 +204,7 @@ def load_configuration(
             if plugin.required:
                 raise ConfigurationError(
                     where="root", what="missing section %r" % plugin.section
-                )
+                ) from None
         else:
             # invoke the plugin and store possible output
             # to avoid it being garbage collected
