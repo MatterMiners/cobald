@@ -60,7 +60,7 @@ if __name__ == "__main__":
             "typing_extensions",
         ],
         extras_require={
-            "docs": ["sphinx", "sphinxcontrib-tikz", "sphinx_rtd_theme"],
+            "docs": ["sphinx", "sphinx_rtd_theme"],
             "test": TESTS_REQUIRE,
             "contrib": [
                 "flake8",
