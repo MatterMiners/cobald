@@ -47,10 +47,9 @@ The following illustrates several scenarios how to define the two consistently.
 
 Multi-Dimensional Allocations
 
-.. tikz:: Allocation of CPU and RAM
+.. figure:: images/pool_allocation_cpu_ram.png
+    :alt: Cobald Logo
+    :height: 150
+    :align: right
 
-    \draw [<->,thick] (0,4) node (yaxis) [left] {$RAM$}
-        |- (4,0) node (xaxis) [below] {$CPU$};
-    \draw [fill=gray,thick] (0,0) rectangle (1,1);
-    \draw [fill=gray,thick] (1,1) rectangle (2.5,2);
-    \draw [fill=gray,thick] (2.5,2) rectangle (3.25,2.5);
+    Allocation of CPU and RAM
