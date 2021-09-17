@@ -43,6 +43,7 @@ COBalD -- the Opportunistic Balancing Daemon
     :caption: Development & Maintenance
 
     /source/changelog
+    /dev/release
 
 .. image:: /images/cobald_logo_120.png
     :alt: Cobald Logo
