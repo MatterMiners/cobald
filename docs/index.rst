@@ -29,16 +29,23 @@ COBalD -- the Opportunistic Balancing Daemon
 .. toctree::
     :hidden:
     :maxdepth: 1
-    :caption: Contents:
+    :caption: User Documentation
 
     /source/model/overview
     /source/daemon/overview
     /source/custom/overview
-    /source/changelog
     /source/glossary
     Module Index <source/api/modules>
 
-.. image:: images/cobald_logo_120.png
+.. toctree::
+    :hidden:
+    :maxdepth: 1
+    :caption: Development & Maintenance
+
+    /source/changelog
+    /source/dev/release
+
+.. image:: /images/cobald_logo_120.png
     :alt: Cobald Logo
     :height: 150
     :align: right
