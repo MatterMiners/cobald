@@ -16,6 +16,7 @@ COBalDLoader.add_constructor(tag="!MockPool", constructor=yaml_constructor(MockP
 
 class TagTracker:
     """Helper to track the invocation of YAML !Tags"""
+
     count = -1
 
     def __init__(self, *args, **kwargs):
@@ -40,9 +41,7 @@ COBalDLoader.add_constructor(
 
 def get_config_section(config: dict, section: str):
     return next(
-        content
-        for plugin, content in config.items()
-        if plugin.section == section
+        content for plugin, content in config.items() if plugin.section == section
     )
 
 
@@ -147,7 +146,7 @@ class TestYamlConfig:
             with load(config.name) as config:
                 tagged = get_config_section(config, "pipeline")[0]
                 assert isinstance(tagged, TagTracker)
-                assert isinstance(tagged.kwargs['kwarg'], list)
-                assert isinstance(tagged.kwargs['kwarg'][0], dict)
-                assert tagged.kwargs['kwarg'][0].get("nested") is True
+                assert isinstance(tagged.kwargs["kwarg"], list)
+                assert isinstance(tagged.kwargs["kwarg"][0], dict)
+                assert tagged.kwargs["kwarg"][0].get("nested") is True
                 print(tagged.args)
