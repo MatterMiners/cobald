@@ -138,13 +138,15 @@ class TestYamlConfig:
                 write_stream.write(
                     """
                     pipeline:
-                        - !TagTracker
+                        - !MockPool
+                    __config_test__:
+                        tagged: !TagTracker
                           kwarg:
                             - nested: true
                     """
                 )
             with load(config.name) as config:
-                tagged = get_config_section(config, "pipeline")[0]
+                tagged = get_config_section(config, "__config_test__")["tagged"]
                 assert isinstance(tagged, TagTracker)
                 assert isinstance(tagged.kwargs["kwarg"], list)
                 assert isinstance(tagged.kwargs["kwarg"][0], dict)
