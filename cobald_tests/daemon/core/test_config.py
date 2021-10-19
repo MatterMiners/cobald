@@ -141,14 +141,20 @@ class TestYamlConfig:
                         - !MockPool
                     __config_test__:
                         tagged: !TagTracker
-                          kwarg:
-                            - nested: true
+                          host: 127.0.0.1
+                          port: 1234
+                          algorithm: HS256
+                          users:
+                            - user_name: tardis
+                              scopes:
+                                - user:read
                     """
                 )
             with load(config.name) as config:
                 tagged = get_config_section(config, "__config_test__")["tagged"]
                 assert isinstance(tagged, TagTracker)
-                assert isinstance(tagged.kwargs["kwarg"], list)
-                assert isinstance(tagged.kwargs["kwarg"][0], dict)
-                assert tagged.kwargs["kwarg"][0].get("nested") is True
-                print(tagged.args)
+                assert tagged.kwargs["host"] == "127.0.0.1"
+                assert tagged.kwargs["port"] == 1234
+                assert tagged.kwargs["algorithm"] == "HS256"
+                assert tagged.kwargs["users"][0]["user_name"] == "tardis"
+                assert tagged.kwargs["users"][0]["scopes"] == ["user:read"]
