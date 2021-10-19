@@ -21,7 +21,7 @@ def initialise_logging(level: str, target: str, short_format: bool):
         raise SystemExit(
             "invalid log level %r, expected any of 'DEBUG',"
             "'INFO', 'WARNING', 'ERROR' or 'CRITICAL'" % level
-        )
+        ) from None
     handler = create_handler(target=target)
     logging.basicConfig(
         level=log_level,

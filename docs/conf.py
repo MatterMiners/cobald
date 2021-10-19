@@ -37,7 +37,6 @@ extensions = [
     'sphinx.ext.imgmath',
     'sphinx.ext.viewcode',
     'sphinx.ext.graphviz',
-    'sphinxcontrib.tikz',
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -86,9 +85,6 @@ modindex_common_prefix = ['cobald.']
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
-
-# tikz image processing suite
-tikz_proc_suite = 'GhostScript'
 
 
 # -- Options for HTML output ----------------------------------------------

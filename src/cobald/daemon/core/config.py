@@ -13,6 +13,7 @@ from ..config.yaml import (
 )
 from ..config.python import load_configuration as load_python_configuration
 from ..config.mapping import Translator, SectionPlugin
+from ...interfaces._partial import Partial
 
 
 class COBalDLoader(SafeLoader):
@@ -77,24 +78,25 @@ def load(config_path: str):
 
     :param config_path: path to a configuration file
     """
-    # we bind the config to _ to keep it alive
+    # we bind the config to c to keep it alive
     if os.path.splitext(config_path)[1] in (".yaml", ".yml"):
         add_constructor_plugins(
             "cobald.config.yaml_constructors", COBalDLoader  # type: ignore
         )
         config_plugins = load_section_plugins("cobald.config.sections")
-        _ = load_yaml_configuration(
+        c = load_yaml_configuration(
             config_path,
             loader=COBalDLoader,  # type: ignore
             plugins=config_plugins,
         )
     elif os.path.splitext(config_path)[1] == ".py":
-        _ = load_python_configuration(config_path)
+        c = load_python_configuration(config_path)
     else:
         raise ValueError(
             "Unknown configuration extension: %r" % os.path.splitext(config_path)[1]
         )
-    yield
+    # yielded value used in tests, runtime does not use configuration result
+    yield c
 
 
 @plugin_constraints(required=True)
@@ -150,5 +152,8 @@ class PipelineTranslator(Translator):
                     prev_item = self.translate_hierarchy(
                         item, where="%s[%s]" % (where, index)
                     )
+                    if isinstance(prev_item, Partial):  # got form __type__
+                        prev_item = prev_item.__construct__()
+                assert not isinstance(prev_item, Partial)
                 items.append(prev_item)
             return list(reversed(items))
