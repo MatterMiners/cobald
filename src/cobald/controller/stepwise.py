@@ -113,16 +113,16 @@ class UnboundStepwise(object):
         @control.add(supply=10)
         def quantized(pool: Pool, interval):
             if pool.utilisation < 0.5:
-                return pool.supply - 1
+                return pool.demand - 1
             elif pool.allocation > 0.5:
-                return pool.supply + 1
+                return pool.demand + 1
 
         @control.add(supply=100)
         def continuous(pool: Pool, interval):
             if pool.utilisation < 0.5:
-                return pool.supply * 1.1
+                return pool.demand * 1.1
             elif pool.allocation > 0.5:
-                return pool.supply * 0.9
+                return pool.demand * 0.9
 
         # create controller from skeleton
         pipeline = control(pool, interval=10)
