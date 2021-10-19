@@ -131,8 +131,8 @@ class TestYamlConfig:
                 assert isinstance(pipeline[0], LinearController)
                 assert isinstance(pipeline[0].target, MockPool)
 
-    def test_load_tags_deep(self):
-        """Load !Tags with deep structure"""
+    def test_load_tags_substructure(self):
+        """Load !Tags with substructure"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
                 write_stream.write(
@@ -158,3 +158,32 @@ class TestYamlConfig:
                 assert tagged.kwargs["algorithm"] == "HS256"
                 assert tagged.kwargs["users"][0]["user_name"] == "tardis"
                 assert tagged.kwargs["users"][0]["scopes"] == ["user:read"]
+
+    def test_load_tags_nested(self):
+        """Load !Tags with nested !Tags"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - !MockPool
+                    __config_test__:
+                        tagged: !TagTracker
+                          host: 127.0.0.1
+                          port: 1234
+                          algorithm: HS256
+                          users: !TagTracker
+                            - user_name: tardis
+                              scopes:
+                                - user:read
+                    """
+                )
+            with TagTracker.scope():
+                with load(config.name) as config:
+                    top_tag = get_config_section(config, "__config_test__")["tagged"]
+                    assert top_tag.kwargs["host"] == "127.0.0.1"
+                    assert top_tag.kwargs["port"] == 1234
+                    assert top_tag.kwargs["algorithm"] == "HS256"
+                    sub_tag = top_tag.kwargs["users"]
+                    assert isinstance(sub_tag, TagTracker)
+                    assert sub_tag.args[0]["scopes"] == ["user:read"]
