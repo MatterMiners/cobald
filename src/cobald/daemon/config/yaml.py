@@ -21,11 +21,12 @@ def load_configuration(
     return load_mapping_configuration(config_data=config_data, plugins=plugins)
 
 
-def yaml_constructor(factory):
+def yaml_constructor(factory, eager=True):
     """
     Convert a factory function/class to a YAML constructor
 
     :param factory: the factory function/class
+    :param eager: whether the YAML must be evaluated eagerly
     :return: factory constructor
 
     Applying this helper to a factory allows it to be used as a YAML constructor,
@@ -47,12 +48,12 @@ def yaml_constructor(factory):
 
     def factory_constructor(loader: BaseLoader, node: nodes.Node):
         if isinstance(node, nodes.MappingNode):
-            kwargs = loader.construct_mapping(node)
+            kwargs = loader.construct_mapping(node, deep=eager)
             return factory(**kwargs)
         elif isinstance(node, nodes.ScalarNode):
             return factory()
         elif isinstance(node, nodes.SequenceNode):
-            args = loader.construct_sequence(node)
+            args = loader.construct_sequence(node, deep=eager)
             return factory(*args)
         else:
             raise ConfigurationError(
