@@ -40,6 +40,9 @@ class TagTracker:
 COBalDLoader.add_constructor(
     tag="!TagTracker", constructor=yaml_constructor(TagTracker)
 )
+COBalDLoader.add_constructor(
+    tag="!TagTrackerLazy", constructor=yaml_constructor(TagTracker, eager=False)
+)
 
 
 def get_config_section(config: dict, section: str):
@@ -191,7 +194,7 @@ class TestYamlConfig:
                     assert isinstance(sub_tag, TagTracker)
                     assert sub_tag.args[0]["scopes"] == ["user:read"]
 
-    def test_load_tags_promptly(self):
+    def test_load_tags_eager(self):
         """Load !Tags with substructure, immediately using them"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
@@ -213,3 +216,28 @@ class TestYamlConfig:
                 assert isinstance(tagged.orig_kwargs["nested"], list)
                 assert len(tagged.orig_kwargs["nested"]) > 0
                 assert tagged.orig_kwargs["nested"] == [{"leaf": "leaf level value"}]
+
+    def test_load_tags_lazy(self):
+        """Load !Tags with substructure, lazily using them"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - !MockPool
+                    __config_test__:
+                        tagged: !TagTrackerLazy
+                          top: "top level value"
+                          nested:
+                            - leaf: "leaf level value"
+                    """
+                )
+            with load(config.name) as config:
+                tagged = get_config_section(config, "__config_test__")["tagged"]
+                assert isinstance(tagged, TagTracker)
+                assert tagged.orig_kwargs["top"] == "top level value"
+                assert isinstance(tagged.orig_kwargs["nested"], list)
+                assert len(tagged.orig_kwargs["nested"]) == 0
+                assert len(tagged.kwargs["nested"]) > 0
+                assert tagged.orig_kwargs["nested"] == []
+                assert tagged.kwargs["nested"] == [{"leaf": "leaf level value"}]
