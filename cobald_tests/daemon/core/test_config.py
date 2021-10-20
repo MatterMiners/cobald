@@ -212,4 +212,4 @@ class TestYamlConfig:
                 assert tagged.orig_kwargs["top"] == "top level value"
                 assert isinstance(tagged.orig_kwargs["nested"], list)
                 assert len(tagged.orig_kwargs["nested"]) > 0
-                assert tagged.orig_kwargs["nested"] == [{"nested": "leaf level value"}]
+                assert tagged.orig_kwargs["nested"] == [{"leaf": "leaf level value"}]
