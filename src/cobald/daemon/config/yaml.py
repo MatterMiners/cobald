@@ -21,7 +21,7 @@ def load_configuration(
     return load_mapping_configuration(config_data=config_data, plugins=plugins)
 
 
-def yaml_constructor(factory, *, eager=True):
+def yaml_constructor(factory=None, *, eager=True):
     """
     Convert a factory function/class to a YAML constructor
 
@@ -44,21 +44,31 @@ def yaml_constructor(factory, *, eager=True):
         - !factory
           a: 0.3
           b: 0.7
+
+    This function can be applied as a decorator, with and without arguments.
+    When applied without arguments, the default values are used.
     """
+    def mark_constructor(object_factory):
+        def factory_constructor(loader: BaseLoader, node: nodes.Node):
+            if isinstance(node, nodes.MappingNode):
+                kwargs = loader.construct_mapping(node, deep=eager)
+                return object_factory(**kwargs)
+            elif isinstance(node, nodes.ScalarNode):
+                return object_factory()
+            elif isinstance(node, nodes.SequenceNode):
+                args = loader.construct_sequence(node, deep=eager)
+                return object_factory(*args)
+            else:
+                raise ConfigurationError(
+                    "YAML constructor %r on unsupported node type %s"
+                    % (node.tag, type(node).__name__)
+                )
 
-    def factory_constructor(loader: BaseLoader, node: nodes.Node):
-        if isinstance(node, nodes.MappingNode):
-            kwargs = loader.construct_mapping(node, deep=eager)
-            return factory(**kwargs)
-        elif isinstance(node, nodes.ScalarNode):
-            return factory()
-        elif isinstance(node, nodes.SequenceNode):
-            args = loader.construct_sequence(node, deep=eager)
-            return factory(*args)
-        else:
-            raise ConfigurationError(
-                "YAML constructor %r on unsupported node type %s"
-                % (node.tag, type(node).__name__)
-            )
+        return factory_constructor
 
-    return factory_constructor
+    # switch whether we have been applied as bare ``@deco`` or full ``@deco(args)``
+    # this decides whether we already did or still must receive the factory
+    if factory is None:
+        return mark_constructor
+    else:
+        return mark_constructor(factory)
