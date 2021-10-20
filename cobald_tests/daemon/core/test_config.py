@@ -1,6 +1,7 @@
 from tempfile import NamedTemporaryFile
 
 import pytest
+import copy
 from contextlib import contextmanager
 
 from cobald.daemon.config.mapping import ConfigurationError
@@ -21,6 +22,8 @@ class TagTracker:
 
     def __init__(self, *args, **kwargs):
         type(self).count = self.count = type(self).count + 1
+        self.orig_args = copy.deepcopy(args)
+        self.orig_kwargs = copy.deepcopy(kwargs)
         self.args = args
         self.kwargs = kwargs
 
@@ -187,3 +190,26 @@ class TestYamlConfig:
                     sub_tag = top_tag.kwargs["users"]
                     assert isinstance(sub_tag, TagTracker)
                     assert sub_tag.args[0]["scopes"] == ["user:read"]
+
+    def test_load_tags_promptly(self):
+        """Load !Tags with substructure, immediately using them"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - !MockPool
+                    __config_test__:
+                        tagged: !TagTracker
+                          top: "top level value"
+                          nested:
+                            - leaf: "leaf level value"
+                    """
+                )
+            with load(config.name) as config:
+                tagged = get_config_section(config, "__config_test__")["tagged"]
+                assert isinstance(tagged, TagTracker)
+                assert tagged.orig_kwargs["top"] == "top level value"
+                assert isinstance(tagged.orig_kwargs["nested"], list)
+                assert len(tagged.orig_kwargs["nested"]) > 0
+                assert tagged.orig_kwargs["nested"] == [{"nested": "leaf level value"}]
