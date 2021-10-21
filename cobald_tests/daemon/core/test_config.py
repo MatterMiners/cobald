@@ -30,7 +30,7 @@ class TagTracker:
 
 
 COBalDLoader.add_constructor(
-    tag="!TagTracker", constructor=yaml_constructor(TagTracker, eager=True)
+    tag="!TagTrackerEager", constructor=yaml_constructor(TagTracker, eager=True)
 )
 COBalDLoader.add_constructor(
     tag="!TagTrackerLazy", constructor=yaml_constructor(TagTracker, eager=False)
@@ -160,7 +160,7 @@ class TestYamlConfig:
                     pipeline:
                         - !MockPool
                     __config_test__:
-                        tagged: !TagTracker
+                        tagged: !TagTrackerEager
                           host: 127.0.0.1
                           port: 1234
                           algorithm: HS256
@@ -188,11 +188,11 @@ class TestYamlConfig:
                     pipeline:
                         - !MockPool
                     __config_test__:
-                        tagged: !TagTracker
+                        tagged: !TagTrackerEager
                           host: 127.0.0.1
                           port: 1234
                           algorithm: HS256
-                          users: !TagTracker
+                          users: !TagTrackerEager
                             - user_name: tardis
                               scopes:
                                 - user:read
@@ -216,7 +216,7 @@ class TestYamlConfig:
                     pipeline:
                         - !MockPool
                     __config_test__:
-                        tagged: !TagTracker
+                        tagged: !TagTrackerEager
                           top: "top level value"
                           nested:
                             - leaf: "leaf level value"
