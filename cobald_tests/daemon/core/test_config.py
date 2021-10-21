@@ -37,13 +37,17 @@ COBalDLoader.add_constructor(
 )
 
 
+# Helpers to test how ``yaml_constructor`` behaves
+# with ("full") and without ("bare") arguments
 @yaml_constructor(eager=True)
 def full_deco_constructor(*args, **kwargs):
+    """YAML tag constructor that is explicitly eager"""
     return copy.deepcopy(args), copy.deepcopy(kwargs)
 
 
 @yaml_constructor
 def bare_deco_constructor(*args, **kwargs):
+    """YAML tag constructor that is implicitly lazy"""
     return copy.deepcopy(args), copy.deepcopy(kwargs)
 
 
