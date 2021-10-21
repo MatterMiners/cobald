@@ -44,10 +44,11 @@ def yaml_constructor(factory=None, *, eager=False):
           a: 0.3
           b: 0.7
 
-    Since YAML can express recursive data, data structures are usually evaluated lazily.
-    This means a constructor receives the data structure (e.g. a ``dict``) upfront but
-    the content is filled in only later on. If a constructor requires the entire data at
-    once, set ``eager=True`` to enforce eager evaluation.
+    Since YAML can express recursive data, nested data structures are evaluated lazily
+    by default. This means a constructor receives nested data structures
+    (e.g. a ``dict`` of ``dict``s) upfront but nested content is added later on.
+    If a constructor requires the entire data at once, set ``eager=True`` to enforce
+    eager evaluation before calling the constructor.
 
     This function can be applied as a decorator, with and without arguments.
     When applied without arguments, the default settings are used.
