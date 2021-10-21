@@ -48,6 +48,7 @@ def yaml_constructor(factory=None, *, eager=True):
     This function can be applied as a decorator, with and without arguments.
     When applied without arguments, the default values are used.
     """
+
     def mark_constructor(object_factory):
         def factory_constructor(loader: BaseLoader, node: nodes.Node):
             if isinstance(node, nodes.MappingNode):
