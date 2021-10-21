@@ -38,14 +38,14 @@ class TagTracker:
 
 
 COBalDLoader.add_constructor(
-    tag="!TagTracker", constructor=yaml_constructor(TagTracker)
+    tag="!TagTracker", constructor=yaml_constructor(TagTracker, eager=True)
 )
 COBalDLoader.add_constructor(
     tag="!TagTrackerLazy", constructor=yaml_constructor(TagTracker, eager=False)
 )
 
 
-@yaml_constructor(eager=False)
+@yaml_constructor(eager=True)
 def full_deco_constructor(*args, **kwargs):
     return copy.deepcopy(args), copy.deepcopy(kwargs)
 
@@ -287,5 +287,5 @@ class TestYamlConfig:
                 assert isinstance(tagged_bare, tuple)
                 assert tagged_full[1]["top"] == "top level value"
                 assert tagged_bare[1]["top"] == "top level value"
-                assert tagged_full[1]["nested"] == []
-                assert tagged_bare[1]["nested"] == [{"leaf": "leaf level value"}]
+                assert tagged_bare[1]["nested"] == []
+                assert tagged_full[1]["nested"] == [{"leaf": "leaf level value"}]

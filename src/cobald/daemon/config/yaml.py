@@ -21,7 +21,7 @@ def load_configuration(
     return load_mapping_configuration(config_data=config_data, plugins=plugins)
 
 
-def yaml_constructor(factory=None, *, eager=True):
+def yaml_constructor(factory=None, *, eager=False):
     """
     Convert a factory function/class to a YAML constructor
 
@@ -32,8 +32,7 @@ def yaml_constructor(factory=None, *, eager=True):
     Applying this helper to a factory allows it to be used as a YAML constructor,
     without it knowing about YAML itself.
     It properly constructs nodes and converts
-    mapping nodes to ``factory(**node)``,
-    sequence nodes to ``factory(*node)``, and
+    mapping nodes to ``factory(**node)``, sequence nodes to ``factory(*node)``, and
     scalar nodes to ``factory()``.
 
     For example, registering the constructor ``yaml_constructor(factory)`` as
@@ -45,8 +44,13 @@ def yaml_constructor(factory=None, *, eager=True):
           a: 0.3
           b: 0.7
 
+    Since YAML can express recursive data, data structures are usually evaluated lazily.
+    This means a constructor receives the data structure (e.g. a ``dict``) upfront but
+    the content is filled in only later on. If a constructor requires the entire data at
+    once, set ``eager=True`` to enforce eager evaluation.
+
     This function can be applied as a decorator, with and without arguments.
-    When applied without arguments, the default values are used.
+    When applied without arguments, the default settings are used.
     """
 
     def mark_constructor(object_factory):
