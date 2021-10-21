@@ -2,7 +2,6 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 import copy
-from contextlib import contextmanager
 
 from cobald.daemon.config.mapping import ConfigurationError
 from cobald.daemon.core.config import load, COBalDLoader, yaml_constructor
@@ -18,23 +17,11 @@ COBalDLoader.add_constructor(tag="!MockPool", constructor=yaml_constructor(MockP
 class TagTracker:
     """Helper to track the invocation of YAML !Tags"""
 
-    count = -1
-
     def __init__(self, *args, **kwargs):
-        type(self).count = self.count = type(self).count + 1
         self.orig_args = copy.deepcopy(args)
         self.orig_kwargs = copy.deepcopy(kwargs)
         self.args = args
         self.kwargs = kwargs
-
-    @classmethod
-    @contextmanager
-    def scope(cls, base_count=-1):
-        old_count, cls.count = cls.count, base_count
-        try:
-            yield
-        finally:
-            cls.count = old_count
 
 
 COBalDLoader.add_constructor(
@@ -202,15 +189,14 @@ class TestYamlConfig:
                                 - user:read
                     """
                 )
-            with TagTracker.scope():
-                with load(config.name) as config:
-                    top_tag = get_config_section(config, "__config_test__")["tagged"]
-                    assert top_tag.kwargs["host"] == "127.0.0.1"
-                    assert top_tag.kwargs["port"] == 1234
-                    assert top_tag.kwargs["algorithm"] == "HS256"
-                    sub_tag = top_tag.kwargs["users"]
-                    assert isinstance(sub_tag, TagTracker)
-                    assert sub_tag.args[0]["scopes"] == ["user:read"]
+            with load(config.name) as config:
+                top_tag = get_config_section(config, "__config_test__")["tagged"]
+                assert top_tag.final_kwargs["host"] == "127.0.0.1"
+                assert top_tag.final_kwargs["port"] == 1234
+                assert top_tag.final_kwargs["algorithm"] == "HS256"
+                sub_tag = top_tag.final_kwargs["users"]
+                assert isinstance(sub_tag, TagTracker)
+                assert sub_tag.final_args[0]["scopes"] == ["user:read"]
 
     def test_load_tags_eager(self):
         """Load !Tags with substructure, immediately using them"""
