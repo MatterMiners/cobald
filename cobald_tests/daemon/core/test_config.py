@@ -14,14 +14,19 @@ from ...mock.pool import MockPool
 COBalDLoader.add_constructor(tag="!MockPool", constructor=yaml_constructor(MockPool))
 
 
+# Helpers for testing lazy/eager YAML evaluation
+# Since YAML defaults to lazy evaluation, the arguments available during evaluation
+# are not necessarily complete.
 class TagTracker:
-    """Helper to track the invocation of YAML !Tags"""
+    """Helper to track the arguments supplied to YAML !Tags"""
 
     def __init__(self, *args, **kwargs):
+        # the state of arguments *during* YAML evaluation
         self.orig_args = copy.deepcopy(args)
         self.orig_kwargs = copy.deepcopy(kwargs)
-        self.args = args
-        self.kwargs = kwargs
+        # the state of arguments *after* YAML evaluation
+        self.final_args = args
+        self.final_kwargs = kwargs
 
 
 COBalDLoader.add_constructor(
@@ -164,11 +169,11 @@ class TestYamlConfig:
             with load(config.name) as config:
                 tagged = get_config_section(config, "__config_test__")["tagged"]
                 assert isinstance(tagged, TagTracker)
-                assert tagged.kwargs["host"] == "127.0.0.1"
-                assert tagged.kwargs["port"] == 1234
-                assert tagged.kwargs["algorithm"] == "HS256"
-                assert tagged.kwargs["users"][0]["user_name"] == "tardis"
-                assert tagged.kwargs["users"][0]["scopes"] == ["user:read"]
+                assert tagged.final_kwargs["host"] == "127.0.0.1"
+                assert tagged.final_kwargs["port"] == 1234
+                assert tagged.final_kwargs["algorithm"] == "HS256"
+                assert tagged.final_kwargs["users"][0]["user_name"] == "tardis"
+                assert tagged.final_kwargs["users"][0]["scopes"] == ["user:read"]
 
     def test_load_tags_nested(self):
         """Load !Tags with nested !Tags"""
@@ -242,9 +247,9 @@ class TestYamlConfig:
                 assert tagged.orig_kwargs["top"] == "top level value"
                 assert isinstance(tagged.orig_kwargs["nested"], list)
                 assert len(tagged.orig_kwargs["nested"]) == 0
-                assert len(tagged.kwargs["nested"]) > 0
+                assert len(tagged.final_kwargs["nested"]) > 0
                 assert tagged.orig_kwargs["nested"] == []
-                assert tagged.kwargs["nested"] == [{"leaf": "leaf level value"}]
+                assert tagged.final_kwargs["nested"] == [{"leaf": "leaf level value"}]
 
     def test_load_tags_decotype(self):
         """Load !Tags with decorator coverage"""
