@@ -232,3 +232,25 @@ class TestYamlConfig:
                 assert len(tagged.final_kwargs["nested"]) > 0
                 assert tagged.orig_kwargs["nested"] == []
                 assert tagged.final_kwargs["nested"] == [{"leaf": "leaf level value"}]
+
+    def test_load_tag_settings(self):
+        """Load !Tags with decorator settings"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - !MockPool
+                    __config_test:
+                        settings_tag: !__yaml_tag_test
+                            top: "top level value"
+                            nested:
+                            - leaf: "leaf level value"
+                    """
+                )
+            with load(config.name) as config:
+                section = get_config_section(config, "__config_test")
+                args, kwargs = section["settings_tag"]
+                assert args == ()
+                assert kwargs["top"] == "top level value"
+                assert kwargs["nested"] == [{"leaf": "leaf level value"}]

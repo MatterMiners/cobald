@@ -91,4 +91,16 @@ def yaml_tag(*, eager=False):
         This decorator only serves to apply non-default settings for a plugin.
         A plugin must still be registered using ``entry_points``.
     """
-    return YAMLTagSettings(eager=eager).mark
+
+    def mark_settings(plugin: T) -> T:
+        YAMLTagSettings(eager=eager).mark(plugin)
+        return plugin
+
+    return mark_settings
+
+
+@yaml_tag(eager=True)
+def __yaml_tag_test(*args, **kwargs):
+    """YAML tag constructor for testing only"""
+    import copy
+    return copy.deepcopy(args), copy.deepcopy(kwargs)
