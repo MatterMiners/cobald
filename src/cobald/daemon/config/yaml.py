@@ -48,6 +48,7 @@ def yaml_constructor(factory=None, *, eager=False):
     by default. Set ``eager=True`` to enforce eager evaluation before calling the
     constructor.
     """
+
     def factory_constructor(loader: BaseLoader, node: nodes.Node):
         if isinstance(node, nodes.MappingNode):
             kwargs = loader.construct_mapping(node, deep=eager)

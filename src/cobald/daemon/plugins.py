@@ -103,4 +103,5 @@ def yaml_tag(*, eager=False):
 def __yaml_tag_test(*args, **kwargs):
     """YAML tag constructor for testing only"""
     import copy
+
     return copy.deepcopy(args), copy.deepcopy(kwargs)

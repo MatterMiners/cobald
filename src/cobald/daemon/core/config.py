@@ -44,9 +44,8 @@ def add_constructor_plugins(entry_point_group: str, loader: Type[BaseLoader]) ->
             pipeline_factory = entry.load()
         settings = YAMLTagSettings.fetch(pipeline_factory)
         loader.add_constructor(
-            tag="!" + entry.name, constructor=yaml_constructor(
-                pipeline_factory, eager=settings.eager
-            )
+            tag="!" + entry.name,
+            constructor=yaml_constructor(pipeline_factory, eager=settings.eager),
         )
 
 
