@@ -74,7 +74,7 @@ class YAMLTagSettings(NamedTuple):
         plugin.__cobald_yaml_tag__ = self
 
 
-def yaml_tag(*, eager=False):
+def yaml_tag(*, eager: bool = False):
     """
     Mark a callable as a YAML tag constructor with specific settings
 

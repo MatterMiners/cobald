@@ -1,4 +1,4 @@
-from typing import Type, Tuple
+from typing import Type, Tuple, Callable, TypeVar
 
 from yaml import SafeLoader, BaseLoader, nodes
 
@@ -7,6 +7,9 @@ from .mapping import (
     ConfigurationError,
     SectionPlugin,
 )
+
+
+R = TypeVar("R")
 
 
 def load_configuration(
@@ -21,7 +24,9 @@ def load_configuration(
     return load_mapping_configuration(config_data=config_data, plugins=plugins)
 
 
-def yaml_constructor(factory, *, eager=False):
+def yaml_constructor(
+    factory: Callable[..., R], *, eager: bool = False
+) -> Callable[..., R]:
     """
     Convert a factory function/class to a YAML constructor
 
