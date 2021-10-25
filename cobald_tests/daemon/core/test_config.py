@@ -137,7 +137,7 @@ class TestYamlConfig:
                     """
                     pipeline:
                         - !MockPool
-                    __config_test__:
+                    __config_test:
                         tagged: !TagTrackerEager
                           host: 127.0.0.1
                           port: 1234
@@ -149,7 +149,7 @@ class TestYamlConfig:
                     """
                 )
             with load(config.name) as config:
-                tagged = get_config_section(config, "__config_test__")["tagged"]
+                tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
                 assert tagged.final_kwargs["host"] == "127.0.0.1"
                 assert tagged.final_kwargs["port"] == 1234
@@ -165,7 +165,7 @@ class TestYamlConfig:
                     """
                     pipeline:
                         - !MockPool
-                    __config_test__:
+                    __config_test:
                         tagged: !TagTrackerEager
                           host: 127.0.0.1
                           port: 1234
@@ -177,7 +177,7 @@ class TestYamlConfig:
                     """
                 )
             with load(config.name) as config:
-                top_tag = get_config_section(config, "__config_test__")["tagged"]
+                top_tag = get_config_section(config, "__config_test")["tagged"]
                 assert top_tag.final_kwargs["host"] == "127.0.0.1"
                 assert top_tag.final_kwargs["port"] == 1234
                 assert top_tag.final_kwargs["algorithm"] == "HS256"
@@ -193,7 +193,7 @@ class TestYamlConfig:
                     """
                     pipeline:
                         - !MockPool
-                    __config_test__:
+                    __config_test:
                         tagged: !TagTrackerEager
                           top: "top level value"
                           nested:
@@ -201,7 +201,7 @@ class TestYamlConfig:
                     """
                 )
             with load(config.name) as config:
-                tagged = get_config_section(config, "__config_test__")["tagged"]
+                tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
                 assert tagged.orig_kwargs["top"] == "top level value"
                 assert isinstance(tagged.orig_kwargs["nested"], list)
@@ -216,7 +216,7 @@ class TestYamlConfig:
                     """
                     pipeline:
                         - !MockPool
-                    __config_test__:
+                    __config_test:
                         tagged: !TagTrackerLazy
                           top: "top level value"
                           nested:
@@ -224,7 +224,7 @@ class TestYamlConfig:
                     """
                 )
             with load(config.name) as config:
-                tagged = get_config_section(config, "__config_test__")["tagged"]
+                tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
                 assert tagged.orig_kwargs["top"] == "top level value"
                 assert isinstance(tagged.orig_kwargs["nested"], list)

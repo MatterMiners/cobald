@@ -49,7 +49,7 @@ if __name__ == "__main__":
             ],
             "cobald.config.sections": [
                 "pipeline = cobald.daemon.core.config:load_pipeline",
-                "__config_test__ = builtins:dict",
+                "__config_test = builtins:dict",
             ],
         },
         # >>> Dependencies
