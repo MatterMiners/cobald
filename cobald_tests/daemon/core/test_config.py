@@ -157,34 +157,6 @@ class TestYamlConfig:
                 assert tagged.final_kwargs["users"][0]["user_name"] == "tardis"
                 assert tagged.final_kwargs["users"][0]["scopes"] == ["user:read"]
 
-    def test_load_tags_nested(self):
-        """Load !Tags with nested !Tags"""
-        with NamedTemporaryFile(suffix=".yaml") as config:
-            with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
-                    pipeline:
-                        - !MockPool
-                    __config_test:
-                        tagged: !TagTrackerEager
-                          host: 127.0.0.1
-                          port: 1234
-                          algorithm: HS256
-                          users: !TagTrackerEager
-                            - user_name: tardis
-                              scopes:
-                                - user:read
-                    """
-                )
-            with load(config.name) as config:
-                top_tag = get_config_section(config, "__config_test")["tagged"]
-                assert top_tag.final_kwargs["host"] == "127.0.0.1"
-                assert top_tag.final_kwargs["port"] == 1234
-                assert top_tag.final_kwargs["algorithm"] == "HS256"
-                sub_tag = top_tag.final_kwargs["users"]
-                assert isinstance(sub_tag, TagTracker)
-                assert sub_tag.final_args[0]["scopes"] == ["user:read"]
-
     def test_load_tags_eager(self):
         """Load !Tags with substructure, immediately using them"""
         with NamedTemporaryFile(suffix=".yaml") as config:
@@ -203,10 +175,10 @@ class TestYamlConfig:
             with load(config.name) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
+                # eager loading => all data should exist immediately
                 assert tagged.orig_kwargs["top"] == "top level value"
-                assert isinstance(tagged.orig_kwargs["nested"], list)
-                assert len(tagged.orig_kwargs["nested"]) > 0
                 assert tagged.orig_kwargs["nested"] == [{"leaf": "leaf level value"}]
+                assert tagged.orig_kwargs == tagged.final_kwargs
 
     def test_load_tags_lazy(self):
         """Load !Tags with substructure, lazily using them"""
@@ -226,15 +198,42 @@ class TestYamlConfig:
             with load(config.name) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
+                # eager loading => only some data should exist immediately...
                 assert tagged.orig_kwargs["top"] == "top level value"
-                assert isinstance(tagged.orig_kwargs["nested"], list)
-                assert len(tagged.orig_kwargs["nested"]) == 0
-                assert len(tagged.final_kwargs["nested"]) > 0
                 assert tagged.orig_kwargs["nested"] == []
+                # ...but should be there in the end
                 assert tagged.final_kwargs["nested"] == [{"leaf": "leaf level value"}]
+
+    def test_load_tags_nested(self):
+        """Load !Tags with nested !Tags"""
+        with NamedTemporaryFile(suffix=".yaml") as config:
+            with open(config.name, "w") as write_stream:
+                write_stream.write(
+                    """
+                    pipeline:
+                        - !MockPool
+                    __config_test:
+                        top_eager: !TagTrackerEager
+                          nested:
+                          - leaf: "leaf level value"
+                          - leaf_lazy: !TagTrackerLazy
+                              nested:
+                                - leaf: "leaf level value"
+                    """
+                )
+            with load(config.name) as config:
+                top_eager = get_config_section(config, "__config_test")["top_eager"]
+                # eager tags are evaluated eagerly
+                assert top_eager.orig_kwargs["nested"][0] == {
+                    "leaf": "leaf level value"
+                }
+                leaf_lazy = top_eager.orig_kwargs["nested"][1]["leaf_lazy"]
+                # eagerness overrides laziness
+                assert leaf_lazy.orig_kwargs["nested"] == [{"leaf": "leaf level value"}]
 
     def test_load_tag_settings(self):
         """Load !Tags with decorator settings"""
+        # __yaml_tag_test is provided by the cobald package
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
                 write_stream.write(
