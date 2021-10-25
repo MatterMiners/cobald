@@ -21,7 +21,7 @@ def load_configuration(
     return load_mapping_configuration(config_data=config_data, plugins=plugins)
 
 
-def yaml_constructor(factory=None, *, eager=False):
+def yaml_constructor(factory, *, eager=False):
     """
     Convert a factory function/class to a YAML constructor
 
