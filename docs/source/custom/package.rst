@@ -157,6 +157,15 @@ can be made available as ``MyExtension`` in this way:
     If a plugin implements a :py:meth:`~cobald.interfaces.Controller.s` method,
     this is used automatically.
 
+.. note::
+
+    If a plugin requires eager loading of its YAML configuration,
+    decorate it with :py:func:`cobald.daemon.plugins.yaml_tag`.
+
+.. versionadded:: 0.12.3
+
+    The :py:func:`cobald.daemon.plugins.yaml_tag` and eager evaluation.
+
 Section Plugins
 ---------------
 
