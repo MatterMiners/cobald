@@ -1,7 +1,7 @@
 """
 Tools and helpers to declare plugins
 """
-from typing import Iterable, FrozenSet, TypeVar
+from typing import Iterable, FrozenSet, TypeVar, NamedTuple
 
 
 T = TypeVar("T")
@@ -54,3 +54,41 @@ def constraints(
         return plugin
 
     return section_wrapper
+
+
+class YAMLTagSettings(NamedTuple):
+    """Settings for interpreting a YAML tag"""
+
+    eager: bool = False
+
+    @classmethod
+    def fetch(cls, plugin):
+        """Provide the settings for `plugin`"""
+        try:
+            return plugin.__cobald_yaml_tag__
+        except AttributeError:
+            return cls()
+
+    def mark(self, plugin):
+        """Mark `plugin` to use the current settings"""
+        plugin.__cobald_yaml_tag__ = self
+
+
+def yaml_tag(*, eager=False):
+    """
+    Mark a callable as a YAML tag constructor with specific settings
+
+    :param eager: whether the YAML content must be evaluated eagerly
+
+    Since YAML can express recursive data, nested data structures are evaluated lazily
+    by default. This means a constructor receives nested data structures
+    (e.g. a ``dict`` of ``dict``s) upfront but nested content is added later on.
+    If a constructor requires the entire data at once, set ``eager=True`` to enforce
+    eager evaluation before calling the constructor.
+
+    .. note::
+
+        This decorator only serves to apply non-default settings for a plugin.
+        A plugin must still be registered using ``entry_points``.
+    """
+    return YAMLTagSettings(eager=eager).mark

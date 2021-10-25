@@ -45,36 +45,22 @@ def yaml_constructor(factory=None, *, eager=False):
           b: 0.7
 
     Since YAML can express recursive data, nested data structures are evaluated lazily
-    by default. This means a constructor receives nested data structures
-    (e.g. a ``dict`` of ``dict``s) upfront but nested content is added later on.
-    If a constructor requires the entire data at once, set ``eager=True`` to enforce
-    eager evaluation before calling the constructor.
-
-    This function can be applied as a decorator, with and without arguments.
-    When applied without arguments, the default settings are used.
+    by default. Set ``eager=True`` to enforce eager evaluation before calling the
+    constructor.
     """
+    def factory_constructor(loader: BaseLoader, node: nodes.Node):
+        if isinstance(node, nodes.MappingNode):
+            kwargs = loader.construct_mapping(node, deep=eager)
+            return factory(**kwargs)
+        elif isinstance(node, nodes.ScalarNode):
+            return factory()
+        elif isinstance(node, nodes.SequenceNode):
+            args = loader.construct_sequence(node, deep=eager)
+            return factory(*args)
+        else:
+            raise ConfigurationError(
+                "YAML constructor %r on unsupported node type %s"
+                % (node.tag, type(node).__name__)
+            )
 
-    def mark_constructor(object_factory):
-        def factory_constructor(loader: BaseLoader, node: nodes.Node):
-            if isinstance(node, nodes.MappingNode):
-                kwargs = loader.construct_mapping(node, deep=eager)
-                return object_factory(**kwargs)
-            elif isinstance(node, nodes.ScalarNode):
-                return object_factory()
-            elif isinstance(node, nodes.SequenceNode):
-                args = loader.construct_sequence(node, deep=eager)
-                return object_factory(*args)
-            else:
-                raise ConfigurationError(
-                    "YAML constructor %r on unsupported node type %s"
-                    % (node.tag, type(node).__name__)
-                )
-
-        return factory_constructor
-
-    # switch whether we have been applied as bare ``@deco`` or full ``@deco(args)``
-    # this decides whether we already did or still must receive the factory
-    if factory is None:
-        return mark_constructor
-    else:
-        return mark_constructor(factory)
+    return factory_constructor

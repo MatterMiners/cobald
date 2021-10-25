@@ -37,28 +37,6 @@ COBalDLoader.add_constructor(
 )
 
 
-# Helpers to test how ``yaml_constructor`` behaves
-# with ("full") and without ("bare") arguments
-@yaml_constructor(eager=True)
-def full_deco_constructor(*args, **kwargs):
-    """YAML tag constructor that is explicitly eager"""
-    return copy.deepcopy(args), copy.deepcopy(kwargs)
-
-
-@yaml_constructor
-def bare_deco_constructor(*args, **kwargs):
-    """YAML tag constructor that is implicitly lazy"""
-    return copy.deepcopy(args), copy.deepcopy(kwargs)
-
-
-COBalDLoader.add_constructor(
-    tag="!TagConstructorFull", constructor=full_deco_constructor
-)
-COBalDLoader.add_constructor(
-    tag="!TagConstructorBare", constructor=bare_deco_constructor
-)
-
-
 def get_config_section(config: dict, section: str):
     return next(
         content for plugin, content in config.items() if plugin.section == section
@@ -254,33 +232,3 @@ class TestYamlConfig:
                 assert len(tagged.final_kwargs["nested"]) > 0
                 assert tagged.orig_kwargs["nested"] == []
                 assert tagged.final_kwargs["nested"] == [{"leaf": "leaf level value"}]
-
-    def test_load_tags_decotype(self):
-        """Load !Tags with decorator coverage"""
-        with NamedTemporaryFile(suffix=".yaml") as config:
-            with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
-                    pipeline:
-                        - !MockPool
-                    __config_test__:
-                        tagged_full: !TagConstructorFull
-                          top: "top level value"
-                          nested:
-                            - leaf: "leaf level value"
-                        tagged_bare: !TagConstructorBare
-                          top: "top level value"
-                          nested:
-                            - leaf: "leaf level value"
-                    """
-                )
-            with load(config.name) as config:
-                section = get_config_section(config, "__config_test__")
-                tagged_full = section["tagged_full"]
-                tagged_bare = section["tagged_bare"]
-                assert isinstance(tagged_full, tuple)
-                assert isinstance(tagged_bare, tuple)
-                assert tagged_full[1]["top"] == "top level value"
-                assert tagged_bare[1]["top"] == "top level value"
-                assert tagged_bare[1]["nested"] == []
-                assert tagged_full[1]["nested"] == [{"leaf": "leaf level value"}]
