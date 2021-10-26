@@ -1,0 +1,11 @@
+category: added
+summary: "YAML ``!tags`` may be eagerly evaluated"
+description: |
+  The YAML configuration is usually evaluated lazily, as YAML documents can be
+  recursive. YAML ``!tag`` plugins that require their part of the configuration
+  promptly can now be decorated with `:py:func:`cobald.daemon.plugins.yaml_tag`
+  to enforce eager evaluation.
+issues:
+- 99
+pull requests:
+- 100
