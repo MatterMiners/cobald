@@ -39,7 +39,7 @@ Each release should be prepared and reviewed via a pull request.
     * Ensure naming, unittests and docs are appropriate
 
 3. Merge new version metadata (e.g. v3.9.2) to repository
-    * Fix change fragment version via ``change log … release v3.9.2``
+    * Fix change fragment version via ``change log … release 3.9.2``
     * Adjust and commit ``__version__ = "3.9.2"`` in ``cobald.__about__``
     * Create a git tag such as ``git tag -a "v3.9.2" -m "important changes"``
 
