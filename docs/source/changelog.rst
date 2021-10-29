@@ -1,5 +1,5 @@
-.. Created by log.py at 2021-09-15, command
-   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes compile --output docs/source/changelog.rst'
+.. Created by log.py at 2021-10-29, command
+   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes/ compile -o docs/source/changelog.rst'
    based on the format of 'https://keepachangelog.com/'
 #########
 ChangeLog
@@ -7,6 +7,11 @@ ChangeLog
 
 0.12 Series
 ===========
+
+Version [0.12.3] - 2021-10-29
++++++++++++++++++++++++++++++
+
+* **[Added]** YAML ``!tags`` may be eagerly evaluated
 
 Version [0.12.2] - 2021-09-15
 +++++++++++++++++++++++++++++
