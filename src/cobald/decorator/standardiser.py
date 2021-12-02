@@ -22,14 +22,16 @@ class Standardiser(PoolDecorator):
     :param minimum: minimum ``target.demand`` allowed
     :param maximum: maximum ``target.demand`` allowed
     :param granularity: granularity of ``target.demand``
-    :param surplus: maximum by which ``target.supply`` may exceed ``target.demand``
-    :param backlog: maximum by which ``target.demand`` may exceed ``target.supply``
+    :param surplus: how much ``target.demand`` may be above ``target.supply``
+    :param backlog: how much ``target.demand`` may be below ``target.supply``
+
+    The ``supply`` and ``backlog`` clamp the ``demand`` such that
+    ``supply - backlog <= demand <= supply + surplus`` holds.
 
     The default values apply no limits at all so that isolated limits may be used.
     When several limits are set, ``granularity`` has the weakest priority,
     both ``surplus`` and ``backlog`` may limit the result of ``granularity``,
     and ``minimum`` and ``maximum`` overrule all other limits.
-    It is illegal to
     """
 
     @property
