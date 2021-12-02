@@ -4,6 +4,16 @@ from ..utility import enforce
 from ..utility.primitives import infinity as inf
 
 
+def _clamp(low, value, high):
+    """Clamp `value` to the range between `low` and `high`"""
+    if value < low:
+        return low
+    elif value > high:
+        return high
+    else:
+        return value
+
+
 class Standardiser(PoolDecorator):
     """
     Limits for changes to the demand of a pool
@@ -30,11 +40,17 @@ class Standardiser(PoolDecorator):
 
     @demand.setter
     def demand(self, value: float):
-        minimum = max(self.minimum, self.target.supply - self.backlog)
-        maximum = min(self.maximum, self.target.supply + self.surplus)
-        self._demand = type(value)(min(maximum, max(minimum, value)))
-        request = value // self.granularity * self.granularity
-        self.target.demand = type(value)(min(maximum, max(minimum, request)))
+        # Record the clamped demand so that the controller sees the limits
+        # but does not get into numerical problems from limited granularity
+        self._demand = type(value)(self._clamp_limits(value))
+        by_granularity = value // self.granularity * self.granularity
+        self.target.demand = type(value)(self._clamp_limits(by_granularity))
+
+    def _clamp_limits(self, value):
+        supply = self.target.supply
+        by_supply = _clamp(supply - self.backlog, value, supply + self.surplus)
+        by_limits = _clamp(self.minimum, by_supply, self.maximum)
+        return by_limits
 
     def __init__(
         self,
