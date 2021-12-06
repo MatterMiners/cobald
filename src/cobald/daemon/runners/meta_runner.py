@@ -60,6 +60,8 @@ class MetaRunner(object):
                 asyncio_main_run(root_runner=thread_runner)
             else:
                 thread_runner.run()
+        except KeyboardInterrupt:
+            self._logger.info("runner interrupted")
         except Exception as err:
             self._logger.exception("runner terminated: %s", err)
             raise RuntimeError from err
