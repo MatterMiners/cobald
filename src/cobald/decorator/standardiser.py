@@ -14,6 +14,11 @@ def _clamp(low, value, high):
         return value
 
 
+def _floor(n, base=1):
+    """Floor `n` to a multiple of `base`"""
+    return n // base * base
+
+
 class Standardiser(PoolDecorator):
     """
     Limits for changes to the demand of a pool
@@ -44,15 +49,18 @@ class Standardiser(PoolDecorator):
     def demand(self, value: float):
         # Record the clamped demand so that the controller sees the limits
         # but does not get into numerical problems from limited granularity
-        self._demand = type(value)(self._clamp_limits(value))
-        by_granularity = value // self.granularity * self.granularity
-        self.target.demand = type(value)(self._clamp_limits(by_granularity))
+        self._demand = self._clamp_demand(value)
+        if self.granularity != 1:
+            self.target.demand = self._clamp_demand(_floor(value, self.granularity))
+        else:
+            self.target.demand = self._demand
 
-    def _clamp_limits(self, value):
+    def _clamp_demand(self, value):
+        """Clamp `value` between the min/max demand limits"""
         supply = self.target.supply
         by_supply = _clamp(supply - self.backlog, value, supply + self.surplus)
         by_limits = _clamp(self.minimum, by_supply, self.maximum)
-        return by_limits
+        return type(value)(by_limits)
 
     def __init__(
         self,
