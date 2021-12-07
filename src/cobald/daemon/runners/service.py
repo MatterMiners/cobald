@@ -1,3 +1,4 @@
+from typing import TypeVar, Set
 import logging
 import weakref
 import trio
@@ -10,6 +11,19 @@ from types import ModuleType
 from .meta_runner import MetaRunner
 from .guard import exclusive
 from ..debug import NameRepr
+
+
+T = TypeVar('T')
+
+
+def _weakset_copy(ws: "weakref.WeakSet[T]") -> Set[T]:
+    """Thread-safely copy all items from a weakset to a set"""
+    # The various WeakSet methods are not thread-safe because they miss locking.
+    # The main issue is that all copy approaches use ``__iter__``, which is not
+    # thread-safe against items being GC'd. However, we can access the actual
+    # backing real set ``ws.data`` and ``set(some_set)`` is GIL-atomic.
+    refs = set(ws.data)
+    return {item for item in (ref() for ref in refs) if item is not None}
 
 
 class ServiceUnit(object):
@@ -35,9 +49,9 @@ class ServiceUnit(object):
         ServiceUnit.__active_units__.add(self)
 
     @classmethod
-    def units(cls):
-        """Sequence of all currently defined units"""
-        return list(cls.__active_units__)
+    def units(cls) -> "Set[ServiceUnit]":
+        """Container of all currently defined units"""
+        return _weakset_copy(cls.__active_units__)
 
     @property
     def running(self):
