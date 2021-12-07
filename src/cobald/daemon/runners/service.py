@@ -13,7 +13,7 @@ from .guard import exclusive
 from ..debug import NameRepr
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def _weakset_copy(ws: "weakref.WeakSet[T]") -> Set[T]:

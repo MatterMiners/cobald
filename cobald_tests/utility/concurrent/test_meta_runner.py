@@ -43,7 +43,7 @@ class TestMetaRunner(object):
             assert bool(runner)
             runner.stop()
 
-    @pytest.mark.parametrize('flavour', (threading,))
+    @pytest.mark.parametrize("flavour", (threading,))
     def test_run_subroutine(self, flavour):
         """Test executing a subroutine"""
 
@@ -59,7 +59,7 @@ class TestMetaRunner(object):
         with pytest.raises(KeyError):
             runner.run_payload(with_raise, flavour=flavour)
 
-    @pytest.mark.parametrize('flavour', (asyncio, trio))
+    @pytest.mark.parametrize("flavour", (asyncio, trio))
     def test_run_coroutine(self, flavour):
         """Test executing a coroutine"""
 
@@ -77,7 +77,7 @@ class TestMetaRunner(object):
             runner.run_payload(with_raise, flavour=flavour)
         runner.stop()
 
-    @pytest.mark.parametrize('flavour', (threading,))
+    @pytest.mark.parametrize("flavour", (threading,))
     def test_return_subroutine(self, flavour):
         """Test that returning from subroutines aborts runners"""
 
@@ -90,7 +90,7 @@ class TestMetaRunner(object):
             runner.run()
         assert isinstance(exc.value.__cause__, OrphanedReturn)
 
-    @pytest.mark.parametrize('flavour', (asyncio, trio))
+    @pytest.mark.parametrize("flavour", (asyncio, trio))
     def test_return_coroutine(self, flavour):
         """Test that returning from subroutines aborts runners"""
 
@@ -103,7 +103,7 @@ class TestMetaRunner(object):
             runner.run()
         assert isinstance(exc.value.__cause__, OrphanedReturn)
 
-    @pytest.mark.parametrize('flavour', (threading,))
+    @pytest.mark.parametrize("flavour", (threading,))
     def test_abort_subroutine(self, flavour):
         """Test that failing subroutines abort runners"""
 
@@ -130,7 +130,7 @@ class TestMetaRunner(object):
             runner.run()
         assert isinstance(exc.value.__cause__, TerminateRunner)
 
-    @pytest.mark.parametrize('flavour', (asyncio, trio))
+    @pytest.mark.parametrize("flavour", (asyncio, trio))
     def test_abort_coroutine(self, flavour):
         """Test that failing coroutines abort runners"""
 
