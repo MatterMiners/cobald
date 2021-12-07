@@ -60,7 +60,7 @@ class TestMetaRunner(object):
                 runner.run_payload(with_raise, flavour=flavour)
 
     def test_run_coroutine(self):
-        """Test executing a subroutine"""
+        """Test executing a coroutine"""
 
         async def with_return():
             return "expected return value"
