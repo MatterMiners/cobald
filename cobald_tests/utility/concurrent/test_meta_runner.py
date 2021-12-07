@@ -72,8 +72,7 @@ class TestMetaRunner(object):
             runner = MetaRunner()
             run_in_thread(runner.run, name="test_run_coroutine %s" % flavour)
             result = runner.run_payload(with_return, flavour=flavour)
-            # TODO: can we actually get the value from with_return?
-            assert result == "expected return value"
+            assert result == trio.run(with_return)
             with pytest.raises(KeyError):
                 runner.run_payload(with_raise, flavour=flavour)
             runner.stop()
