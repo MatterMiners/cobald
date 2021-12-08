@@ -20,8 +20,8 @@ def _weakset_copy(ws: "weakref.WeakSet[T]") -> Set[T]:
     """Thread-safely copy all items from a weakset to a set"""
     # The various WeakSet methods are not thread-safe because they miss locking.
     # The main issue is that all copy approaches use ``__iter__``, which is not
-    # thread-safe against items being GC'd. However, we can access the actual
-    # backing real set ``ws.data`` and ``set(some_set)`` is GIL-atomic.
+    # thread-safe against items being garbage collected. However, we can access
+    # the actual backing real set ``ws.data`` and ``set(some_set)`` is GIL-atomic.
     refs = set(ws.data)
     return {item for item in (ref() for ref in refs) if item is not None}
 
