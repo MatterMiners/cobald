@@ -12,13 +12,18 @@ _DEFAULT_MESSAGE = (
 )
 
 
+# The %-style formatting corresponds to key lookups in a mapping
+# To warn about deprecated keys, we use a specialised mapping class
+# that warns when a marked item is looked up.
 class _WarnValue(NamedTuple):
+    """Entry in a `_WarnMap` that raises a `warning` when its `value` is fetched"""
+
     value: Any
     warning: Warning
 
 
 class _WarnMap(dict):
-    r"""Map raising ``warnings`` for specific keys pointing to ``_WarnValue``\ s"""
+    r"""Map that raises a warnings if keys pointing to ``_WarnValue``\ s are accessed"""
 
     def __getitem__(self, item):
         value = super().__getitem__(item)
@@ -29,13 +34,22 @@ class _WarnMap(dict):
             return value
 
 
-_DEPRECATION_MAP = _WarnMap(
+# Mapping providing test values for all fields of a :py:class:`~.Logger` message
+# - Valid fields must have an arbitrary value of correct type to test their formatting.
+# - Deprecated fields must use `_WarnValue` to trigger a deprecation warning as well.
+_LOGGER_TEST_FIELDS = _WarnMap(
     value=10.0,
     demand=10.0,
     supply=10.0,
     utilisation=0.5,
     allocation=0.5,
-    consumption=_WarnValue(0.5, FutureWarning("")),
+    consumption=_WarnValue(
+        0.5,
+        FutureWarning(
+            "The Logger message field 'consumption' is deprecated;"
+            " use 'allocation' instead"
+        ),
+    ),
     target=None,
 )
 
@@ -104,7 +118,7 @@ class Logger(PoolDecorator):
         super().__init__(target=target)
         # try formatting message to warn about invalid/deprecated fields
         try:
-            message % _DEPRECATION_MAP
+            message % _LOGGER_TEST_FIELDS
         except KeyError as e:
             raise RuntimeError(
                 f"invalid {type(self).__name__} message field: {e}"
