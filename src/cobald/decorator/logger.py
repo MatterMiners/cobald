@@ -56,25 +56,29 @@ _LOGGER_TEST_FIELDS = _WarnMap(
 
 class Logger(PoolDecorator):
     """
-    Proxy which logs all changes of ``target.demand``
+    Log a message on every change of ``demand``
 
-    :param name: name of the underlying :py:class:`logging.Logger`
-    :param message: message to emit for every change
+    :param name: name of the :py:class:`logging.Logger` to log to
+    :param message: format for message to emit on every change
     :param level: numerical logging level
 
     The ``message`` parameter is used as a ``%``-style format string with named fields.
-    Valid named fields are
+    Valid named format fields are
 
     ``value``
-        for the new demand to set,
+        for the new demand being set,
 
     ``demand``, ``supply``, ``utilisation`` and ``allocation``
         for the current state of ``target``, and
 
     ``target``
-        for the raw ``target`` pool.
+        for the ``target`` pool itself.
 
-    For historical reasons, ``consumption`` is available as an alias of ``allocation``.
+    For example, a ``message`` of ``"adjust demand from %(demand)s to %(value)s"``
+    will log the old and new demand value.
+
+    .. deprecated:: 0.12.2
+        The ``consumption`` format field. Use ``allocation`` instead.
     """
 
     @property
