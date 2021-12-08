@@ -106,7 +106,9 @@ class Logger(PoolDecorator):
         try:
             message % _DEPRECATION_MAP
         except KeyError as e:
-            raise RuntimeError(f"invalid {type(self).__name__} message field: {e}")
+            raise RuntimeError(
+                f"invalid {type(self).__name__} message field: {e}"
+            ) from None
         self._logger = None  # type: logging.Logger
         self.message = message
         self.name = name
