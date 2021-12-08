@@ -19,6 +19,7 @@ class _WarnValue(NamedTuple):
 
 class _WarnMap(dict):
     r"""Map raising ``warnings`` for specific keys pointing to ``_WarnValue``\ s"""
+
     def __getitem__(self, item):
         value = super().__getitem__(item)
         if isinstance(value, _WarnValue):

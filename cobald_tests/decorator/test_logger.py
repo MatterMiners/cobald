@@ -65,12 +65,12 @@ class TestLogger(object):
             Logger(
                 target=pool,
                 name="test logger",
-                message="logging deprecated %(consumption)s"
+                message="logging deprecated %(consumption)s",
             )
         with pytest.raises(RuntimeError):
             pool = FullMockPool()
             Logger(
                 target=pool,
                 name="test logger",
-                message="logging invalid %(dummy_field)s"
+                message="logging invalid %(dummy_field)s",
             )
