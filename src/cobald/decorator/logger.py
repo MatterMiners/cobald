@@ -1,4 +1,6 @@
+from typing import NamedTuple, Any
 import logging
+import warnings
 
 from cobald.interfaces import Pool, PoolDecorator
 
@@ -7,6 +9,33 @@ _DEFAULT_MESSAGE = (
     "demand = %(value)s "
     "[demand=%(demand)s, supply=%(supply)s, "
     "utilisation=%(utilisation).2f, allocation=%(allocation).2f]"
+)
+
+
+class _WarnValue(NamedTuple):
+    value: Any
+    warning: Warning
+
+
+class _WarnMap(dict):
+    r"""Map raising ``warnings`` for specific keys pointing to ``_WarnValue``\ s"""
+    def __getitem__(self, item):
+        value = super().__getitem__(item)
+        if isinstance(value, _WarnValue):
+            warnings.warn(value.warning, stacklevel=2)
+            return value.value
+        else:
+            return value
+
+
+_DEPRECATION_MAP = _WarnMap(
+    value=10.0,
+    demand=10.0,
+    supply=10.0,
+    utilisation=0.5,
+    allocation=0.5,
+    consumption=_WarnValue(0.5, FutureWarning("")),
+    target=None,
 )
 
 
@@ -72,6 +101,11 @@ class Logger(PoolDecorator):
         level: int = logging.INFO,
     ):
         super().__init__(target=target)
+        # try formatting message to warn about invalid/deprecated fields
+        try:
+            message % _DEPRECATION_MAP
+        except KeyError as e:
+            raise RuntimeError(f"invalid {type(self).__name__} message field: {e}")
         self._logger = None  # type: logging.Logger
         self.message = message
         self.name = name
