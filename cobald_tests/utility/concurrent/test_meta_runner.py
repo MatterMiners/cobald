@@ -43,7 +43,8 @@ class TestMetaRunner(object):
             assert bool(runner)
             runner.stop()
 
-    def test_run_subroutine(self):
+    @pytest.mark.parametrize("flavour", (threading,))
+    def test_run_subroutine(self, flavour):
         """Test executing a subroutine"""
 
         def with_return():
@@ -52,15 +53,15 @@ class TestMetaRunner(object):
         def with_raise():
             raise KeyError("expected exception")
 
-        for flavour in (threading,):
-            runner = MetaRunner()
-            result = runner.run_payload(with_return, flavour=flavour)
-            assert result == with_return()
-            with pytest.raises(KeyError):
-                runner.run_payload(with_raise, flavour=flavour)
+        runner = MetaRunner()
+        result = runner.run_payload(with_return, flavour=flavour)
+        assert result == with_return()
+        with pytest.raises(KeyError):
+            runner.run_payload(with_raise, flavour=flavour)
 
-    def test_run_coroutine(self):
-        """Test executing a subroutine"""
+    @pytest.mark.parametrize("flavour", (asyncio, trio))
+    def test_run_coroutine(self, flavour):
+        """Test executing a coroutine"""
 
         async def with_return():
             return "expected return value"
@@ -68,93 +69,91 @@ class TestMetaRunner(object):
         async def with_raise():
             raise KeyError("expected exception")
 
-        for flavour in (trio, asyncio):
-            runner = MetaRunner()
-            run_in_thread(runner.run, name="test_run_coroutine %s" % flavour)
-            result = runner.run_payload(with_return, flavour=flavour)
-            # TODO: can we actually get the value from with_return?
-            assert result == "expected return value"
-            with pytest.raises(KeyError):
-                runner.run_payload(with_raise, flavour=flavour)
-            runner.stop()
+        runner = MetaRunner()
+        run_in_thread(runner.run, name="test_run_coroutine %s" % flavour)
+        result = runner.run_payload(with_return, flavour=flavour)
+        assert result == trio.run(with_return)
+        with pytest.raises(KeyError):
+            runner.run_payload(with_raise, flavour=flavour)
+        runner.stop()
 
-    def test_return_subroutine(self):
+    @pytest.mark.parametrize("flavour", (threading,))
+    def test_return_subroutine(self, flavour):
         """Test that returning from subroutines aborts runners"""
 
         def with_return():
             return "unhandled return value"
 
-        for flavour in (threading,):
-            runner = MetaRunner()
-            runner.register_payload(with_return, flavour=flavour)
-            with pytest.raises(RuntimeError) as exc:
-                runner.run()
-            assert isinstance(exc.value.__cause__, OrphanedReturn)
+        runner = MetaRunner()
+        runner.register_payload(with_return, flavour=flavour)
+        with pytest.raises(RuntimeError) as exc:
+            runner.run()
+        assert isinstance(exc.value.__cause__, OrphanedReturn)
 
-    def test_return_coroutine(self):
+    @pytest.mark.parametrize("flavour", (asyncio, trio))
+    def test_return_coroutine(self, flavour):
         """Test that returning from subroutines aborts runners"""
 
         async def with_return():
             return "unhandled return value"
 
-        for flavour in (asyncio, trio):
-            runner = MetaRunner()
-            runner.register_payload(with_return, flavour=flavour)
-            with pytest.raises(RuntimeError) as exc:
-                runner.run()
-            assert isinstance(exc.value.__cause__, OrphanedReturn)
+        runner = MetaRunner()
+        runner.register_payload(with_return, flavour=flavour)
+        with pytest.raises(RuntimeError) as exc:
+            runner.run()
+        assert isinstance(exc.value.__cause__, OrphanedReturn)
 
-    def test_abort_subroutine(self):
+    @pytest.mark.parametrize("flavour", (threading,))
+    def test_abort_subroutine(self, flavour):
         """Test that failing subroutines abort runners"""
 
         def abort():
             raise TerminateRunner
 
-        for flavour in (threading,):
-            runner = MetaRunner()
-            runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(RuntimeError) as exc:
-                runner.run()
-            assert isinstance(exc.value.__cause__, TerminateRunner)
+        runner = MetaRunner()
+        runner.register_payload(abort, flavour=flavour)
+        with pytest.raises(RuntimeError) as exc:
+            runner.run()
+        assert isinstance(exc.value.__cause__, TerminateRunner)
 
-            def noop():
-                return
+        def noop():
+            return
 
-            def loop():
-                while True:
-                    time.sleep(0)
+        def loop():
+            while True:
+                time.sleep(0)
 
-            runner = MetaRunner()
-            runner.register_payload(noop, loop, flavour=flavour)
-            runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(RuntimeError) as exc:
-                runner.run()
-            assert isinstance(exc.value.__cause__, TerminateRunner)
+        runner = MetaRunner()
+        runner.register_payload(noop, loop, flavour=flavour)
+        runner.register_payload(abort, flavour=flavour)
+        with pytest.raises(RuntimeError) as exc:
+            runner.run()
+        assert isinstance(exc.value.__cause__, TerminateRunner)
 
-    def test_abort_coroutine(self):
+    @pytest.mark.parametrize("flavour", (asyncio, trio))
+    def test_abort_coroutine(self, flavour):
         """Test that failing coroutines abort runners"""
 
         async def abort():
             raise TerminateRunner
 
-        for flavour in (asyncio, trio):
-            runner = MetaRunner()
-            runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(RuntimeError) as exc:
-                runner.run()
-            assert isinstance(exc.value.__cause__, TerminateRunner)
+        runner = MetaRunner()
+        runner.register_payload(abort, flavour=flavour)
+        with pytest.raises(RuntimeError) as exc:
+            runner.run()
+        assert isinstance(exc.value.__cause__, TerminateRunner)
 
-            async def noop():
-                return
+        async def noop():
+            return
 
-            async def loop():
-                while True:
-                    await flavour.sleep(0)
+        async def loop():
+            while True:
+                await flavour.sleep(0)
 
-            runner = MetaRunner()
+        runner = MetaRunner()
 
-            runner.register_payload(noop, loop, flavour=flavour)
-            runner.register_payload(abort, flavour=flavour)
-            with pytest.raises(RuntimeError) as exc:
-                runner.run()
-            assert isinstance(exc.value.__cause__, TerminateRunner)
+        runner.register_payload(noop, loop, flavour=flavour)
+        runner.register_payload(abort, flavour=flavour)
+        with pytest.raises(RuntimeError) as exc:
+            runner.run()
+        assert isinstance(exc.value.__cause__, TerminateRunner)

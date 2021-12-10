@@ -2,6 +2,8 @@ import threading
 import logging
 import io
 
+import pytest
+
 from ..mock.pool import FullMockPool
 
 from cobald.decorator.logger import Logger
@@ -51,3 +53,24 @@ class TestLogger(object):
         assert chain.name == pool.__class__.__name__
         chain.name = "final"
         assert chain.name == "final"
+
+    def test_verification(self):
+        pool = FullMockPool()
+        # no warnings by default
+        with pytest.warns(None) as recorded_warnings:
+            Logger(target=pool, name="test logger")
+            assert not recorded_warnings
+        with pytest.warns(FutureWarning):
+            pool = FullMockPool()
+            Logger(
+                target=pool,
+                name="test logger",
+                message="logging deprecated %(consumption)s",
+            )
+        with pytest.raises(RuntimeError):
+            pool = FullMockPool()
+            Logger(
+                target=pool,
+                name="test logger",
+                message="logging invalid %(dummy_field)s",
+            )
