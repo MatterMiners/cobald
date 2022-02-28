@@ -1,6 +1,5 @@
 import logging
 import threading
-import trio
 
 from types import ModuleType
 
@@ -80,40 +79,3 @@ class MetaRunner(object):
                 continue
             runner.stop()
         self.runners[threading].stop()
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
-    import time
-    import asyncio
-
-    runner = MetaRunner()
-
-    async def trio_sleeper():
-        for i in range(3):
-            print("trio\t", i)
-            await trio.sleep(0.1)
-
-    runner.register_payload(trio_sleeper, flavour=trio)
-
-    async def asyncio_sleeper():
-        for i in range(3):
-            print("asyncio\t", i)
-            await asyncio.sleep(0.1)
-
-    runner.register_payload(asyncio_sleeper, flavour=asyncio)
-
-    def thread_sleeper():
-        for i in range(3):
-            print("thread\t", i)
-            time.sleep(0.1)
-
-    runner.register_payload(thread_sleeper, flavour=threading)
-
-    async def teardown():
-        await trio.sleep(5)
-        raise SystemExit("Abort from trio runner")
-
-    runner.register_payload(teardown, flavour=trio)
-
-    runner.run()
