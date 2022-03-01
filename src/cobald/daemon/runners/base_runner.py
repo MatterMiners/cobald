@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import threading
 from typing import Any
@@ -6,9 +7,11 @@ from cobald.daemon.debug import NameRepr
 
 
 class BaseRunner(object):
+    """Concurrency backend on top of `asyncio`"""
     flavour = None  # type: Any
 
-    def __init__(self):
+    def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        self.asyncio_loop = asyncio_loop
         self._logger = logging.getLogger(
             "cobald.runtime.runner.%s" % NameRepr(self.flavour)
         )

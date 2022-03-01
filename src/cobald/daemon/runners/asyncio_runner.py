@@ -10,19 +10,18 @@ class AsyncioRunner(BaseRunner):
 
     flavour = asyncio
 
-    def __init__(self, loop: Optional[asyncio.AbstractEventLoop] = None):
-        super().__init__()
-        self.event_loop = loop if loop is not None else asyncio.new_event_loop()
+    def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        super().__init__(asyncio_loop)
         self._tasks = set()
 
     def register_payload(self, payload: Callable[[], Awaitable]):
-        self.event_loop.call_soon_threadsafe(
-            lambda: self._tasks.add(self.event_loop.create_task(raise_return(payload)))
+        self.asyncio_loop.call_soon_threadsafe(
+            lambda: self._tasks.add(self.asyncio_loop.create_task(raise_return(payload)))
         )
 
     def run_payload(self, payload: Callable[[], Awaitable]):
         future = asyncio.run_coroutine_threadsafe(
-            ensure_coroutine(payload()), self.event_loop
+            ensure_coroutine(payload()), self.asyncio_loop
         )
         return future.result()
 
@@ -52,5 +51,5 @@ class AsyncioRunner(BaseRunner):
         if not self._running.wait(0.2):
             return
         # the loop exists independently of this runner, we can use it to shut down
-        closed = asyncio.run_coroutine_threadsafe(self.aclose(), self.event_loop)
+        closed = asyncio.run_coroutine_threadsafe(self.aclose(), self.asyncio_loop)
         closed.result()
