@@ -38,8 +38,7 @@ class TestServiceRunner(object):
         """Assert that no two runners may fetch services"""
         with accept(ServiceRunner(accept_delay=0.1), name="outer"):
             with pytest.raises(RuntimeError):
-                with accept(ServiceRunner(accept_delay=0.1), name="inner"):
-                    pass
+                ServiceRunner(accept_delay=0.1).accept()
 
     def test_service(self):
         """Test running service classes automatically"""
