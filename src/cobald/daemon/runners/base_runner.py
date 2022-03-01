@@ -73,6 +73,8 @@ class BaseRunner(object):
 
     def stop(self):
         """Stop execution of all current and future payloads and block until success"""
+        if self._stopped.is_set():
+            return
         # the loop exists independently of all runners, we can use it to shut down
         closed = asyncio.run_coroutine_threadsafe(self.aclose(), self.asyncio_loop)
         closed.result()
