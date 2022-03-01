@@ -2,22 +2,26 @@ from typing import Optional, Callable, Awaitable
 import asyncio
 
 from .base_runner import BaseRunner
-from .async_tools import raise_return, ensure_coroutine
+from .async_tools import OrphanedReturn, ensure_coroutine
+from ._compat import asyncio_current_task
 
 
 class AsyncioRunner(BaseRunner):
-    """Runner for coroutines with :py:mod:`asyncio`"""
+    """
+    Runner for coroutines with :py:mod:`asyncio`
+
+    All active payloads are actively cancelled when the runner is closed.
+    """
 
     flavour = asyncio
 
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
         self._tasks = set()
+        self._failure_queue: Optional[asyncio.Queue] = None
 
     def register_payload(self, payload: Callable[[], Awaitable]):
-        self.asyncio_loop.call_soon_threadsafe(
-            lambda: self._tasks.add(self.asyncio_loop.create_task(raise_return(payload)))
-        )
+        self.asyncio_loop.call_soon_threadsafe(self._setup_payload, payload)
 
     def run_payload(self, payload: Callable[[], Awaitable]):
         future = asyncio.run_coroutine_threadsafe(
@@ -25,24 +29,36 @@ class AsyncioRunner(BaseRunner):
         )
         return future.result()
 
+    def _setup_payload(self, payload: Callable[[], Awaitable]):
+        task = self.asyncio_loop.create_task(self._monitor_payload(payload))
+        self._tasks.add(task)
+
+    async def _monitor_payload(self, payload: Callable[[], Awaitable]):
+        try:
+            result = payload()
+        except BaseException as e:
+            failure = e
+        else:
+            if result is None:
+                return
+            failure = OrphanedReturn(payload, result)
+        finally:
+            self._tasks.discard(asyncio_current_task())
+        assert self._failure_queue is not None
+        await self._failure_queue.put(failure)
+
     async def manage_payloads(self):
-        # Remove tracked tasks and raise if tasks leak
-        while self._tasks or self._running.is_set():
-            # let asyncio efficiently wait for errors
-            # we only force wake up via timeout every now and then to clean up
-            done, pending = await asyncio.wait(
-                self._tasks, timeout=60, return_when=asyncio.FIRST_EXCEPTION
-            )
-            self._tasks.difference_update(done)
-            for task in done:
-                # re-raise any exceptions
-                task.result()
+        self._failure_queue = asyncio.Queue()
+        failure = await self._failure_queue.get()
+        if failure is not None:
+            raise failure
 
     async def aclose(self):
         self._running.clear()
+        await self._failure_queue.put(None)
         while self._tasks:
             for task in self._tasks.copy():
                 if task.done():
-                    self._tasks.remove(task)
+                    self._tasks.discard(task)
                 task.cancel()
             await asyncio.sleep(0.5)

@@ -8,7 +8,11 @@ from .async_tools import raise_return
 
 
 class TrioRunner(BaseRunner):
-    """Runner for coroutines with :py:mod:`trio`"""
+    """
+    Runner for coroutines with :py:mod:`trio`
+
+    All active payloads are actively cancelled when the runner is closed.
+    """
 
     flavour = trio
 

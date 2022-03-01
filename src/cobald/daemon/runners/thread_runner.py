@@ -6,7 +6,12 @@ from .base_runner import BaseRunner, OrphanedReturn
 
 
 class ThreadRunner(BaseRunner):
-    """Runner for subroutines with :py:mod:`threading`"""
+    """
+    Runner for subroutines with :py:mod:`threading`
+
+    All active payloads are *not* cancelled when the runner is closed.
+    Only program termination forcefully cancels leftover payloads.
+    """
 
     flavour = threading
 
