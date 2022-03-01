@@ -48,5 +48,4 @@ class ThreadRunner(BaseRunner):
             raise failure
 
     async def aclose(self):
-        self._running.clear()
         await self._failure_queue.put(None)

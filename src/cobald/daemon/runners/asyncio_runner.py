@@ -54,7 +54,6 @@ class AsyncioRunner(BaseRunner):
             raise failure
 
     async def aclose(self):
-        self._running.clear()
         await self._failure_queue.put(None)
         while self._tasks:
             for task in self._tasks.copy():

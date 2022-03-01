@@ -15,7 +15,6 @@ class BaseRunner(object):
         self._logger = logging.getLogger(
             "cobald.runtime.runner.%s" % NameRepr(self.flavour)
         )
-        self._running = threading.Event()
         self._stopped = threading.Event()
         self._stopped.set()
 
@@ -49,7 +48,6 @@ class BaseRunner(object):
         """
         self._logger.info("runner started: %s", self)
         self._stopped.clear()
-        self._running.set()
         try:
             await self.manage_payloads()
         except Exception:
@@ -58,7 +56,6 @@ class BaseRunner(object):
         else:
             self._logger.info("runner stopped: %s", self)
         finally:
-            self._running.clear()
             self._stopped.set()
 
     async def manage_payloads(self):
@@ -69,8 +66,6 @@ class BaseRunner(object):
 
     def stop(self):
         """Stop execution of all current and future payloads and block until success"""
-        if not self._running.wait(0.2):
-            return
         # the loop exists independently of all runners, we can use it to shut down
         closed = asyncio.run_coroutine_threadsafe(self.aclose(), self.asyncio_loop)
         closed.result()

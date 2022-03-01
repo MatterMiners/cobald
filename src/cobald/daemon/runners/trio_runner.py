@@ -52,7 +52,6 @@ class TrioRunner(BaseRunner):
             nursery.cancel_scope.cancel()
 
     async def _aclose_trio(self):
-        self._running.clear()
         await self._submit_tasks.aclose()
 
     async def aclose(self):
