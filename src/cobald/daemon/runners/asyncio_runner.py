@@ -46,10 +46,3 @@ class AsyncioRunner(BaseRunner):
                     self._tasks.remove(task)
                 task.cancel()
             await asyncio.sleep(0.5)
-
-    def stop(self):
-        if not self._running.wait(0.2):
-            return
-        # the loop exists independently of this runner, we can use it to shut down
-        closed = asyncio.run_coroutine_threadsafe(self.aclose(), self.asyncio_loop)
-        closed.result()
