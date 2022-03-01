@@ -12,7 +12,7 @@ class BaseRunner(object):
         self._logger = logging.getLogger(
             "cobald.runtime.runner.%s" % NameRepr(self.flavour)
         )
-        #: signal that runner is stopped
+        self._running = threading.Event()
         self._stopped = threading.Event()
         self._stopped.set()
 
@@ -41,23 +41,28 @@ class BaseRunner(object):
         Blocks and executes payloads until :py:meth:`stop` is called.
         It is an error for any orphaned payload to return or raise.
 
-        Implementations should override :py:meth:`~.run_payloads`
+        Implementations should override :py:meth:`~.manage_payloads`
         to customize their specific parts.
         """
         self._logger.info("runner started: %s", self)
         self._stopped.clear()
+        self._running.set()
         try:
-            await self.run_payloads()
+            await self.manage_payloads()
         except Exception:
             self._logger.exception("runner aborted: %s", self)
             raise
         else:
             self._logger.info("runner stopped: %s", self)
         finally:
+            self._running.clear()
             self._stopped.set()
 
-    async def run_payloads(self):
+    async def manage_payloads(self):
         raise NotImplementedError
+
+    async def aclose(self):
+        """Shut down this runner"""
 
     def stop(self):
         """
