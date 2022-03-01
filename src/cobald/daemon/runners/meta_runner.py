@@ -9,7 +9,7 @@ from .base_runner import BaseRunner
 from .trio_runner import TrioRunner
 from .asyncio_runner import AsyncioRunner
 from .thread_runner import ThreadRunner
-from .asyncio_watcher import asyncio_main_run
+from ._compat import asyncio_run
 
 
 from cobald.daemon.debug import NameRepr
@@ -74,14 +74,7 @@ class MetaRunner(object):
         self._logger.info("starting all runners")
         self._lock.acquire()
         try:
-            thread_runner = self._runners[threading]
-            for runner in self._runners.values():
-                if runner is not thread_runner:
-                    thread_runner.register_payload(runner.run)
-            if threading.current_thread() == threading.main_thread():
-                asyncio_main_run(root_runner=thread_runner)
-            else:
-                thread_runner.run()
+            asyncio_run(self._launch_runners())
         except KeyboardInterrupt:
             self._logger.info("runner interrupted")
         except Exception as err:
