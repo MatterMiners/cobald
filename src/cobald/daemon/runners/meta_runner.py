@@ -1,5 +1,6 @@
 import logging
 import threading
+import warnings
 
 from types import ModuleType
 
@@ -22,15 +23,23 @@ class MetaRunner(object):
 
     def __init__(self):
         self._logger = logging.getLogger("cobald.runtime.runner.meta")
-        self.runners = {
+        self._runners = {
             runner.flavour: runner() for runner in self.runner_types
         }  # type: dict[ModuleType, BaseRunner]
         self._lock = threading.Lock()
         self.running = threading.Event()
         self.running.clear()
 
+    @property
+    def runners(self):
+        warnings.warn(DeprecationWarning(
+            "Accessing 'MetaRunner.runners' directly is deprecated. "
+            "Use register_payload or run_payload with the correct flavour instead."
+        ))
+        return self._runners
+
     def __bool__(self):
-        return any(bool(runner) for runner in self.runners.values())
+        return any(bool(runner) for runner in self._runners.values())
 
     def register_payload(self, *payloads, flavour: ModuleType):
         """Queue one or more payload for execution after its runner is started"""
@@ -38,11 +47,11 @@ class MetaRunner(object):
             self._logger.debug(
                 "registering payload %s (%s)", NameRepr(payload), NameRepr(flavour)
             )
-            self.runners[flavour].register_payload(payload)
+            self._runners[flavour].register_payload(payload)
 
     def run_payload(self, payload, *, flavour: ModuleType):
         """Execute one payload after its runner is started and return its output"""
-        return self.runners[flavour].run_payload(payload)
+        return self._runners[flavour].run_payload(payload)
 
     def run(self):
         """Run all runners, blocking until completion or error"""
@@ -51,8 +60,8 @@ class MetaRunner(object):
             with self._lock:
                 assert not self.running.set(), "cannot re-run: %s" % self
                 self.running.set()
-            thread_runner = self.runners[threading]
-            for runner in self.runners.values():
+            thread_runner = self._runners[threading]
+            for runner in self._runners.values():
                 if runner is not thread_runner:
                     thread_runner.register_payload(runner.run)
             if threading.current_thread() == threading.main_thread():
@@ -74,8 +83,8 @@ class MetaRunner(object):
         self._stop_runners()
 
     def _stop_runners(self):
-        for runner in self.runners.values():
+        for runner in self._runners.values():
             if runner.flavour == threading:
                 continue
             runner.stop()
-        self.runners[threading].stop()
+        self._runners[threading].stop()
