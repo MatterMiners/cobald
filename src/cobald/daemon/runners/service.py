@@ -110,6 +110,15 @@ def service(flavour):
 class ServiceRunner(object):
     """
     Runner for coroutines, subroutines and services
+
+    The service runner provides safe concurrency by tracking concurrent tasks
+    to prevent silent failures. If any task fails with an exception or provides
+    unexpected output values, this is registered as an error; the runner will
+    gracefully shut down all tasks in this case.
+
+    In order to provide ``async`` concurrency, the runner also manages common
+    ``async`` event loops and tracks them for failures as well. As a result,
+    ``async`` code should usually use the "current" event loop directly.
     """
 
     def __init__(self, accept_delay: float = 1):
