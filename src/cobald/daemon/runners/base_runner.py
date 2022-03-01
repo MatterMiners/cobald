@@ -8,6 +8,7 @@ from cobald.daemon.debug import NameRepr
 
 class BaseRunner(object):
     """Concurrency backend on top of `asyncio`"""
+
     flavour = None  # type: Any
 
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
@@ -35,6 +36,12 @@ class BaseRunner(object):
         Should ``payload`` return or raise anything, it is propagated to the caller.
         """
         raise NotImplementedError
+
+    async def ready(self):
+        """Wait until the runner is ready to accept payloads"""
+        assert (
+            not self._stopped.is_set()
+        ), "runner must be .run before waiting until it is ready"
 
     async def run(self):
         """
@@ -69,7 +76,6 @@ class BaseRunner(object):
         # the loop exists independently of all runners, we can use it to shut down
         closed = asyncio.run_coroutine_threadsafe(self.aclose(), self.asyncio_loop)
         closed.result()
-
 
 
 class OrphanedReturn(Exception):

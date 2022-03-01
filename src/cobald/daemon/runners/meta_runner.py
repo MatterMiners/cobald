@@ -84,6 +84,8 @@ class MetaRunner(object):
         for runner_type in self.runner_types:
             runner = self._runners[runner_type.flavour] = runner_type(asyncio_loop)
             runner_tasks.append(asyncio_loop.create_task(runner.run()))
+        for runner in self._runners.values():
+            await runner.ready()
         await self._unqueue_payloads()
         await asyncio.gather(*runner_tasks)
 
