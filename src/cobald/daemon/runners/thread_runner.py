@@ -1,5 +1,6 @@
+from typing import Optional
 import threading
-import time
+import asyncio
 
 from ..debug import NameRepr
 from .base_runner import BaseRunner, OrphanedReturn
@@ -42,9 +43,13 @@ class ThreadRunner(BaseRunner):
 
     flavour = threading
 
-    def __init__(self):
-        super().__init__()
-        self._threads = set()
+    def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        super().__init__(asyncio_loop)
+        self._failure_queue: Optional[asyncio.Queue] = None
+
+    def register_payload(self, payload):
+        thread = threading.Thread(target=self.run_payload, args=(payload,), daemon=True)
+        thread.start()
 
     def run_payload(self, payload):
         # - run_payload has to block until payload is done
@@ -52,30 +57,24 @@ class ThreadRunner(BaseRunner):
         # we just block this thread by running payload directly
         return payload()
 
-    def _run(self):
-        delay = 0.0
-        while self.running.is_set():
-            self._start_payloads()
-            self._reap_payloads()
-            time.sleep(delay)
-            delay = min(delay + 0.1, 1.0)
+    def _monitor_payload(self, payload):
+        try:
+            result = payload()
+        except BaseException as e:
+            failure = e
+        else:
+            if result is None:
+                return
+            failure = OrphanedReturn(payload, result)
+        assert self._failure_queue is not None
+        self.asyncio_loop.call_soon_threadsafe(self._failure_queue.put_nowait, failure)
 
-    def _start_payloads(self):
-        """Start all queued payloads"""
-        with self._lock:
-            payloads = self._payloads.copy()
-            self._payloads.clear()
-        for subroutine in payloads:
-            thread = CapturingThread(target=subroutine)
-            thread.start()
-            self._threads.add(thread)
-            self._logger.debug("booted thread %s", thread)
-        time.sleep(0)
+    async def manage_payloads(self):
+        self._failure_queue = asyncio.Queue()
+        failure = await self._failure_queue.get()
+        if failure is not None:
+            raise failure
 
-    def _reap_payloads(self):
-        """Clean up all finished payloads"""
-        for thread in self._threads.copy():
-            # CapturingThread.join will throw
-            if thread.join(timeout=0):
-                self._threads.remove(thread)
-                self._logger.debug("reaped thread %s", thread)
+    async def aclose(self):
+        self._running.clear()
+        await self._failure_queue.put(None)
