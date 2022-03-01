@@ -1,6 +1,7 @@
 import logging
 import threading
 import warnings
+import asyncio
 
 from types import ModuleType
 
@@ -52,6 +53,21 @@ class MetaRunner(object):
     def run_payload(self, payload, *, flavour: ModuleType):
         """Execute one payload after its runner is started and return its output"""
         return self._runners[flavour].run_payload(payload)
+
+    async def _launch_runners(self):
+        """Launch all runners inside an `asyncio` event loop and wait for them"""
+        asyncio_loop = asyncio.get_event_loop()
+        # we are already running asyncio – just wrap it as a runner
+        runners = {asyncio: AsyncioRunner(asyncio_loop)}
+        # launch other runners in asyncio's thread pool
+        # this blocks some threads of the pool, but we have only very few runners
+        runner_tasks = []
+        for runner_type in self.runner_types:
+            if runner_type.flavour in runners:
+                continue
+            runner = runners[runner_type.flavour] = runner_type()
+            runner_tasks.append(asyncio_loop.run_in_executor(None, runner.run))
+        await asyncio.gather(*runner_tasks)
 
     def run(self):
         """Run all runners, blocking until completion or error"""
