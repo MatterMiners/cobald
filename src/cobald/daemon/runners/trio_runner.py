@@ -18,6 +18,7 @@ class TrioRunner(BaseRunner):
 
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
+        self._ready = asyncio.Event()
         self._trio_token: Optional[trio.lowlevel.TrioToken] = None
         self._submit_tasks: Optional[trio.MemorySendChannel] = None
 
@@ -33,6 +34,9 @@ class TrioRunner(BaseRunner):
             payload, trio_token=self._trio_token
         )
 
+    async def ready(self):
+        await self._ready.wait()
+
     async def manage_payloads(self):
         # this blocks one thread of the asyncio event loop
         await self.asyncio_loop.run_in_executor(None, self._run_trio_blocking)
@@ -45,6 +49,7 @@ class TrioRunner(BaseRunner):
         # buffer of 256 is somewhat arbitrary but should be large enough to rarely stall
         # and small enough to smooth out explosive backlog.
         self._submit_tasks, receive_tasks = trio.open_memory_channel(256)
+        self._ready.set()
         async with trio.open_nursery() as nursery:
             async for task in receive_tasks:
                 nursery.start_soon(raise_return, task)
