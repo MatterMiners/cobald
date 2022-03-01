@@ -1,3 +1,4 @@
+from typing import Dict, Any
 import logging
 import threading
 import warnings
@@ -24,9 +25,8 @@ class MetaRunner(object):
 
     def __init__(self):
         self._logger = logging.getLogger("cobald.runtime.runner.meta")
-        self._runners = {
-            runner.flavour: runner() for runner in self.runner_types
-        }  # type: dict[ModuleType, BaseRunner]
+        self._runners: Dict[ModuleType, BaseRunner] = {}
+        self._runner_queues: Dict[ModuleType, Any]  = {}
         self._lock = threading.Lock()
 
     @property
@@ -43,16 +43,38 @@ class MetaRunner(object):
         return any(bool(runner) for runner in self._runners.values())
 
     def register_payload(self, *payloads, flavour: ModuleType):
-        """Queue one or more payload for execution after its runner is started"""
-        for payload in payloads:
-            self._logger.debug(
-                "registering payload %s (%s)", NameRepr(payload), NameRepr(flavour)
-            )
-            self._runners[flavour].register_payload(payload)
+        """Queue one or more payloads for execution after its runner is started"""
+        try:
+            runner = self._runners[flavour]
+        except KeyError:
+            if self._runners:
+                raise RuntimeError(f"unknown runner {NameRepr(flavour)}") from None
+            self._runner_queues.setdefault(flavour, []).extend(payloads)
+        else:
+            for payload in payloads:
+                self._logger.debug(
+                    "registering payload %s (%s)", NameRepr(payload), NameRepr(flavour)
+                )
+                runner.register_payload(payload)
 
     def run_payload(self, payload, *, flavour: ModuleType):
-        """Execute one payload after its runner is started and return its output"""
+        """
+        Execute one payload and return its output
+
+        This method will block until the payload is completed. To avoid deadlocks,
+        it is an error to call it during initialisation before the runners are started.
+        """
         return self._runners[flavour].run_payload(payload)
+
+    async def _unqueue_payloads(self):
+        """Register payloads once runners are started"""
+        assert self._runners, "runners must be launched before unqueueing"
+        await asyncio.sleep(0)
+        # runners are started already, so no new payloads can be registered
+        for flavour, queue in self._runner_queues.items():
+            self.register_payload(*queue, flavour=flavour)
+            queue.clear()
+        self._runner_queues.clear()
 
     async def _launch_runners(self):
         """Launch all runners inside an `asyncio` event loop and wait for them"""
@@ -67,6 +89,8 @@ class MetaRunner(object):
                 continue
             runner = runners[runner_type.flavour] = runner_type()
             runner_tasks.append(asyncio_loop.run_in_executor(None, runner.run))
+        self._runners = runners
+        await self._unqueue_payloads()
         await asyncio.gather(*runner_tasks)
 
     def run(self):
