@@ -79,17 +79,11 @@ class MetaRunner(object):
     async def _launch_runners(self):
         """Launch all runners inside an `asyncio` event loop and wait for them"""
         asyncio_loop = asyncio.get_event_loop()
-        # we are already running asyncio – just wrap it as a runner
-        runners = {asyncio: AsyncioRunner(asyncio_loop)}
-        # launch other runners in asyncio's thread pool
-        # this blocks some threads of the pool, but we have only very few runners
+        self._runners = {}
         runner_tasks = []
         for runner_type in self.runner_types:
-            if runner_type.flavour in runners:
-                continue
-            runner = runners[runner_type.flavour] = runner_type()
-            runner_tasks.append(asyncio_loop.run_in_executor(None, runner.run))
-        self._runners = runners
+            runner = self._runners[runner_type.flavour] = runner_type(asyncio_loop)
+            runner_tasks.append(asyncio_loop.create_task(runner.run()))
         await self._unqueue_payloads()
         await asyncio.gather(*runner_tasks)
 
