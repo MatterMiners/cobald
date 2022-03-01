@@ -1,3 +1,4 @@
+from typing import Optional
 import asyncio
 from functools import partial
 
@@ -10,9 +11,9 @@ class AsyncioRunner(BaseRunner):
 
     flavour = asyncio
 
-    def __init__(self):
+    def __init__(self, loop: Optional[asyncio.AbstractEventLoop] = None):
         super().__init__()
-        self.event_loop = asyncio.new_event_loop()
+        self.event_loop = loop if loop is not None else asyncio.new_event_loop()
         self._tasks = set()
 
     def register_payload(self, payload):
