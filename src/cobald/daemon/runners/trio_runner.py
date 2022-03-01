@@ -49,7 +49,7 @@ class TrioRunner(BaseRunner):
         # buffer of 256 is somewhat arbitrary but should be large enough to rarely stall
         # and small enough to smooth out explosive backlog.
         self._submit_tasks, receive_tasks = trio.open_memory_channel(256)
-        self._ready.set()
+        self.asyncio_loop.call_soon_threadsafe(self._ready.set)
         async with trio.open_nursery() as nursery:
             async for task in receive_tasks:
                 nursery.start_soon(raise_return, task)
