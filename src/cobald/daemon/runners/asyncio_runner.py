@@ -18,7 +18,7 @@ class AsyncioRunner(BaseRunner):
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
         self._tasks = set()
-        self._failure_queue: Optional[asyncio.Queue] = None
+        self._failure_queue = asyncio.Queue()
 
     def register_payload(self, payload: Callable[[], Awaitable]):
         self.asyncio_loop.call_soon_threadsafe(self._setup_payload, payload)
@@ -48,7 +48,6 @@ class AsyncioRunner(BaseRunner):
         await self._failure_queue.put(failure)
 
     async def manage_payloads(self):
-        self._failure_queue = asyncio.Queue()
         failure = await self._failure_queue.get()
         if failure is not None:
             raise failure
