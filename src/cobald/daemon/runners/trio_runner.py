@@ -47,7 +47,7 @@ class TrioRunner(BaseRunner):
         self._submit_tasks, receive_tasks = trio.open_memory_channel(256)
         async with trio.open_nursery() as nursery:
             async for task in receive_tasks:
-                nursery.start_soon(raise_return(task))
+                nursery.start_soon(raise_return, task)
             # shutting down: cancel the scope to cancel all payloads
             nursery.cancel_scope.cancel()
 
