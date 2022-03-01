@@ -27,8 +27,6 @@ class MetaRunner(object):
             runner.flavour: runner() for runner in self.runner_types
         }  # type: dict[ModuleType, BaseRunner]
         self._lock = threading.Lock()
-        self.running = threading.Event()
-        self.running.clear()
 
     @property
     def runners(self):
@@ -58,10 +56,8 @@ class MetaRunner(object):
     def run(self):
         """Run all runners, blocking until completion or error"""
         self._logger.info("starting all runners")
+        self._lock.acquire()
         try:
-            with self._lock:
-                assert not self.running.set(), "cannot re-run: %s" % self
-                self.running.set()
             thread_runner = self._runners[threading]
             for runner in self._runners.values():
                 if runner is not thread_runner:
@@ -78,7 +74,7 @@ class MetaRunner(object):
         finally:
             self._stop_runners()
             self._logger.info("stopped all runners")
-            self.running.clear()
+            self._lock.release()
 
     def stop(self):
         """Stop all runners"""
