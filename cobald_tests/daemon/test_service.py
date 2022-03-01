@@ -34,17 +34,6 @@ def accept(payload: ServiceRunner, name=None):
 
 
 class TestServiceRunner(object):
-    def test_no_tainting(self):
-        """Assert that no payloads may be scheduled before starting"""
-
-        def payload():
-            return
-
-        runner = ServiceRunner()
-        runner._meta_runner.register_payload(payload, flavour=threading)
-        with pytest.raises(RuntimeError):
-            runner.accept()
-
     def test_unique_reaper(self):
         """Assert that no two runners may fetch services"""
         with accept(ServiceRunner(accept_delay=0.1), name="outer"):
