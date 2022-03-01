@@ -1,9 +1,10 @@
-import trio
+from typing import Optional, Callable, Awaitable
+import asyncio
 from functools import partial
-
+import trio
 
 from .base_runner import BaseRunner
-from .async_tools import raise_return, AsyncExecution
+from .async_tools import raise_return
 
 
 class TrioRunner(BaseRunner):
@@ -11,37 +12,48 @@ class TrioRunner(BaseRunner):
 
     flavour = trio
 
-    def __init__(self):
-        self._nursery = None
-        super().__init__()
+    def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        super().__init__(asyncio_loop)
+        self._trio_token: Optional[trio.lowlevel.TrioToken] = None
+        self._submit_tasks: Optional[trio.MemorySendChannel] = None
 
-    def register_payload(self, payload):
-        super().register_payload(partial(raise_return, payload))
+    def register_payload(self, payload: Callable[[], Awaitable]):
+        assert self._trio_token is not None and self._submit_tasks is not None
+        trio.from_thread.run(
+            self._submit_tasks.send, payload, trio_token=self._trio_token
+        )
 
-    def run_payload(self, payload):
-        execution = AsyncExecution(payload)
-        super().register_payload(execution.coroutine)
-        return execution.wait()
+    def run_payload(self, payload: Callable[[], Awaitable]):
+        assert self._trio_token is not None and self._submit_tasks is not None
+        trio.from_thread.run(
+            payload, trio_token=self._trio_token
+        )
 
-    def _run(self):
-        return trio.run(self._await_all)
+    async def manage_payloads(self):
+        # this blocks one thread of the asyncio event loop
+        await self.asyncio_loop.run_in_executor(None, self._run_trio_blocking)
 
-    async def _await_all(self):
-        """Async component of _run"""
-        delay = 0.0
-        # we run a top-level nursery that automatically reaps/cancels for us
+    def _run_trio_blocking(self):
+        return trio.run(self._manage_payloads_trio)
+
+    async def _manage_payloads_trio(self):
+        self._trio_token = trio.lowlevel.current_trio_token()
+        # buffer of 256 is somewhat arbitrary but should be large enough to rarely stall
+        # and small enough to smooth out explosive backlog.
+        self._submit_tasks, receive_tasks = trio.open_memory_channel(256)
         async with trio.open_nursery() as nursery:
-            while self.running.is_set():
-                await self._start_payloads(nursery=nursery)
-                await trio.sleep(delay)
-                delay = min(delay + 0.1, 1.0)
-            # cancel the scope to cancel all payloads
+            async for task in receive_tasks:
+                nursery.start_soon(raise_return(task))
+            # shutting down: cancel the scope to cancel all payloads
             nursery.cancel_scope.cancel()
 
-    async def _start_payloads(self, nursery):
-        """Start all queued payloads"""
-        with self._lock:
-            for coroutine in self._payloads:
-                nursery.start_soon(coroutine)
-            self._payloads.clear()
-        await trio.sleep(0)
+    async def _aclose_trio(self):
+        self._running.clear()
+        await self._submit_tasks.aclose()
+
+    async def aclose(self):
+        await self.asyncio_loop.run_in_executor(
+            None, partial(
+                trio.from_thread.run, self._aclose_trio, trio_token=self._trio_token
+            )
+        )
