@@ -39,7 +39,6 @@ class ThreadRunner(BaseRunner):
             if result is None:
                 return
             failure = OrphanedReturn(payload, result)
-        assert self._failure_queue is not None
         self.asyncio_loop.call_soon_threadsafe(self._failure_queue.put_nowait, failure)
 
     async def manage_payloads(self):

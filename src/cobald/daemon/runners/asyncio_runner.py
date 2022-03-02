@@ -1,8 +1,7 @@
 from typing import Callable, Awaitable, Coroutine
 import asyncio
 
-from .base_runner import BaseRunner
-from .async_tools import OrphanedReturn
+from .base_runner import BaseRunner, OrphanedReturn
 from ._compat import asyncio_current_task
 
 
@@ -55,7 +54,6 @@ class AsyncioRunner(BaseRunner):
             failure = OrphanedReturn(payload, result)
         finally:
             self._tasks.discard(asyncio_current_task())
-        assert self._failure_queue is not None
         await self._failure_queue.put(failure)
 
     async def manage_payloads(self):
