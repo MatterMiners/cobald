@@ -35,7 +35,7 @@ class AsyncioRunner(BaseRunner):
 
     async def _monitor_payload(self, payload: Callable[[], Awaitable]):
         try:
-            result = payload()
+            result = await payload()
         except BaseException as e:
             failure = e
         else:
