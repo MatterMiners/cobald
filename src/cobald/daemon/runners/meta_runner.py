@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, List, Any
 import logging
 import threading
 import warnings
@@ -69,7 +69,7 @@ class MetaRunner(object):
         """Run all runners, blocking until completion or error"""
         self._logger.info("starting all runners")
         try:
-            asyncio_run(self._launch_runners())
+            asyncio_run(self._manage_runners())
         except KeyboardInterrupt:
             self._logger.info("runner interrupted")
         except Exception as err:
@@ -84,25 +84,9 @@ class MetaRunner(object):
         for runner in self._runners.values():
             runner.stop()
 
-    async def _unqueue_payloads(self):
-        """Register payloads once runners are started"""
-        assert self._runners, "runners must be launched before unqueueing"
-        # runners are started, so re-registering payloads does not them queue again
-        for flavour, queue in self._runner_queues.items():
-            self.register_payload(*queue, flavour=flavour)
-            queue.clear()
-        self._runner_queues.clear()
-
-    async def _launch_runners(self):
-        """Launch all runners inside an `asyncio` event loop and wait for them"""
-        asyncio_loop = asyncio.get_event_loop()
-        self._runners = {}
-        runner_tasks = []
-        for runner_type in self.runner_types:
-            runner = self._runners[runner_type.flavour] = runner_type(asyncio_loop)
-            runner_tasks.append(asyncio_loop.create_task(runner.run()))
-        for runner in self._runners.values():
-            await runner.ready()
+    async def _manage_runners(self):
+        """Manage all runners inside the current `asyncio` event loop"""
+        runner_tasks = await self._launch_runners()
         await self._unqueue_payloads()
         self.running.set()
         try:
@@ -114,3 +98,24 @@ class MetaRunner(object):
             raise
         finally:
             self.running.clear()
+
+    async def _launch_runners(self) -> List[asyncio.Task]:
+        """Launch all runners inside the current `asyncio` event loop"""
+        asyncio_loop = asyncio.get_event_loop()
+        self._runners = {}
+        runner_tasks = []
+        for runner_type in self.runner_types:
+            runner = self._runners[runner_type.flavour] = runner_type(asyncio_loop)
+            runner_tasks.append(asyncio_loop.create_task(runner.run()))
+        for runner in self._runners.values():
+            await runner.ready()
+        return runner_tasks
+
+    async def _unqueue_payloads(self) -> None:
+        """Register payloads once runners are started"""
+        assert self._runners, "runners must be launched before unqueueing"
+        # runners are started, so re-registering payloads does not them queue again
+        for flavour, queue in self._runner_queues.items():
+            self.register_payload(*queue, flavour=flavour)
+            queue.clear()
+        self._runner_queues.clear()
