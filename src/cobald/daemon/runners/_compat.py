@@ -31,7 +31,9 @@ else:
             task.cancel()
         loop.run_until_complete(asyncio.gather(*to_cancel, return_exceptions=True))
         for task in to_cancel:
-            if task.exception() is not None and not task.cancelled():
+            if task.cancelled():
+                continue
+            if task.exception() is not None:
                 loop.call_exception_handler(
                     {
                         "message": "unhandled exception during asyncio.run() shutdown",
