@@ -76,19 +76,13 @@ class MetaRunner(object):
             self._logger.exception("runner terminated: %s", err)
             raise RuntimeError from err
         finally:
-            self._stop_runners()
+            self.stop()
             self._logger.info("stopped all runners")
 
     def stop(self):
         """Stop all runners"""
-        self._stop_runners()
-
-    def _stop_runners(self):
         for runner in self._runners.values():
-            if runner.flavour == threading:
-                continue
             runner.stop()
-        self._runners[threading].stop()
 
     async def _unqueue_payloads(self):
         """Register payloads once runners are started"""
