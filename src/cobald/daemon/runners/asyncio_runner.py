@@ -1,9 +1,20 @@
-from typing import Callable, Awaitable
+from typing import Callable, Awaitable, Coroutine
 import asyncio
 
 from .base_runner import BaseRunner
-from .async_tools import OrphanedReturn, ensure_coroutine
+from .async_tools import OrphanedReturn
 from ._compat import asyncio_current_task
+
+
+def ensure_coroutine(awaitable: Awaitable) -> Coroutine:
+    """Ensure that ``awaitable`` is a coroutine and wrap it otherwise"""
+    if isinstance(awaitable, Coroutine):
+        return awaitable
+
+    async def wrapper():
+        return await awaitable
+
+    return wrapper()
 
 
 class AsyncioRunner(BaseRunner):

@@ -4,8 +4,14 @@ from functools import partial
 
 import trio
 
-from .base_runner import BaseRunner
-from .async_tools import raise_return
+from .base_runner import BaseRunner, OrphanedReturn
+
+
+async def raise_return(payload: Callable[[], Awaitable]) -> None:
+    """Wrapper to raise exception on unhandled return values"""
+    value = await payload()
+    if value is not None:
+        raise OrphanedReturn(payload, value)
 
 
 class TrioRunner(BaseRunner):
