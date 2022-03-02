@@ -20,7 +20,9 @@ class ThreadRunner(BaseRunner):
         self._failure_queue = asyncio.Queue()
 
     def register_payload(self, payload):
-        thread = threading.Thread(target=self._monitor_payload, args=(payload,), daemon=True)
+        thread = threading.Thread(
+            target=self._monitor_payload, args=(payload,), daemon=True
+        )
         thread.start()
 
     def run_payload(self, payload):

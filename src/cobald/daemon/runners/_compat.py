@@ -45,5 +45,6 @@ else:
 if sys.version_info >= (3, 7):
     asyncio_current_task = asyncio.current_task
 else:
+
     def asyncio_current_task() -> asyncio.Task:
         return asyncio.Task.current_task()

@@ -26,7 +26,7 @@ class MetaRunner(object):
     def __init__(self):
         self._logger = logging.getLogger("cobald.runtime.runner.meta")
         self._runners: Dict[ModuleType, BaseRunner] = {}
-        self._runner_queues: Dict[ModuleType, Any]  = {}
+        self._runner_queues: Dict[ModuleType, Any] = {}
         self.running = threading.Event()
 
     @property

@@ -17,9 +17,7 @@ class TerminateRunner(Exception):
 @contextlib.contextmanager
 def threaded_run(name=None):
     runner = MetaRunner()
-    thread = threading.Thread(
-        target=runner.run, name=name or str(runner), daemon=True
-    )
+    thread = threading.Thread(target=runner.run, name=name or str(runner), daemon=True)
     thread.start()
     if not runner.running.wait(1):
         raise RuntimeError("%s failed to start" % runner)

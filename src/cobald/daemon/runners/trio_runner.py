@@ -30,9 +30,7 @@ class TrioRunner(BaseRunner):
 
     def run_payload(self, payload: Callable[[], Awaitable]):
         assert self._trio_token is not None and self._submit_tasks is not None
-        return trio.from_thread.run(
-            payload, trio_token=self._trio_token
-        )
+        return trio.from_thread.run(payload, trio_token=self._trio_token)
 
     async def ready(self):
         await self._ready.wait()
@@ -63,7 +61,8 @@ class TrioRunner(BaseRunner):
         if self._stopped.is_set():
             return
         await self.asyncio_loop.run_in_executor(
-            None, partial(
+            None,
+            partial(
                 trio.from_thread.run, self._aclose_trio, trio_token=self._trio_token
-            )
+            ),
         )
