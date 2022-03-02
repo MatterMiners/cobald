@@ -90,6 +90,10 @@ class MetaRunner(object):
         self.running.set()
         try:
             await asyncio.gather(*runner_tasks)
+        except BaseException:
+            for runner in self._runners.values():
+                await runner.aclose()
+            raise
         finally:
             self.running.clear()
 
