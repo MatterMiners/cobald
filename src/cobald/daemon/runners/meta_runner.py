@@ -45,7 +45,7 @@ class MetaRunner(object):
         try:
             runner = self._runners[flavour]
         except KeyError:
-            if self._runners:
+            if self.running.is_set():
                 raise RuntimeError(f"unknown runner {NameRepr(flavour)}") from None
             self._runner_queues.setdefault(flavour, []).extend(payloads)
         else:
