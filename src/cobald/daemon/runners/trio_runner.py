@@ -60,6 +60,8 @@ class TrioRunner(BaseRunner):
         await self._submit_tasks.aclose()
 
     async def aclose(self):
+        if self._stopped.is_set():
+            return
         await self.asyncio_loop.run_in_executor(
             None, partial(
                 trio.from_thread.run, self._aclose_trio, trio_token=self._trio_token
