@@ -30,7 +30,7 @@ class TrioRunner(BaseRunner):
 
     def run_payload(self, payload: Callable[[], Awaitable]):
         assert self._trio_token is not None and self._submit_tasks is not None
-        trio.from_thread.run(
+        return trio.from_thread.run(
             payload, trio_token=self._trio_token
         )
 
