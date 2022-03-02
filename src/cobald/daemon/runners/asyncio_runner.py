@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Awaitable
+from typing import Callable, Awaitable
 import asyncio
 
 from .base_runner import BaseRunner

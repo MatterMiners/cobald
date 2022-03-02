@@ -3,7 +3,6 @@ import logging
 import threading
 import warnings
 import asyncio
-
 from types import ModuleType
 
 from .base_runner import BaseRunner
@@ -12,8 +11,7 @@ from .asyncio_runner import AsyncioRunner
 from .thread_runner import ThreadRunner
 from ._compat import asyncio_run
 
-
-from cobald.daemon.debug import NameRepr
+from ..debug import NameRepr
 
 
 class MetaRunner(object):
