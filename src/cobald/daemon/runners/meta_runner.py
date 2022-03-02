@@ -67,7 +67,6 @@ class MetaRunner(object):
     async def _unqueue_payloads(self):
         """Register payloads once runners are started"""
         assert self._runners, "runners must be launched before unqueueing"
-        await asyncio.sleep(0)
         # runners are started already, so no new payloads can be registered
         for flavour, queue in self._runner_queues.items():
             self.register_payload(*queue, flavour=flavour)
