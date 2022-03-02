@@ -27,7 +27,7 @@ class MetaRunner(object):
         self._logger = logging.getLogger("cobald.runtime.runner.meta")
         self._runners: Dict[ModuleType, BaseRunner] = {}
         self._runner_queues: Dict[ModuleType, Any]  = {}
-        self._lock = threading.Lock()
+        self.running = threading.Event()
 
     @property
     def runners(self):
@@ -87,12 +87,15 @@ class MetaRunner(object):
         for runner in self._runners.values():
             await runner.ready()
         await self._unqueue_payloads()
-        await asyncio.gather(*runner_tasks)
+        self.running.set()
+        try:
+            await asyncio.gather(*runner_tasks)
+        finally:
+            self.running.clear()
 
     def run(self):
         """Run all runners, blocking until completion or error"""
         self._logger.info("starting all runners")
-        self._lock.acquire()
         try:
             asyncio_run(self._launch_runners())
         except KeyboardInterrupt:
@@ -103,7 +106,6 @@ class MetaRunner(object):
         finally:
             self._stop_runners()
             self._logger.info("stopped all runners")
-            self._lock.release()
 
     def stop(self):
         """Stop all runners"""
