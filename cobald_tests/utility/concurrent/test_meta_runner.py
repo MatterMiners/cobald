@@ -2,6 +2,7 @@ import threading
 import pytest
 import time
 import asyncio
+import contextlib
 
 import trio
 
@@ -13,36 +14,23 @@ class TerminateRunner(Exception):
     pass
 
 
-def run_in_thread(payload, name, daemon=True):
-    thread = threading.Thread(target=payload, name=name, daemon=daemon)
+@contextlib.contextmanager
+def threaded_run(name=None):
+    runner = MetaRunner()
+    thread = threading.Thread(
+        target=runner.run, name=name or str(runner), daemon=True
+    )
     thread.start()
-    time.sleep(0.0)
+    if not runner.running.wait(1):
+        raise RuntimeError("%s failed to start" % runner)
+    try:
+        yield runner
+    finally:
+        runner.stop()
+        thread.join()
 
 
 class TestMetaRunner(object):
-    def test_bool_payloads(self):
-        def subroutine():
-            time.sleep(0.5)
-
-        async def a_coroutine():
-            await asyncio.sleep(0.5)
-
-        async def t_coroutine():
-            await trio.sleep(0.5)
-
-        for flavour, payload in (
-            (threading, subroutine),
-            (asyncio, a_coroutine),
-            (trio, t_coroutine),
-        ):
-            runner = MetaRunner()
-            assert not bool(runner)
-            runner.register_payload(payload, flavour=flavour)
-            assert bool(runner)
-            run_in_thread(runner.run, name="test_bool_payloads %s" % flavour)
-            assert bool(runner)
-            runner.stop()
-
     @pytest.mark.parametrize("flavour", (threading,))
     def test_run_subroutine(self, flavour):
         """Test executing a subroutine"""
@@ -53,11 +41,11 @@ class TestMetaRunner(object):
         def with_raise():
             raise KeyError("expected exception")
 
-        runner = MetaRunner()
-        result = runner.run_payload(with_return, flavour=flavour)
-        assert result == with_return()
-        with pytest.raises(KeyError):
-            runner.run_payload(with_raise, flavour=flavour)
+        with threaded_run() as runner:
+            result = runner.run_payload(with_return, flavour=flavour)
+            assert result == with_return()
+            with pytest.raises(KeyError):
+                runner.run_payload(with_raise, flavour=flavour)
 
     @pytest.mark.parametrize("flavour", (asyncio, trio))
     def test_run_coroutine(self, flavour):
@@ -69,13 +57,11 @@ class TestMetaRunner(object):
         async def with_raise():
             raise KeyError("expected exception")
 
-        runner = MetaRunner()
-        run_in_thread(runner.run, name="test_run_coroutine %s" % flavour)
-        result = runner.run_payload(with_return, flavour=flavour)
-        assert result == trio.run(with_return)
-        with pytest.raises(KeyError):
-            runner.run_payload(with_raise, flavour=flavour)
-        runner.stop()
+        with threaded_run() as runner:
+            result = runner.run_payload(with_return, flavour=flavour)
+            assert result == trio.run(with_return)
+            with pytest.raises(KeyError):
+                runner.run_payload(with_raise, flavour=flavour)
 
     @pytest.mark.parametrize("flavour", (threading,))
     def test_return_subroutine(self, flavour):
@@ -151,7 +137,6 @@ class TestMetaRunner(object):
                 await flavour.sleep(0)
 
         runner = MetaRunner()
-
         runner.register_payload(noop, loop, flavour=flavour)
         runner.register_payload(abort, flavour=flavour)
         with pytest.raises(RuntimeError) as exc:
