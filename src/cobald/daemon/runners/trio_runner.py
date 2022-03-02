@@ -61,6 +61,8 @@ class TrioRunner(BaseRunner):
     async def aclose(self):
         if self._stopped.is_set():
             return
+        # Trio only allows us an *synchronously blocking* call it from other threads.
+        # Use an executor thread to make that *asynchronously* blocking for asyncio.
         await self.asyncio_loop.run_in_executor(
             None,
             partial(
