@@ -14,6 +14,9 @@ class ThreadRunner(BaseRunner):
 
     flavour = threading
 
+    # This runner directly uses threading.Thread to run payloads.
+    # To detect errors, each payload is wrapped; errors and unexpected return values
+    # are pushed to a queue from which the main task re-raises.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
         self._failure_queue = asyncio.Queue()

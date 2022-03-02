@@ -25,6 +25,11 @@ class AsyncioRunner(BaseRunner):
 
     flavour = asyncio
 
+    # This runner directly uses asyncio.Task to run payloads.
+    # To detect errors, each payload is wrapped; errors and unexpected return values
+    # are pushed to a queue from which the main task re-raises.
+    # Tasks are registered in a container to allow cancelling them. The payload wrapper
+    # takes care of adding/removing tasks.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
         self._tasks = set()
@@ -64,10 +69,12 @@ class AsyncioRunner(BaseRunner):
     async def aclose(self):
         if self._stopped.is_set():
             return
+        # let the manage task wake up and exit
         await self._failure_queue.put(None)
         while self._tasks:
             for task in self._tasks.copy():
                 if task.done():
                     self._tasks.discard(task)
-                task.cancel()
+                else:
+                    task.cancel()
             await asyncio.sleep(0.5)

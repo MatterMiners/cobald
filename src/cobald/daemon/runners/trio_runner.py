@@ -23,6 +23,11 @@ class TrioRunner(BaseRunner):
 
     flavour = trio
 
+    # This runner uses a trio loop in a separate thread to run payloads.
+    # Tracking payloads and errors is handled by a trio nursery. A queue ("channel")
+    # is used to move payloads into the trio loop.
+    # Since the trio loop runs in its own thread, all public methods have to move
+    # payloads/tasks into that thread.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
         self._ready = asyncio.Event()
