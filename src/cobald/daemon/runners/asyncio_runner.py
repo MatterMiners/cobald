@@ -79,4 +79,4 @@ class AsyncioRunner(BaseRunner):
                     self._tasks.discard(task)
                 else:
                     task.cancel()
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.1)

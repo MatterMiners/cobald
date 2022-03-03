@@ -140,5 +140,6 @@ class TestServiceRunner(object):
     def test_interrupt(self, flavour):
         """Test that KeyboardInterrupt/^C is graceful shutdown"""
         runner = ServiceRunner(accept_delay=0.1)
+        runner.adopt(getattr(flavour, "sleep"), 5, flavour=flavour)
         runner.adopt(async_raise, KeyboardInterrupt("test_interrupt"), flavour=flavour)
         runner.accept()
