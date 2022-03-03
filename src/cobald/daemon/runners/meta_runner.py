@@ -87,11 +87,12 @@ class MetaRunner(object):
     async def _manage_runners(self):
         """Manage all runners inside the current `asyncio` event loop"""
         runner_tasks = await self._launch_runners()
-        await self._unqueue_payloads()
         self.running.set()
         try:
             # wait for all runners to either stop gracefully or propagate errors
-            await asyncio.gather(*runner_tasks)
+            # we only unqueue payloads *while* watching runners as payloads could
+            # cause the runners to fail – we need to stop unqueueing then as well.
+            await asyncio.gather(*runner_tasks, self._unqueue_payloads())
         except BaseException:
             for runner in self._runners.values():
                 await runner.aclose()
@@ -116,6 +117,8 @@ class MetaRunner(object):
         assert self._runners, "runners must be launched before unqueueing"
         # runners are started, so re-registering payloads does not them queue again
         for flavour, queue in self._runner_queues.items():
-            self.register_payload(*queue, flavour=flavour)
+            for payload in queue:
+                self.register_payload(payload, flavour=flavour)
+                await asyncio.sleep(0)
             queue.clear()
         self._runner_queues.clear()
