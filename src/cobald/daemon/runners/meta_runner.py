@@ -76,11 +76,11 @@ class MetaRunner(object):
             self._logger.exception("runner terminated: %s", err)
             raise RuntimeError("background task failed") from err
         finally:
-            self.stop()
             self._logger.info("stopped all runners")
 
     def stop(self):
         """Stop all runners"""
+        self._logger.debug("stop all runners")
         for runner in self._runners.values():
             runner.stop()
 
@@ -93,9 +93,13 @@ class MetaRunner(object):
             # we only unqueue payloads *while* watching runners as payloads could
             # cause the runners to fail – we need to stop unqueueing then as well.
             await asyncio.gather(*runner_tasks, self._unqueue_payloads())
+        except KeyboardInterrupt:
+            # KeyboardInterrupt in a runner task immediately kills the event loop.
+            # When we get resurrected, the exception has already been handled!
+            # Just clean up...
+            await self._aclose_runners(runner_tasks)
         except BaseException:
-            for runner in self._runners.values():
-                await runner.aclose()
+            await self._aclose_runners(runner_tasks)
             raise
         finally:
             self.running.clear()
@@ -122,3 +126,10 @@ class MetaRunner(object):
                 await asyncio.sleep(0)
             queue.clear()
         self._runner_queues.clear()
+
+    async def _aclose_runners(self, runner_tasks):
+        for runner in self._runners.values():
+            await runner.aclose()
+        # wait until runners are closed
+        await asyncio.gather(*runner_tasks, return_exceptions=True)
+        self._runners.clear()
