@@ -74,7 +74,7 @@ class MetaRunner(object):
             self._logger.info("runner interrupted")
         except Exception as err:
             self._logger.exception("runner terminated: %s", err)
-            raise RuntimeError from err
+            raise RuntimeError("background task failed") from err
         finally:
             self.stop()
             self._logger.info("stopped all runners")
