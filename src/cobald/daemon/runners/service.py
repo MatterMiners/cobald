@@ -126,6 +126,7 @@ class ServiceRunner(object):
         self._meta_runner = MetaRunner()
         self._must_shutdown = False
         self._is_shutdown = threading.Event()
+        self._is_shutdown.set()
         self.running = threading.Event()
         self.accept_delay = accept_delay
 
