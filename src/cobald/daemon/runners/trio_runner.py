@@ -36,9 +36,13 @@ class TrioRunner(BaseRunner):
 
     def register_payload(self, payload: Callable[[], Awaitable]):
         assert self._trio_token is not None and self._submit_tasks is not None
-        trio.from_thread.run(
-            self._submit_tasks.send, payload, trio_token=self._trio_token
-        )
+        try:
+            trio.from_thread.run(
+                self._submit_tasks.send, payload, trio_token=self._trio_token
+            )
+        except trio.RunFinishedError:
+            self._logger.warning(f"discarding payload {payload} during shutdown")
+            return
 
     def run_payload(self, payload: Callable[[], Awaitable]):
         assert self._trio_token is not None and self._submit_tasks is not None
@@ -74,9 +78,13 @@ class TrioRunner(BaseRunner):
             return
         # Trio only allows us an *synchronously blocking* call it from other threads.
         # Use an executor thread to make that *asynchronously* blocking for asyncio.
-        await self.asyncio_loop.run_in_executor(
-            None,
-            partial(
-                trio.from_thread.run, self._aclose_trio, trio_token=self._trio_token
-            ),
-        )
+        try:
+            await self.asyncio_loop.run_in_executor(
+                None,
+                partial(
+                    trio.from_thread.run, self._aclose_trio, trio_token=self._trio_token
+                ),
+            )
+        except trio.RunFinishedError:
+            # trio already finished in its own thread
+            return
