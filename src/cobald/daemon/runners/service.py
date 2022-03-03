@@ -159,8 +159,6 @@ class ServiceRunner(object):
         Since services are globally defined, only one :py:class:`ServiceRunner`
         may :py:meth:`accept` payloads at any time.
         """
-        if self._meta_runner:
-            raise RuntimeError("payloads scheduled for %s before being started" % self)
         self._must_shutdown = False
         self._logger.info("%s starting", self.__class__.__name__)
         # force collecting objects so that defunct,
