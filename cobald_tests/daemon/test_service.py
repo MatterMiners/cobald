@@ -121,3 +121,20 @@ class TestServiceRunner(object):
                     break
             else:
                 assert len(reply_store) == 9
+
+    @pytest.mark.parametrize("flavour", (asyncio, trio))
+    def test_error_reporting(self, flavour):
+        """Test that fatal errors do not pass silently"""
+        def async_raise(what):
+            raise what
+
+        # errors should fail the entire runtime
+        runner = ServiceRunner(accept_delay=0.1)
+        runner.adopt(async_raise, LookupError, flavour=flavour)
+        with pytest.raises(RuntimeError):
+            runner.accept()
+
+        # KeyboardInterrupt/^C is graceful shutdown
+        runner = ServiceRunner(accept_delay=0.1)
+        runner.adopt(async_raise, KeyboardInterrupt, flavour=flavour)
+        runner.accept()
