@@ -57,7 +57,10 @@ class BaseRunner(object):
         self._stopped.clear()
         try:
             await self.manage_payloads()
-        except Exception:
+        except asyncio.CancelledError:
+            self._logger.info("runner cancelled: %s", self)
+            raise
+        except BaseException:
             self._logger.exception("runner aborted: %s", self)
             raise
         else:
