@@ -38,9 +38,6 @@ class MetaRunner(object):
         )
         return self._runners
 
-    def __bool__(self):
-        return any(bool(runner) for runner in self._runners.values())
-
     def register_payload(self, *payloads, flavour: ModuleType):
         """Queue one or more payloads for execution after its runner is started"""
         try:
