@@ -56,6 +56,7 @@ class TrioRunner(BaseRunner):
             await self.asyncio_loop.run_in_executor(None, self._run_trio_blocking)
         except asyncio.CancelledError:
             await self.aclose()
+            raise
 
     def _run_trio_blocking(self):
         return trio.run(self._manage_payloads_trio)
