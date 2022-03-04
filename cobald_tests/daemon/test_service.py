@@ -139,6 +139,7 @@ class TestServiceRunner(object):
         """Test that fatal errors do not pass silently"""
         # errors should fail the entire runtime
         runner = ServiceRunner(accept_delay=0.1)
+        runner.adopt(flavour.sleep, 5, flavour=flavour)
         runner.adopt(async_raise, LookupError, flavour=flavour)
         with pytest.raises(RuntimeError):
             runner.accept()
