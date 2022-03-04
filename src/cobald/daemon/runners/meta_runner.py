@@ -97,9 +97,9 @@ class MetaRunner(object):
             # KeyboardInterrupt in a runner task immediately kills the event loop.
             # When we get resurrected, the exception has already been handled!
             # Just clean up...
-            await self._aclose_runners(runner_tasks)
+            await asyncio.shield(self._aclose_runners(runner_tasks))
         except BaseException:
-            await self._aclose_runners(runner_tasks)
+            await asyncio.shield(self._aclose_runners(runner_tasks))
             raise
         finally:
             self.running.clear()
