@@ -40,7 +40,7 @@ class TrioRunner(BaseRunner):
             trio.from_thread.run(
                 self._submit_tasks.send, payload, trio_token=self._trio_token
             )
-        except trio.RunFinishedError:
+        except (trio.RunFinishedError, trio.Cancelled):
             self._logger.warning(f"discarding payload {payload} during shutdown")
             return
 
@@ -88,6 +88,6 @@ class TrioRunner(BaseRunner):
                     trio.from_thread.run, self._aclose_trio, trio_token=self._trio_token
                 ),
             )
-        except trio.RunFinishedError:
+        except (trio.RunFinishedError, trio.Cancelled):
             # trio already finished in its own thread
             return
