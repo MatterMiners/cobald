@@ -56,7 +56,7 @@ class AsyncioRunner(BaseRunner):
             raise failure
 
     async def aclose(self):
-        if self._stopped.is_set():
+        if self._stopped.is_set() and not self._tasks:
             return
         # let the manage task wake up and exit
         await self._failure_queue.put(None)
