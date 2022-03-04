@@ -185,7 +185,7 @@ class ServiceRunner(object):
                 self._adopt_services()
                 await trio.sleep(delay)
                 delay = min(delay + increase, max_delay)
-        except Exception:
+        except BaseException:
             self._logger.exception("%s aborted", self.__class__.__name__)
             raise
         else:
