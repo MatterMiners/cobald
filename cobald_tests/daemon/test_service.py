@@ -5,6 +5,8 @@ import trio
 import asyncio
 import contextlib
 import logging
+import signal
+import os
 
 import pytest
 
@@ -36,6 +38,11 @@ def accept(payload: ServiceRunner, name=None):
 async def async_raise(what):
     logging.info(f"raising {what}")
     raise what
+
+
+async def async_raise_signal(what):
+    logging.info(f"signal {what}")
+    os.kill(os.getpid(), what)
 
 
 class TestServiceRunner(object):
@@ -141,5 +148,6 @@ class TestServiceRunner(object):
         """Test that KeyboardInterrupt/^C is graceful shutdown"""
         runner = ServiceRunner(accept_delay=0.1)
         runner.adopt(getattr(flavour, "sleep"), 5, flavour=flavour)
-        runner.adopt(async_raise, KeyboardInterrupt("test_interrupt"), flavour=flavour)
+        # signal.SIGINT == KeyboardInterrupt
+        runner.adopt(async_raise_signal, signal.SIGINT, flavour=flavour)
         runner.accept()
