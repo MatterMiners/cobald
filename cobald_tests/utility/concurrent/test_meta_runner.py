@@ -20,6 +20,7 @@ def threaded_run(name=None):
     thread = threading.Thread(target=runner.run, name=name or str(runner), daemon=True)
     thread.start()
     if not runner.running.wait(1):
+        runner.stop()
         raise RuntimeError("%s failed to start" % runner)
     try:
         yield runner
@@ -39,7 +40,7 @@ class TestMetaRunner(object):
         def with_raise():
             raise KeyError("expected exception")
 
-        with threaded_run() as runner:
+        with threaded_run("test_run_subroutine") as runner:
             result = runner.run_payload(with_return, flavour=flavour)
             assert result == with_return()
             with pytest.raises(KeyError):
@@ -55,7 +56,7 @@ class TestMetaRunner(object):
         async def with_raise():
             raise KeyError("expected exception")
 
-        with threaded_run() as runner:
+        with threaded_run("test_run_coroutine") as runner:
             result = runner.run_payload(with_return, flavour=flavour)
             assert result == trio.run(with_return)
             with pytest.raises(KeyError):

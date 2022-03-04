@@ -27,6 +27,7 @@ def accept(payload: ServiceRunner, name=None):
     )
     thread.start()
     if not payload.running.wait(1):
+        payload.shutdown()
         raise RuntimeError("%s failed to start" % payload)
     try:
         yield
