@@ -28,9 +28,7 @@ class AsyncioRunner(BaseRunner):
         self.asyncio_loop.call_soon_threadsafe(self._setup_payload, payload)
 
     def run_payload(self, payload: Callable[[], Coroutine]):
-        future = asyncio.run_coroutine_threadsafe(
-            payload(), self.asyncio_loop
-        )
+        future = asyncio.run_coroutine_threadsafe(payload(), self.asyncio_loop)
         return future.result()
 
     def _setup_payload(self, payload: Callable[[], Awaitable]):
