@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Awaitable
+from typing import Optional, Callable, Awaitable, Coroutine
 import asyncio
 from functools import partial
 
@@ -44,7 +44,7 @@ class TrioRunner(BaseRunner):
             self._logger.warning(f"discarding payload {payload} during shutdown")
             return
 
-    def run_payload(self, payload: Callable[[], Awaitable]):
+    def run_payload(self, payload: Callable[[], Coroutine]):
         assert self._trio_token is not None and self._submit_tasks is not None
         return trio.from_thread.run(payload, trio_token=self._trio_token)
 

@@ -5,17 +5,6 @@ from .base_runner import BaseRunner, OrphanedReturn
 from ._compat import asyncio_current_task
 
 
-def ensure_coroutine(awaitable: Awaitable) -> Coroutine:
-    """Ensure that ``awaitable`` is a coroutine and wrap it otherwise"""
-    if isinstance(awaitable, Coroutine):
-        return awaitable
-
-    async def wrapper():
-        return await awaitable
-
-    return wrapper()
-
-
 class AsyncioRunner(BaseRunner):
     """
     Runner for coroutines with :py:mod:`asyncio`
@@ -38,9 +27,9 @@ class AsyncioRunner(BaseRunner):
     def register_payload(self, payload: Callable[[], Awaitable]):
         self.asyncio_loop.call_soon_threadsafe(self._setup_payload, payload)
 
-    def run_payload(self, payload: Callable[[], Awaitable]):
+    def run_payload(self, payload: Callable[[], Coroutine]):
         future = asyncio.run_coroutine_threadsafe(
-            ensure_coroutine(payload()), self.asyncio_loop
+            payload(), self.asyncio_loop
         )
         return future.result()
 
