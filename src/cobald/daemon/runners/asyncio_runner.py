@@ -38,7 +38,7 @@ class AsyncioRunner(BaseRunner):
     async def _monitor_payload(self, payload: Callable[[], Awaitable]):
         try:
             result = await payload()
-        except asyncio.CancelledError:
+        except (asyncio.CancelledError, KeyboardInterrupt):
             raise
         except BaseException as e:
             failure = e
