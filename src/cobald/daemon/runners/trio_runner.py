@@ -7,13 +7,6 @@ import trio
 from .base_runner import BaseRunner, OrphanedReturn
 
 
-async def raise_return(payload: Callable[[], Awaitable]) -> None:
-    """Wrapper to raise exception on unhandled return values"""
-    value = await payload()
-    if value is not None:
-        raise OrphanedReturn(payload, value)
-
-
 class TrioRunner(BaseRunner):
     """
     Runner for coroutines with :py:mod:`trio`
@@ -69,9 +62,15 @@ class TrioRunner(BaseRunner):
         self.asyncio_loop.call_soon_threadsafe(self._ready.set)
         async with trio.open_nursery() as nursery:
             async for task in receive_tasks:
-                nursery.start_soon(raise_return, task)
+                nursery.start_soon(self._monitor_payload, task)
             # shutting down: cancel the scope to cancel all payloads
             nursery.cancel_scope.cancel()
+
+    async def _monitor_payload(self, payload: Callable[[], Awaitable]):
+        """Wrapper for awaitables and to raise exception on unhandled return values"""
+        value = await payload()
+        if value is not None:
+            raise OrphanedReturn(payload, value)
 
     async def _aclose_trio(self):
         await self._submit_tasks.aclose()
