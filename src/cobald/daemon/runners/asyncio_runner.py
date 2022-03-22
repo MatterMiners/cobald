@@ -22,7 +22,7 @@ class AsyncioRunner(BaseRunner):
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
         self._tasks = set()
-        self._failure_queue = asyncio.Queue()
+        self._payload_failure = asyncio_loop.create_future()
 
     def register_payload(self, payload: Callable[[], Awaitable]):
         self.asyncio_loop.call_soon_threadsafe(self._setup_payload, payload)
@@ -48,18 +48,18 @@ class AsyncioRunner(BaseRunner):
             failure = OrphanedReturn(payload, result)
         finally:
             self._tasks.discard(asyncio_current_task())
-        await self._failure_queue.put(failure)
+        if not self._payload_failure.done():
+            self._payload_failure.set_exception(failure)
 
     async def manage_payloads(self):
-        failure = await self._failure_queue.get()
-        if failure is not None:
-            raise failure
+        await self._payload_failure
 
     async def aclose(self):
         if self._stopped.is_set() and not self._tasks:
             return
         # let the manage task wake up and exit
-        await self._failure_queue.put(None)
+        if not self._payload_failure.done():
+            self._payload_failure.set_result(None)
         while self._tasks:
             for task in self._tasks.copy():
                 if task.done():

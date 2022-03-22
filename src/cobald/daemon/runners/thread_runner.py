@@ -19,7 +19,7 @@ class ThreadRunner(BaseRunner):
     # are pushed to a queue from which the main task re-raises.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
-        self._failure_queue = asyncio.Queue()
+        self._payload_failure = asyncio_loop.create_future()
 
     def register_payload(self, payload):
         thread = threading.Thread(
@@ -42,14 +42,17 @@ class ThreadRunner(BaseRunner):
             if result is None:
                 return
             failure = OrphanedReturn(payload, result)
-        self.asyncio_loop.call_soon_threadsafe(self._failure_queue.put_nowait, failure)
+        self.asyncio_loop.call_soon_threadsafe(self._set_failure, failure)
+
+    def _set_failure(self, failure: BaseException):
+        if not self._payload_failure.done():
+            self._payload_failure.set_exception(failure)
 
     async def manage_payloads(self):
-        failure = await self._failure_queue.get()
-        if failure is not None:
-            raise failure
+        await self._payload_failure
 
     async def aclose(self):
         if self._stopped.is_set():
             return
-        await self._failure_queue.put(None)
+        if not self._payload_failure.done():
+            self._payload_failure.set_result(None)
