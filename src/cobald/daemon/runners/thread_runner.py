@@ -8,7 +8,7 @@ class ThreadRunner(BaseRunner):
     """
     Runner for subroutines with :py:mod:`threading`
 
-    All active payloads are *not* cancelled when the runner is closed.
+    Active payloads are *not* cancelled when the runner is closed.
     Only program termination forcefully cancels leftover payloads.
     """
 
@@ -28,9 +28,9 @@ class ThreadRunner(BaseRunner):
         thread.start()
 
     def run_payload(self, payload):
-        # - run_payload has to block until payload is done
-        # instead of running payload in a thread and blocking this one,
-        # we just block this thread by running payload directly
+        # The method has to block until payload is done.
+        # Instead of running payload in a thread and blocking this one,
+        # this thread is blocked by running the payload directly.
         return payload()
 
     def _monitor_payload(self, payload):
