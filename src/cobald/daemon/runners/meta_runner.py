@@ -120,9 +120,7 @@ class MetaRunner(object):
         assert self.running.is_set(), "runners must be launched before unqueueing"
         # runners are started, so re-registering payloads does not queue them again
         for flavour, queue in self._runner_queues.items():
-            for payload in queue:
-                self.register_payload(payload, flavour=flavour)
-                await asyncio.sleep(0)
+            self.register_payload(*queue, flavour=flavour)
             queue.clear()
         self._runner_queues.clear()
 
