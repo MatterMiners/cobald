@@ -36,14 +36,22 @@ def accept(payload: ServiceRunner, name=None):
         thread.join()
 
 
-async def async_raise(what):
+def sync_raise(what):
     logging.info(f"raising {what}")
     raise what
 
 
-async def async_raise_signal(what):
+async def async_raise(what):
+    sync_raise(what)
+
+
+def sync_raise_signal(what):
     logging.info(f"signal {what}")
     os.kill(os.getpid(), what)
+
+
+async def async_raise_signal(what):
+    sync_raise_signal(what)
 
 
 class TestServiceRunner(object):
@@ -135,21 +143,35 @@ class TestServiceRunner(object):
             else:
                 assert len(reply_store) == 9
 
-    @pytest.mark.parametrize("flavour", (asyncio, trio))
-    def test_error_reporting(self, flavour):
+    @pytest.mark.parametrize(
+        "flavour, do_sleep, do_raise",
+        (
+            (asyncio, asyncio.sleep, async_raise),
+            (trio, trio.sleep, async_raise),
+            (threading, time.sleep, sync_raise),
+        ),
+    )
+    def test_error_reporting(self, flavour, do_sleep, do_raise):
         """Test that fatal errors do not pass silently"""
         # errors should fail the entire runtime
         runner = ServiceRunner(accept_delay=0.1)
-        runner.adopt(flavour.sleep, 5, flavour=flavour)
-        runner.adopt(async_raise, LookupError, flavour=flavour)
+        runner.adopt(do_sleep, 5, flavour=flavour)
+        runner.adopt(do_raise, LookupError, flavour=flavour)
         with pytest.raises(RuntimeError):
             runner.accept()
 
-    @pytest.mark.parametrize("flavour", (asyncio, trio))
-    def test_interrupt(self, flavour):
+    @pytest.mark.parametrize(
+        "flavour, do_sleep, do_raise",
+        (
+            (asyncio, asyncio.sleep, async_raise_signal),
+            (trio, trio.sleep, async_raise_signal),
+            (threading, time.sleep, sync_raise_signal),
+        ),
+    )
+    def test_interrupt(self, flavour, do_sleep, do_raise):
         """Test that KeyboardInterrupt/^C is graceful shutdown"""
         runner = ServiceRunner(accept_delay=0.1)
-        runner.adopt(flavour.sleep, 5, flavour=flavour)
+        runner.adopt(do_sleep, 5, flavour=flavour)
         # signal.SIGINT == KeyboardInterrupt
-        runner.adopt(async_raise_signal, signal.SIGINT, flavour=flavour)
+        runner.adopt(do_raise, signal.SIGINT, flavour=flavour)
         runner.accept()
