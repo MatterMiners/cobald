@@ -57,8 +57,8 @@ class MetaRunner(object):
         """
         Execute one payload and return its output
 
-        This method will block until the payload is completed. To avoid deadlocks,
-        it is an error to call it during initialisation before the runners are started.
+        This method will block until the payload is completed.
+        It is an error to call it during initialisation before the runners are started.
         """
         return self._runners[flavour].run_payload(payload)
 
@@ -88,7 +88,7 @@ class MetaRunner(object):
         try:
             # wait for all runners to either stop gracefully or propagate errors
             # we only unqueue payloads *while* watching runners as payloads could
-            # cause the runners to fail – we need to stop unqueueing then as well.
+            # cause the runners to fail – we need to stop unqueueing them as well.
             await asyncio.gather(*runner_tasks, self._unqueue_payloads())
         except KeyboardInterrupt:
             # KeyboardInterrupt in a runner task immediately kills the event loop.
@@ -116,7 +116,7 @@ class MetaRunner(object):
     async def _unqueue_payloads(self) -> None:
         """Register payloads once runners are started"""
         assert self._runners, "runners must be launched before unqueueing"
-        # runners are started, so re-registering payloads does not them queue again
+        # runners are started, so re-registering payloads does not queue them again
         for flavour, queue in self._runner_queues.items():
             for payload in queue:
                 self.register_payload(payload, flavour=flavour)
