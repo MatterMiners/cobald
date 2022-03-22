@@ -73,7 +73,11 @@ class TrioRunner(BaseRunner):
             raise OrphanedReturn(payload, value)
 
     async def _aclose_trio(self):
-        await self._submit_tasks.aclose()
+        # suppress trio cancellation to avoid raising an error in aclose
+        try:
+            await self._submit_tasks.aclose()
+        except trio.Cancelled:
+            pass
 
     async def aclose(self):
         if self._stopped.is_set():
