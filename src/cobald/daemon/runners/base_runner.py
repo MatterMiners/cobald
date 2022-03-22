@@ -30,7 +30,7 @@ class BaseRunner(object):
 
     def run_payload(self, payload):
         """
-        Register ``payload`` for direct execution in a threadsafe manner
+        Execute ``payload`` and return its result in a threadsafe manner
 
         This runs ``payload`` as soon as possible, blocking until completion.
         Should ``payload`` return or raise anything, it is propagated to the caller.
@@ -45,10 +45,13 @@ class BaseRunner(object):
 
     async def run(self):
         """
-        Execute all current and future payloads in an `asyncio` task
+        Execute all current and future payloads in an `asyncio` coroutine
 
-        Blocks and executes payloads until :py:meth:`stop` is called.
-        It is an error for any orphaned payload to return or raise.
+        This method will continuously execute payloads sent to the runner.
+        It only returns when :py:meth:`stop` is called
+        or if any orphaned payload return or raise.
+        In the latter case, :py:exc:`~.OrphanedReturn` or the raised exception
+        is re-raised by this method.
 
         Implementations should override :py:meth:`~.manage_payloads`
         to customize their specific parts.
