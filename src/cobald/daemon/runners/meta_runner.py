@@ -115,7 +115,9 @@ class MetaRunner(object):
 
     async def _unqueue_payloads(self) -> None:
         """Register payloads once runners are started"""
-        assert self._runners, "runners must be launched before unqueueing"
+        # Unqueue when we are running so that payloads do not get requeued.
+        # This also provides checking that the queued flavours correspond to a runner.
+        assert self.running.is_set(), "runners must be launched before unqueueing"
         # runners are started, so re-registering payloads does not queue them again
         for flavour, queue in self._runner_queues.items():
             for payload in queue:
