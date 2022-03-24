@@ -55,7 +55,7 @@ class BaseRunner(metaclass=ABCMeta):
 
         This method will continuously execute payloads sent to the runner.
         It only returns when :py:meth:`stop` is called
-        or if any orphaned payload return or raise.
+        or if any orphaned payload returns or raises.
         In the latter case, :py:exc:`~.OrphanedReturn` or the raised exception
         is re-raised by this method.
 
