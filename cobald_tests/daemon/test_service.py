@@ -5,6 +5,8 @@ import trio
 import asyncio
 import contextlib
 import logging
+import signal
+import os
 
 import pytest
 
@@ -25,6 +27,7 @@ def accept(payload: ServiceRunner, name=None):
     )
     thread.start()
     if not payload.running.wait(1):
+        payload.shutdown()
         raise RuntimeError("%s failed to start" % payload)
     try:
         yield
@@ -33,24 +36,30 @@ def accept(payload: ServiceRunner, name=None):
         thread.join()
 
 
+def sync_raise(what):
+    logging.info(f"raising {what}")
+    raise what
+
+
+async def async_raise(what):
+    sync_raise(what)
+
+
+def sync_raise_signal(what):
+    logging.info(f"signal {what}")
+    os.kill(os.getpid(), what)
+
+
+async def async_raise_signal(what):
+    sync_raise_signal(what)
+
+
 class TestServiceRunner(object):
-    def test_no_tainting(self):
-        """Assert that no payloads may be scheduled before starting"""
-
-        def payload():
-            return
-
-        runner = ServiceRunner()
-        runner._meta_runner.register_payload(payload, flavour=threading)
-        with pytest.raises(RuntimeError):
-            runner.accept()
-
     def test_unique_reaper(self):
         """Assert that no two runners may fetch services"""
         with accept(ServiceRunner(accept_delay=0.1), name="outer"):
             with pytest.raises(RuntimeError):
-                with accept(ServiceRunner(accept_delay=0.1), name="inner"):
-                    pass
+                ServiceRunner(accept_delay=0.1).accept()
 
     def test_service(self):
         """Test running service classes automatically"""
@@ -133,3 +142,36 @@ class TestServiceRunner(object):
                     break
             else:
                 assert len(reply_store) == 9
+
+    @pytest.mark.parametrize(
+        "flavour, do_sleep, do_raise",
+        (
+            (asyncio, asyncio.sleep, async_raise),
+            (trio, trio.sleep, async_raise),
+            (threading, time.sleep, sync_raise),
+        ),
+    )
+    def test_error_reporting(self, flavour, do_sleep, do_raise):
+        """Test that fatal errors do not pass silently"""
+        # errors should fail the entire runtime
+        runner = ServiceRunner(accept_delay=0.1)
+        runner.adopt(do_sleep, 5, flavour=flavour)
+        runner.adopt(do_raise, LookupError, flavour=flavour)
+        with pytest.raises(RuntimeError):
+            runner.accept()
+
+    @pytest.mark.parametrize(
+        "flavour, do_sleep, do_raise",
+        (
+            (asyncio, asyncio.sleep, async_raise_signal),
+            (trio, trio.sleep, async_raise_signal),
+            (threading, time.sleep, sync_raise_signal),
+        ),
+    )
+    def test_interrupt(self, flavour, do_sleep, do_raise):
+        """Test that KeyboardInterrupt/^C is graceful shutdown"""
+        runner = ServiceRunner(accept_delay=0.1)
+        runner.adopt(do_sleep, 5, flavour=flavour)
+        # signal.SIGINT == KeyboardInterrupt
+        runner.adopt(do_raise, signal.SIGINT, flavour=flavour)
+        runner.accept()

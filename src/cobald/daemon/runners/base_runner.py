@@ -1,86 +1,107 @@
+from typing import Any
+from abc import abstractmethod, ABCMeta
+import asyncio
 import logging
 import threading
-from typing import Any
 
-from cobald.daemon.debug import NameRepr
+from ..debug import NameRepr
 
 
-class BaseRunner(object):
+class BaseRunner(metaclass=ABCMeta):
+    """Concurrency backend on top of `asyncio`"""
+
     flavour = None  # type: Any
 
-    def __init__(self):
+    def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        self.asyncio_loop = asyncio_loop
         self._logger = logging.getLogger(
             "cobald.runtime.runner.%s" % NameRepr(self.flavour)
         )
-        self._payloads = []
-        self._lock = threading.Lock()
-        #: signal that runner should keep in running
-        self.running = threading.Event()
-        #: signal that runner has stopped
         self._stopped = threading.Event()
-        self.running.clear()
         self._stopped.set()
 
-    def __bool__(self):
-        with self._lock:
-            return bool(self._payloads) or self.running.is_set()
-
+    @abstractmethod
     def register_payload(self, payload):
         """
-        Register ``payload`` for asynchronous execution
+        Register ``payload`` for background execution in a threadsafe manner
 
         This runs ``payload`` as an orphaned background task as soon as possible.
         It is an error for ``payload`` to return or raise anything without handling it.
         """
-        with self._lock:
-            self._payloads.append(payload)
+        raise NotImplementedError
 
+    @abstractmethod
     def run_payload(self, payload):
         """
-        Register ``payload`` for synchronous execution
+        Execute ``payload`` and return its result in a threadsafe manner
 
         This runs ``payload`` as soon as possible, blocking until completion.
         Should ``payload`` return or raise anything, it is propagated to the caller.
         """
         raise NotImplementedError
 
-    def run(self):
-        """
-        Execute all current and future payloads
+    async def ready(self):
+        """Wait until the runner is ready to accept payloads"""
+        assert (
+            not self._stopped.is_set()
+        ), "runner must be .run before waiting until it is ready"
+        # Most runners are ready when instantiated, simply queueing payloads
+        # until they get a chance to run them. Only override this method when
+        # the runner has to do some `async` setup before being ready.
 
-        Blocks and executes payloads until :py:meth:`stop` is called.
-        It is an error for any orphaned payload to return or raise.
+    async def run(self):
+        """
+        Execute all current and future payloads in an `asyncio` coroutine
+
+        This method will continuously execute payloads sent to the runner.
+        It only returns when :py:meth:`stop` is called
+        or if any orphaned payload returns or raises.
+        In the latter case, :py:exc:`~.OrphanedReturn` or the raised exception
+        is re-raised by this method.
+
+        Implementations should override :py:meth:`~.manage_payloads`
+        to customize their specific parts.
         """
         self._logger.info("runner started: %s", self)
+        self._stopped.clear()
         try:
-            with self._lock:
-                assert not self.running.is_set() and self._stopped.is_set(), (
-                    "cannot re-run: %s" % self
-                )
-                self.running.set()
-                self._stopped.clear()
-            self._run()
-        except Exception:
+            await self.manage_payloads()
+        except asyncio.CancelledError:
+            self._logger.info("runner cancelled: %s", self)
+            raise
+        except BaseException:
             self._logger.exception("runner aborted: %s", self)
             raise
         else:
             self._logger.info("runner stopped: %s", self)
         finally:
-            with self._lock:
-                self.running.clear()
-                self._stopped.set()
+            self._stopped.set()
 
-    def _run(self):
+    @abstractmethod
+    async def manage_payloads(self):
+        """
+        Implementation of managing payloads when :py:meth:`~.run`
+
+        This method must continuously execute payloads sent to the runner.
+        It may only return when :py:meth:`stop` is called
+        or if any orphaned payload return or raise.
+        In the latter case, :py:exc:`~.OrphanedReturn` or the raised exception
+        must re-raised by this method.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    async def aclose(self):
+        """Shut down this runner"""
         raise NotImplementedError
 
     def stop(self):
-        """Stop execution of all current and future payloads"""
-        if not self.running.wait(0.2):
+        """Stop execution of all current and future payloads and block until success"""
+        if self._stopped.is_set():
             return
-        self._logger.debug("runner disabled: %s", self)
-        with self._lock:
-            self.running.clear()
-        self._stopped.wait()
+        # the loop exists independently of all runners, we can use it to shut down
+        closed = asyncio.run_coroutine_threadsafe(self.aclose(), self.asyncio_loop)
+        closed.result()
 
 
 class OrphanedReturn(Exception):

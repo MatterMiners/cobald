@@ -110,6 +110,16 @@ def service(flavour):
 class ServiceRunner(object):
     """
     Runner for coroutines, subroutines and services
+
+    The service runner prevents silent failures by tracking concurrent tasks
+    and therefore provides safer concurrency.
+    If any task fails with an exception or provides
+    unexpected output values, this is registered as an error; the runner will
+    gracefully shut down all tasks in this case.
+
+    To provide ``async`` concurrency, the runner also manages common
+    ``async`` event loops and tracks them for failures as well. As a result,
+    ``async`` code should usually use the "current" event loop directly.
     """
 
     def __init__(self, accept_delay: float = 1):
@@ -117,6 +127,7 @@ class ServiceRunner(object):
         self._meta_runner = MetaRunner()
         self._must_shutdown = False
         self._is_shutdown = threading.Event()
+        self._is_shutdown.set()
         self.running = threading.Event()
         self.accept_delay = accept_delay
 
@@ -150,8 +161,6 @@ class ServiceRunner(object):
         Since services are globally defined, only one :py:class:`ServiceRunner`
         may :py:meth:`accept` payloads at any time.
         """
-        if self._meta_runner:
-            raise RuntimeError("payloads scheduled for %s before being started" % self)
         self._must_shutdown = False
         self._logger.info("%s starting", self.__class__.__name__)
         # force collecting objects so that defunct,
@@ -177,7 +186,9 @@ class ServiceRunner(object):
                 self._adopt_services()
                 await trio.sleep(delay)
                 delay = min(delay + increase, max_delay)
-        except Exception:
+        except trio.Cancelled:
+            self._logger.info("%s cancelled", self.__class__.__name__)
+        except BaseException:
             self._logger.exception("%s aborted", self.__class__.__name__)
             raise
         else:

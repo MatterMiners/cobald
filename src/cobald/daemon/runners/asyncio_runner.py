@@ -1,81 +1,69 @@
+from typing import Callable, Awaitable, Coroutine
 import asyncio
-from functools import partial
 
-from .base_runner import BaseRunner
-from .async_tools import raise_return, AsyncExecution
+from .base_runner import BaseRunner, OrphanedReturn
+from ._compat import asyncio_current_task
 
 
 class AsyncioRunner(BaseRunner):
-    """Runner for coroutines with :py:mod:`asyncio`"""
+    """
+    Runner for coroutines with :py:mod:`asyncio`
+
+    All active payloads are actively cancelled when the runner is closed.
+    """
 
     flavour = asyncio
 
-    def __init__(self):
-        super().__init__()
-        self.event_loop = asyncio.new_event_loop()
+    # This runner directly uses asyncio.Task to run payloads.
+    # To detect errors, each payload is wrapped; errors and unexpected return values
+    # are pushed to a queue from which the main task re-raises.
+    # Tasks are registered in a container to allow cancelling them. The payload wrapper
+    # takes care of adding/removing tasks.
+    def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        super().__init__(asyncio_loop)
         self._tasks = set()
+        self._payload_failure = asyncio_loop.create_future()
 
-    def register_payload(self, payload):
-        super().register_payload(partial(raise_return, payload))
+    def register_payload(self, payload: Callable[[], Awaitable]):
+        self.asyncio_loop.call_soon_threadsafe(self._setup_payload, payload)
 
-    def run_payload(self, payload):
-        execution = AsyncExecution(payload)
-        super().register_payload(execution.coroutine)
-        return execution.wait()
+    def run_payload(self, payload: Callable[[], Coroutine]):
+        future = asyncio.run_coroutine_threadsafe(payload(), self.asyncio_loop)
+        return future.result()
 
-    def _run(self):
-        asyncio.set_event_loop(self.event_loop)
-        self.event_loop.run_until_complete(self._run_payloads())
+    def _setup_payload(self, payload: Callable[[], Awaitable]):
+        task = self.asyncio_loop.create_task(self._monitor_payload(payload))
+        self._tasks.add(task)
 
-    async def _run_payloads(self):
-        """Async component of _run"""
-        delay = 0.0
+    async def _monitor_payload(self, payload: Callable[[], Awaitable]):
         try:
-            while self.running.is_set():
-                await self._start_payloads()
-                await self._reap_payloads()
-                await asyncio.sleep(delay)
-                delay = min(delay + 0.1, 1.0)
-        except Exception:
-            await self._cancel_payloads()
+            result = await payload()
+        except (asyncio.CancelledError, KeyboardInterrupt):
             raise
+        except BaseException as e:
+            failure = e
+        else:
+            if result is None:
+                return
+            failure = OrphanedReturn(payload, result)
+        finally:
+            self._tasks.discard(asyncio_current_task())
+        if not self._payload_failure.done():
+            self._payload_failure.set_exception(failure)
 
-    async def _start_payloads(self):
-        """Start all queued payloads"""
-        with self._lock:
-            for coroutine in self._payloads:
-                task = self.event_loop.create_task(coroutine())
-                self._tasks.add(task)
-            self._payloads.clear()
-        await asyncio.sleep(0)
+    async def manage_payloads(self):
+        await self._payload_failure
 
-    async def _reap_payloads(self):
-        """Clean up all finished payloads"""
-        for task in self._tasks.copy():
-            if task.done():
-                self._tasks.remove(task)
-                if task.exception() is not None:
-                    raise task.exception()
-        await asyncio.sleep(0)
-
-    async def _cancel_payloads(self):
-        """Cancel all remaining payloads"""
-        for task in self._tasks:
-            task.cancel()
-            await asyncio.sleep(0)
-        for task in self._tasks:
-            while not task.done():
-                await asyncio.sleep(0.1)
-                task.cancel()
-
-    def stop(self):
-        if not self.running.wait(0.2):
+    async def aclose(self):
+        if self._stopped.is_set() and not self._tasks:
             return
-        self._logger.debug("runner disabled: %s", self)
-        with self._lock:
-            self.running.clear()
-            for task in self._tasks:
-                task.cancel()
-        self._stopped.wait()
-        self.event_loop.stop()
-        self.event_loop.close()
+        # let the manage task wake up and exit
+        if not self._payload_failure.done():
+            self._payload_failure.set_result(None)
+        while self._tasks:
+            for task in self._tasks.copy():
+                if task.done():
+                    self._tasks.discard(task)
+                else:
+                    task.cancel()
+            await asyncio.sleep(0.1)

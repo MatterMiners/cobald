@@ -1,47 +1,96 @@
-import trio
+from typing import Optional, Callable, Awaitable, Coroutine
+import asyncio
 from functools import partial
 
+import trio
 
-from .base_runner import BaseRunner
-from .async_tools import raise_return, AsyncExecution
+from .base_runner import BaseRunner, OrphanedReturn
 
 
 class TrioRunner(BaseRunner):
-    """Runner for coroutines with :py:mod:`trio`"""
+    """
+    Runner for coroutines with :py:mod:`trio`
+
+    All active payloads are actively cancelled when the runner is closed.
+    """
 
     flavour = trio
 
-    def __init__(self):
-        self._nursery = None
-        super().__init__()
+    # This runner uses a trio loop in a separate thread to run payloads.
+    # Tracking payloads and errors is handled by a trio nursery. A queue ("channel")
+    # is used to move payloads into the trio loop.
+    # Since the trio loop runs in its own thread, all public methods have to move
+    # payloads/tasks into that thread.
+    def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        super().__init__(asyncio_loop)
+        self._ready = asyncio.Event()
+        self._trio_token: Optional[trio.lowlevel.TrioToken] = None
+        self._submit_tasks: Optional[trio.MemorySendChannel] = None
 
-    def register_payload(self, payload):
-        super().register_payload(partial(raise_return, payload))
+    def register_payload(self, payload: Callable[[], Awaitable]):
+        assert self._trio_token is not None and self._submit_tasks is not None
+        try:
+            trio.from_thread.run(
+                self._submit_tasks.send, payload, trio_token=self._trio_token
+            )
+        except (trio.RunFinishedError, trio.Cancelled):
+            self._logger.warning(f"discarding payload {payload} during shutdown")
+            return
 
-    def run_payload(self, payload):
-        execution = AsyncExecution(payload)
-        super().register_payload(execution.coroutine)
-        return execution.wait()
+    def run_payload(self, payload: Callable[[], Coroutine]):
+        assert self._trio_token is not None and self._submit_tasks is not None
+        return trio.from_thread.run(payload, trio_token=self._trio_token)
 
-    def _run(self):
-        return trio.run(self._await_all)
+    async def ready(self):
+        await self._ready.wait()
 
-    async def _await_all(self):
-        """Async component of _run"""
-        delay = 0.0
-        # we run a top-level nursery that automatically reaps/cancels for us
+    async def manage_payloads(self):
+        try:
+            await self.asyncio_loop.run_in_executor(None, self._run_trio_blocking)
+        except asyncio.CancelledError:
+            await self.aclose()
+            raise
+
+    def _run_trio_blocking(self):
+        return trio.run(self._manage_payloads_trio)
+
+    async def _manage_payloads_trio(self):
+        self._trio_token = trio.lowlevel.current_trio_token()
+        # buffer of 256 is somewhat arbitrary but should be large enough to rarely stall
+        # and small enough to smooth out explosive backlog.
+        self._submit_tasks, receive_tasks = trio.open_memory_channel(256)
+        self.asyncio_loop.call_soon_threadsafe(self._ready.set)
         async with trio.open_nursery() as nursery:
-            while self.running.is_set():
-                await self._start_payloads(nursery=nursery)
-                await trio.sleep(delay)
-                delay = min(delay + 0.1, 1.0)
-            # cancel the scope to cancel all payloads
+            async for task in receive_tasks:
+                nursery.start_soon(self._monitor_payload, task)
+            # shutting down: cancel the scope to cancel all payloads
             nursery.cancel_scope.cancel()
 
-    async def _start_payloads(self, nursery):
-        """Start all queued payloads"""
-        with self._lock:
-            for coroutine in self._payloads:
-                nursery.start_soon(coroutine)
-            self._payloads.clear()
-        await trio.sleep(0)
+    async def _monitor_payload(self, payload: Callable[[], Awaitable]):
+        """Wrapper for awaitables and to raise exception on unhandled return values"""
+        value = await payload()
+        if value is not None:
+            raise OrphanedReturn(payload, value)
+
+    async def _aclose_trio(self):
+        # suppress trio cancellation to avoid raising an error in aclose
+        try:
+            await self._submit_tasks.aclose()
+        except trio.Cancelled:
+            pass
+
+    async def aclose(self):
+        if self._stopped.is_set():
+            return
+        # Trio only allows us an *synchronously blocking* call it from other threads.
+        # Use an executor thread to make that *asynchronously* blocking for asyncio.
+        try:
+            await self.asyncio_loop.run_in_executor(
+                None,
+                partial(
+                    trio.from_thread.run, self._aclose_trio, trio_token=self._trio_token
+                ),
+            )
+        except (trio.RunFinishedError, trio.Cancelled):
+            # trio already finished in its own thread
+            return
