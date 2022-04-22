@@ -1,6 +1,7 @@
 """
 Daemon core specific to cobald
 """
+import asyncio
 import sys
 import logging
 import platform
@@ -28,7 +29,16 @@ def run(configuration: str, level: str, target: str, short_format: bool):
     logger.debug(cobald.__about__.__file__)
     logger.info("Using configuration %s", configuration)
     logger.info("Starting daemon services...")
+    runtime.adopt(_load_services, configuration, flavour=asyncio)
     runtime.accept(context=load(configuration))
+
+
+async def _load_services(path: str):
+    """Helper to load the configured tasks and hold created objects alive"""
+    with load(path):
+        # sleep indefinitely to wait until the runtime is aborted
+        while True:
+            await asyncio.sleep(24*60*60)
 
 
 def cli_run():
