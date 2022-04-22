@@ -2,7 +2,6 @@ from typing import TypeVar, Set
 import logging
 import weakref
 import trio
-import gc
 import functools
 import threading
 
@@ -163,10 +162,6 @@ class ServiceRunner(object):
         """
         self._must_shutdown = False
         self._logger.info("%s starting", self.__class__.__name__)
-        # force collecting objects so that defunct,
-        # migrated and overwritten services are destroyed now
-        gc.collect()
-        self._adopt_services()
         self.adopt(self._accept_services, flavour=trio)
         self._meta_runner.run()
 
