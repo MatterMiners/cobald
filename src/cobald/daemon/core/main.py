@@ -30,7 +30,7 @@ def run(configuration: str, level: str, target: str, short_format: bool):
     logger.info("Using configuration %s", configuration)
     logger.info("Starting daemon services...")
     runtime.adopt(_load_services, configuration, flavour=asyncio)
-    runtime.accept(context=load(configuration))
+    runtime.accept()
 
 
 async def _load_services(path: str):
