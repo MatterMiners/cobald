@@ -17,6 +17,7 @@ from ..debug import NameRepr
 if sys.version_info >= (3, 7):
     from contextlib import nullcontext
 else:
+
     class nullcontext:
         __enter__ = __exit__ = lambda *args: None
 
