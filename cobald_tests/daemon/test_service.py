@@ -7,7 +7,6 @@ import contextlib
 import logging
 import signal
 import os
-import sys
 
 import pytest
 
