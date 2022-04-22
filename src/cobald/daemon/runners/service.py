@@ -1,4 +1,4 @@
-from typing import TypeVar, Set, ContextManager
+from typing import TypeVar, Set
 import logging
 import weakref
 import trio
