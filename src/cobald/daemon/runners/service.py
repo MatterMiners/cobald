@@ -1,4 +1,4 @@
-from typing import TypeVar, Set
+from typing import TypeVar, Set, ContextManager, Optional
 import logging
 import weakref
 import trio
@@ -154,7 +154,7 @@ class ServiceRunner(object):
         self._meta_runner.register_payload(payload, flavour=flavour)
 
     @exclusive()
-    def accept(self):
+    def accept(self, context: Optional[ContextManager] = None):
         """
         Start accepting synchronous, asynchronous and service payloads
 
@@ -167,7 +167,7 @@ class ServiceRunner(object):
         # migrated and overwritten services are destroyed now
         gc.collect()
         self._adopt_services()
-        self.adopt(self._accept_services, flavour=trio)
+        self.adopt(self._accept_services, context, flavour=trio)
         self._meta_runner.run()
 
     def shutdown(self):
@@ -176,16 +176,17 @@ class ServiceRunner(object):
         self._is_shutdown.wait()
         self._meta_runner.stop()
 
-    async def _accept_services(self):
+    async def _accept_services(self, context: Optional[ContextManager] = None):
         delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
         self.running.set()
         try:
             self._logger.info("%s started", self.__class__.__name__)
-            while not self._must_shutdown:
-                self._adopt_services()
-                await trio.sleep(delay)
-                delay = min(delay + increase, max_delay)
+            with context:
+                while not self._must_shutdown:
+                    self._adopt_services()
+                    await trio.sleep(delay)
+                    delay = min(delay + increase, max_delay)
         except trio.Cancelled:
             self._logger.info("%s cancelled", self.__class__.__name__)
         except BaseException:
