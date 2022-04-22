@@ -1,8 +1,12 @@
+from typing import Callable, TypeVar
 import threading
 import functools
 
 
-def exclusive(via=threading.Lock):
+C = TypeVar("C", bound=Callable)
+
+
+def exclusive(via=threading.Lock) -> Callable[[C], C]:
     """
     Mark a callable as exclusive
 
@@ -14,7 +18,7 @@ def exclusive(via=threading.Lock):
     :note: If applied to a method, it is exclusive across all instances.
     """
 
-    def make_exclusive(fnc):
+    def make_exclusive(fnc: C) -> C:
         fnc_guard = via()
 
         @functools.wraps(fnc)
