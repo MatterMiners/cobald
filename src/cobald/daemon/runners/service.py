@@ -5,21 +5,12 @@ import trio
 import gc
 import functools
 import threading
-import sys
 
 from types import ModuleType
 
 from .meta_runner import MetaRunner
 from .guard import exclusive
 from ..debug import NameRepr
-
-
-if sys.version_info >= (3, 7):
-    from contextlib import nullcontext
-else:
-
-    class nullcontext:
-        __enter__ = __exit__ = lambda *args: None
 
 
 T = TypeVar("T")
@@ -163,7 +154,7 @@ class ServiceRunner(object):
         self._meta_runner.register_payload(payload, flavour=flavour)
 
     @exclusive()
-    def accept(self, context: ContextManager = nullcontext()):
+    def accept(self):
         """
         Start accepting synchronous, asynchronous and service payloads
 
@@ -176,7 +167,7 @@ class ServiceRunner(object):
         # migrated and overwritten services are destroyed now
         gc.collect()
         self._adopt_services()
-        self.adopt(self._accept_services, context, flavour=trio)
+        self.adopt(self._accept_services, flavour=trio)
         self._meta_runner.run()
 
     def shutdown(self):
@@ -185,17 +176,16 @@ class ServiceRunner(object):
         self._is_shutdown.wait()
         self._meta_runner.stop()
 
-    async def _accept_services(self, context: ContextManager):
+    async def _accept_services(self):
         delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
         self.running.set()
         try:
             self._logger.info("%s started", self.__class__.__name__)
-            with context:
-                while not self._must_shutdown:
-                    self._adopt_services()
-                    await trio.sleep(delay)
-                    delay = min(delay + increase, max_delay)
+            while not self._must_shutdown:
+                self._adopt_services()
+                await trio.sleep(delay)
+                delay = min(delay + increase, max_delay)
         except trio.Cancelled:
             self._logger.info("%s cancelled", self.__class__.__name__)
         except BaseException:

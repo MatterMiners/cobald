@@ -176,33 +176,3 @@ class TestServiceRunner(object):
         # signal.SIGINT == KeyboardInterrupt
         runner.adopt(do_raise, signal.SIGINT, flavour=flavour)
         runner.accept()
-
-    def test_loop_context(self):
-        """Test that an event loop is available when running the context"""
-        def shutdown(delay: float):
-            time.sleep(delay)
-            os.kill(os.getpid(), signal.SIGINT)
-
-        class TestContext:
-            def __init__(self):
-                self.observed = []
-
-            def __enter__(self):
-                runner.adopt(shutdown, 0.1, flavour=threading)
-                if sys.version_info[:2] >= (3, 7):
-                    try:
-                        has_loop = asyncio.get_running_loop() is not None
-                    except RuntimeError:
-                        has_loop = False
-                else:
-                    has_loop = asyncio.get_event_loop().is_running()
-                self.observed.append(has_loop)
-
-            def __exit__(self, exc_type, exc_val, exc_tb):
-                self.observed.append(True)
-
-        runner = ServiceRunner(accept_delay=0.1)
-        test_context = TestContext()
-        runner.accept(context=test_context)
-        assert len(test_context.observed) == 2, "context did not enter and exit"
-        assert test_context.observed[0], "event loop was not ready for context"
