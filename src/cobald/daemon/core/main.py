@@ -34,7 +34,9 @@ def run(configuration: str, level: str, target: str, short_format: bool):
 
 
 async def _load_services(path: str):
-    """Helper to load the configured tasks and hold created objects alive"""
+    """
+    Helper to load configured tasks once the runtime is ready and to hold objects alive
+    """
     with load(path):
         # sleep indefinitely to wait until the runtime is aborted
         while True:
