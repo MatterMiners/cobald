@@ -1,10 +1,11 @@
-from typing import TypeVar, Set, ContextManager, Optional
+from typing import TypeVar, Set, ContextManager
 import logging
 import weakref
 import trio
 import gc
 import functools
 import threading
+import contextlib
 
 from types import ModuleType
 
@@ -154,7 +155,7 @@ class ServiceRunner(object):
         self._meta_runner.register_payload(payload, flavour=flavour)
 
     @exclusive()
-    def accept(self, context: Optional[ContextManager] = None):
+    def accept(self, context: ContextManager = contextlib.nullcontext()):
         """
         Start accepting synchronous, asynchronous and service payloads
 
@@ -176,7 +177,7 @@ class ServiceRunner(object):
         self._is_shutdown.wait()
         self._meta_runner.stop()
 
-    async def _accept_services(self, context: Optional[ContextManager] = None):
+    async def _accept_services(self, context: ContextManager):
         delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
         self.running.set()
