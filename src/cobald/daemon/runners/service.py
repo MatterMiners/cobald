@@ -5,13 +5,20 @@ import trio
 import gc
 import functools
 import threading
-import contextlib
+import sys
 
 from types import ModuleType
 
 from .meta_runner import MetaRunner
 from .guard import exclusive
 from ..debug import NameRepr
+
+
+if sys.version_info >= (3, 7):
+    from contextlib import nullcontext
+else:
+    class nullcontext:
+        __enter__ = __exit__ = lambda *args: None
 
 
 T = TypeVar("T")
@@ -155,7 +162,7 @@ class ServiceRunner(object):
         self._meta_runner.register_payload(payload, flavour=flavour)
 
     @exclusive()
-    def accept(self, context: ContextManager = contextlib.nullcontext()):
+    def accept(self, context: ContextManager = nullcontext()):
         """
         Start accepting synchronous, asynchronous and service payloads
 
