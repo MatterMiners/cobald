@@ -33,13 +33,13 @@ class TrioRunner(BaseRunner):
             trio.from_thread.run(
                 self._submit_tasks.send, payload, trio_token=self._trio_token
             )
-        except RuntimeError:
-            # trio raises RuntimeError when we are already in the trio thread
-            # just submit the task directly
-            self._submit_tasks.send_nowait(payload)
         except (trio.RunFinishedError, trio.Cancelled):
             self._logger.warning(f"discarding payload {payload} during shutdown")
             return
+        except RuntimeError:
+            # trio raises a bare RuntimeError when we are already in the trio thread
+            # just submit the task directly
+            self._submit_tasks.send_nowait(payload)
 
     def run_payload(self, payload: Callable[[], Coroutine]):
         assert self._trio_token is not None and self._submit_tasks is not None
