@@ -7,6 +7,7 @@ import contextlib
 import logging
 import signal
 import os
+import gc
 
 import pytest
 
@@ -21,19 +22,22 @@ class TerminateRunner(Exception):
 
 
 @contextlib.contextmanager
-def accept(payload: ServiceRunner, name=None):
+def accept(payload: ServiceRunner, name):
+    gc.collect()
     thread = threading.Thread(
-        target=payload.accept, name=name or str(payload), daemon=True
+        target=payload.accept, name=name, daemon=True
     )
     thread.start()
     if not payload.running.wait(1):
         payload.shutdown()
-        raise RuntimeError(f"{payload} failed to start (thread {thread})")
+        raise RuntimeError(
+            f"{payload} failed to start (thread {thread}, all {threading.enumerate()})"
+        )
     try:
         yield
     finally:
         payload.shutdown()
-        thread.join()
+        thread.join(timeout=1)
 
 
 def sync_raise(what):

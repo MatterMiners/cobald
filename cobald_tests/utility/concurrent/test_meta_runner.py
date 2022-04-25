@@ -3,6 +3,7 @@ import pytest
 import time
 import asyncio
 import contextlib
+import gc
 
 import trio
 
@@ -15,18 +16,21 @@ class TerminateRunner(Exception):
 
 
 @contextlib.contextmanager
-def threaded_run(name=None):
+def threaded_run(name):
+    gc.collect()
     runner = MetaRunner()
-    thread = threading.Thread(target=runner.run, name=name or str(runner), daemon=True)
+    thread = threading.Thread(target=runner.run, name=name, daemon=True)
     thread.start()
     if not runner.running.wait(1):
         runner.stop()
-        raise RuntimeError(f"{runner} failed to start (thread {thread})")
+        raise RuntimeError(
+            f"{runner} failed to start (thread {thread}, all {threading.enumerate()})"
+        )
     try:
         yield runner
     finally:
         runner.stop()
-        thread.join()
+        thread.join(timeout=1)
 
 
 class TestMetaRunner(object):
