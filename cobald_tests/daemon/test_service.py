@@ -24,9 +24,7 @@ class TerminateRunner(Exception):
 @contextlib.contextmanager
 def accept(payload: ServiceRunner, name):
     gc.collect()
-    thread = threading.Thread(
-        target=payload.accept, name=name, daemon=True
-    )
+    thread = threading.Thread(target=payload.accept, name=name, daemon=True)
     thread.start()
     if not payload.running.wait(1):
         payload.shutdown()
