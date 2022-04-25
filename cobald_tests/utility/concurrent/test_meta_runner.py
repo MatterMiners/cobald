@@ -21,7 +21,7 @@ def threaded_run(name=None):
     thread.start()
     if not runner.running.wait(1):
         runner.stop()
-        raise RuntimeError("%s failed to start" % runner)
+        raise RuntimeError(f"{runner} failed to start (thread {thread})")
     try:
         yield runner
     finally:
