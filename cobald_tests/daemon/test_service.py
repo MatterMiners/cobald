@@ -49,13 +49,16 @@ async def async_raise(what):
     sync_raise(what)
 
 
-def sync_raise_signal(what):
+def sync_raise_signal(what, sleep):
+    if sleep is not None:
+        sleep(0.01)
     logging.info(f"signal {what}")
     os.kill(os.getpid(), what)
 
 
-async def async_raise_signal(what):
-    sync_raise_signal(what)
+async def async_raise_signal(what, sleep):
+    await sleep(0.01)
+    sync_raise_signal(what, None)
 
 
 class TestServiceRunner(object):
@@ -177,5 +180,5 @@ class TestServiceRunner(object):
         runner = ServiceRunner(accept_delay=0.1)
         runner.adopt(do_sleep, 5, flavour=flavour)
         # signal.SIGINT == KeyboardInterrupt
-        runner.adopt(do_raise, signal.SIGINT, flavour=flavour)
+        runner.adopt(do_raise, signal.SIGINT, do_sleep, flavour=flavour)
         runner.accept()
