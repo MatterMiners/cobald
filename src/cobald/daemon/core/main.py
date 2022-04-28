@@ -39,8 +39,7 @@ async def _load_services(path: str):
     """
     with load(path):
         # sleep indefinitely to wait until the runtime is aborted
-        while True:
-            await asyncio.sleep(24 * 60 * 60)
+        await asyncio.sleep(float("inf"))
 
 
 def cli_run():
