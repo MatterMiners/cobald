@@ -60,7 +60,12 @@ class TrioRunner(BaseRunner):
 
     async def _manage_payloads_trio(self):
         self._trio_token = trio.lowlevel.current_trio_token()
-        self._submit_tasks, receive_tasks = trio.open_memory_channel(float("inf"))
+        # We receive tasks from a possibly blocking call in the same event loop
+        # To avoid deadlocking the event loop, the task buffer must always have
+        # sufficient capacity to accept new tasks.
+        self._submit_tasks, receive_tasks = trio.open_memory_channel(
+            max_buffer_size=float("inf")
+        )
         self.asyncio_loop.call_soon_threadsafe(self._ready.set)
         async with trio.open_nursery() as nursery:
             async for task in receive_tasks:
