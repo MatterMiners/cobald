@@ -22,5 +22,6 @@ jobs:
     - name: Test with pytest
       run: |
         pytest -v --cov
+      timeout-minutes: 5
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1

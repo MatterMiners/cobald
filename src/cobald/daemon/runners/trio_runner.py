@@ -36,6 +36,10 @@ class TrioRunner(BaseRunner):
         except (trio.RunFinishedError, trio.Cancelled):
             self._logger.warning(f"discarding payload {payload} during shutdown")
             return
+        except RuntimeError:
+            # trio raises a bare RuntimeError when we are already in the trio thread
+            # just submit the task directly
+            self._submit_tasks.send_nowait(payload)
 
     def run_payload(self, payload: Callable[[], Coroutine]):
         assert self._trio_token is not None and self._submit_tasks is not None
@@ -56,9 +60,12 @@ class TrioRunner(BaseRunner):
 
     async def _manage_payloads_trio(self):
         self._trio_token = trio.lowlevel.current_trio_token()
-        # buffer of 256 is somewhat arbitrary but should be large enough to rarely stall
-        # and small enough to smooth out explosive backlog.
-        self._submit_tasks, receive_tasks = trio.open_memory_channel(256)
+        # We receive tasks from a possibly blocking call in the same event loop
+        # To avoid deadlocking the event loop, the task buffer must always have
+        # sufficient capacity to accept new tasks.
+        self._submit_tasks, receive_tasks = trio.open_memory_channel(
+            max_buffer_size=float("inf")
+        )
         self.asyncio_loop.call_soon_threadsafe(self._ready.set)
         async with trio.open_nursery() as nursery:
             async for task in receive_tasks:

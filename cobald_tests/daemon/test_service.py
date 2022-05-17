@@ -7,6 +7,7 @@ import contextlib
 import logging
 import signal
 import os
+import gc
 
 import pytest
 
@@ -21,19 +22,20 @@ class TerminateRunner(Exception):
 
 
 @contextlib.contextmanager
-def accept(payload: ServiceRunner, name=None):
-    thread = threading.Thread(
-        target=payload.accept, name=name or str(payload), daemon=True
-    )
+def accept(payload: ServiceRunner, name):
+    gc.collect()
+    thread = threading.Thread(target=payload.accept, name=name, daemon=True)
     thread.start()
     if not payload.running.wait(1):
         payload.shutdown()
-        raise RuntimeError("%s failed to start" % payload)
+        raise RuntimeError(
+            f"{payload} failed to start (thread {thread}, all {threading.enumerate()})"
+        )
     try:
         yield
     finally:
         payload.shutdown()
-        thread.join()
+        thread.join(timeout=1)
 
 
 def sync_raise(what):
@@ -45,13 +47,16 @@ async def async_raise(what):
     sync_raise(what)
 
 
-def sync_raise_signal(what):
+def sync_raise_signal(what, sleep):
+    if sleep is not None:
+        sleep(0.01)
     logging.info(f"signal {what}")
     os.kill(os.getpid(), what)
 
 
-async def async_raise_signal(what):
-    sync_raise_signal(what)
+async def async_raise_signal(what, sleep):
+    await sleep(0.01)
+    sync_raise_signal(what, None)
 
 
 class TestServiceRunner(object):
@@ -173,5 +178,5 @@ class TestServiceRunner(object):
         runner = ServiceRunner(accept_delay=0.1)
         runner.adopt(do_sleep, 5, flavour=flavour)
         # signal.SIGINT == KeyboardInterrupt
-        runner.adopt(do_raise, signal.SIGINT, flavour=flavour)
+        runner.adopt(do_raise, signal.SIGINT, do_sleep, flavour=flavour)
         runner.accept()
