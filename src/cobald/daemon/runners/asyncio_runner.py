@@ -46,8 +46,7 @@ class AsyncioRunner(BaseRunner):
             if result is None:
                 return
             failure = OrphanedReturn(payload, result)
-        finally:
-            self._tasks.discard(asyncio_current_task())
+        self._tasks.discard(asyncio_current_task())
         if not self._payload_failure.done():
             self._payload_failure.set_exception(failure)
 
@@ -64,6 +63,10 @@ class AsyncioRunner(BaseRunner):
             for task in self._tasks.copy():
                 if task.done():
                     self._tasks.discard(task)
+                    # monitored tasks only propagate cancellation and fatal interrupt
+                    # we can safely get and ignore these exceptions here to avoid
+                    # "exception was never retrieved" warnings
+                    task.exception()
                 else:
                     task.cancel()
             await asyncio.sleep(0.1)
