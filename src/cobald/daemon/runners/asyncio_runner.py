@@ -46,8 +46,7 @@ class AsyncioRunner(BaseRunner):
             if result is None:
                 return
             failure = OrphanedReturn(payload, result)
-        finally:
-            self._tasks.discard(asyncio_current_task())
+        self._tasks.discard(asyncio_current_task())
         if not self._payload_failure.done():
             self._payload_failure.set_exception(failure)
 
@@ -61,9 +60,15 @@ class AsyncioRunner(BaseRunner):
         if not self._payload_failure.done():
             self._payload_failure.set_result(None)
         while self._tasks:
-            for task in self._tasks.copy():
+            for task in self._tasks.copy():  # type: asyncio.Task
                 if task.done():
                     self._tasks.discard(task)
+                    # monitored tasks only propagate cancellation and KeyboardInterrupt
+                    # KeyboardInterrupt will abort the asyncio loop but mark the task
+                    # as exceptionally terminated – we explicitly fetch the exception
+                    # to mark it as retrieved/handled and avoid warnings.
+                    if not task.cancelled():
+                        task.exception()
                 else:
                     task.cancel()
             await asyncio.sleep(0.1)
