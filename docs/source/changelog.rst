@@ -1,9 +1,18 @@
-.. Created by log.py at 2021-10-29, command
-   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes/ compile -o docs/source/changelog.rst'
+.. Created by log.py at 2022-08-16, command
+   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst'
    based on the format of 'https://keepachangelog.com/'
 #########
 ChangeLog
 #########
+
+0.13 Series
+===========
+
+Version [0.13.0] - 2022-08-16
++++++++++++++++++++++++++++++
+
+* **[Changed]** Configuration is processed after daemon and `asyncio` initialisation
+* **[Changed]** Daemon core implementation is based on `asyncio`
 
 0.12 Series
 ===========
