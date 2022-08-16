@@ -14,7 +14,7 @@ __title__ = "cobald"
 __summary__ = "COBalD - the Opportunistic Balancing Daemon"
 __url__ = "https://github.com/MatterMiners/cobald"
 
-__version__ = "0.12.3"
+__version__ = "0.13.0"
 __author__ = "Eileen Kuehn, Max Fischer"
 __email__ = "matterminers@lists.kit.edu"
 __copyright__ = "2018 - 2021 %s" % __author__
