@@ -1,0 +1,10 @@
+category: changed
+summary: "Configuration is processed after daemon and `asyncio` initialisation"
+description: |
+  The configuration is now processed after initialising the daemon runtime.
+  In specific, the primary `asyncio` event loop is guaranteed to be available
+  when objects are created from the configuration.
+issues:
+- 106
+pull requests:
+- 112
