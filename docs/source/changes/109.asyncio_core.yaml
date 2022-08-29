@@ -1,0 +1,9 @@
+category: changed
+summary: "Daemon core implementation is based on `asyncio`"
+description: |
+  The daemon core is now implemented based on `asyncio` instead of `threading`.
+  This should be largely transparent outside of the daemon core itself but improves
+  robustness, responsiveness and performance.
+pull requests:
+- 109
+version: 0.13.0
