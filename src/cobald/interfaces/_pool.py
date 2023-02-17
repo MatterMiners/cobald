@@ -1,5 +1,6 @@
-import abc
 from typing import TypeVar, Type, TYPE_CHECKING
+from typing_extensions import Protocol
+import abc
 
 from ._partial import Partial
 
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
 C = TypeVar("C", bound="Controller")
 
 
-class Pool(metaclass=abc.ABCMeta):
+class Pool(Protocol):
     """
     Individual provider for a number of indistinguishable resources
     """

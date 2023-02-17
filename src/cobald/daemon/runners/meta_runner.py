@@ -34,7 +34,8 @@ class MetaRunner(object):
             DeprecationWarning(
                 "Accessing 'MetaRunner.runners' directly is deprecated. "
                 "Use register_payload or run_payload with the correct flavour instead."
-            )
+            ),
+            stacklevel=2,
         )
         return self._runners
 

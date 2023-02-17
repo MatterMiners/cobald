@@ -1,5 +1,5 @@
-import abc
 from typing import TypeVar, Type
+from typing_extensions import Protocol
 
 from ._pool import Pool
 from ._partial import Partial
@@ -8,7 +8,7 @@ from ._partial import Partial
 C = TypeVar("C", bound="Controller")
 
 
-class Controller(metaclass=abc.ABCMeta):
+class Controller(Protocol):
     """
     Controller adjusting the demand in a :py:class:`~.Pool`
 

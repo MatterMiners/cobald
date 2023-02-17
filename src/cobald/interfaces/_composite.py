@@ -1,6 +1,5 @@
-import abc
 from typing import List
-
+import abc
 
 from ._pool import Pool
 
