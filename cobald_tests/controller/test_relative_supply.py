@@ -5,19 +5,15 @@ from ..mock.pool import MockPool
 
 
 class TestRelativeSupplyController(object):
-    def test_low_scale(self):
+    def test_parameter_verification(self):
         pool = MockPool()
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError):
             RelativeSupplyController(pool, low_scale=0.9, high_scale=1.0)
 
-    def test_high_scale(self):
-        pool = MockPool()
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError):
             RelativeSupplyController(pool, low_scale=0.5, high_scale=0.9)
 
-    def test_both_scales(self):
-        pool = MockPool()
-        with pytest.raises(Exception):
+        with pytest.raises(AssertionError):
             RelativeSupplyController(pool, low_scale=1.1, high_scale=0.9)
 
     def test_adjustment(self):
