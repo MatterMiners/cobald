@@ -58,9 +58,7 @@ class Partial(Generic[C_co]):
         try:
             if not self.leaf:
                 args = None, *args
-            Signature.from_callable(self.ctor).bind_partial(
-                *args, **kwargs
-            )
+            Signature.from_callable(self.ctor).bind_partial(*args, **kwargs)
         except TypeError as err:
             message = err.args[0]
             raise TypeError(
