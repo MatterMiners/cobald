@@ -1,4 +1,4 @@
-from inspect import Signature, BoundArguments
+from inspect import Signature
 from typing import Type, Generic, TypeVar, TYPE_CHECKING, Union, overload
 
 from . import _pool
@@ -58,9 +58,9 @@ class Partial(Generic[C_co]):
         try:
             if not self.leaf:
                 args = None, *args
-            _ = Signature.from_callable(self.ctor).bind_partial(
+            Signature.from_callable(self.ctor).bind_partial(
                 *args, **kwargs
-            )  # type: BoundArguments
+            )
         except TypeError as err:
             message = err.args[0]
             raise TypeError(

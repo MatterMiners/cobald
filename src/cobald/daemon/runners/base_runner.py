@@ -10,7 +10,7 @@ from ..debug import NameRepr
 class BaseRunner(metaclass=ABCMeta):
     """Concurrency backend on top of `asyncio`"""
 
-    flavour = None  # type: Any
+    flavour: Any
 
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         self.asyncio_loop = asyncio_loop

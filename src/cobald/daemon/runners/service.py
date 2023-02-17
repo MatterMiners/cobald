@@ -33,7 +33,7 @@ class ServiceUnit(object):
     :param flavour: runner flavour to use for running the service
     """
 
-    __active_units__ = weakref.WeakSet()  # type: weakref.WeakSet[ServiceUnit]
+    __active_units__: "weakref.WeakSet[ServiceUnit]" = weakref.WeakSet()
 
     def __init__(self, service, flavour):
         assert hasattr(service, "run"), "service must implement a 'run' method"
@@ -193,7 +193,7 @@ class ServiceRunner(object):
             self._is_shutdown.set()
 
     def _adopt_services(self):
-        for unit in ServiceUnit.units():  # type: ServiceUnit
+        for unit in ServiceUnit.units():
             if unit.running:
                 continue
             self._logger.info("%s adopts %s", self.__class__.__name__, NameRepr(unit))

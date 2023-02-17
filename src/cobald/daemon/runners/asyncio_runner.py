@@ -1,4 +1,4 @@
-from typing import Callable, Awaitable, Coroutine
+from typing import Callable, Awaitable, Coroutine, Set
 import asyncio
 
 from .base_runner import BaseRunner, OrphanedReturn
@@ -21,7 +21,7 @@ class AsyncioRunner(BaseRunner):
     # takes care of adding/removing tasks.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
         super().__init__(asyncio_loop)
-        self._tasks = set()
+        self._tasks: Set[asyncio.Task] = set()
         self._payload_failure = asyncio_loop.create_future()
 
     def register_payload(self, payload: Callable[[], Awaitable]):
@@ -60,7 +60,7 @@ class AsyncioRunner(BaseRunner):
         if not self._payload_failure.done():
             self._payload_failure.set_result(None)
         while self._tasks:
-            for task in self._tasks.copy():  # type: asyncio.Task
+            for task in self._tasks.copy():
                 if task.done():
                     self._tasks.discard(task)
                     # monitored tasks only propagate cancellation and KeyboardInterrupt
