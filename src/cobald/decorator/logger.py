@@ -128,7 +128,7 @@ class Logger(PoolDecorator):
                 f"invalid {type(self).__name__} message field: {e}"
             ) from None
         # set properly by self.name setter immediately afterwards
-        self._logger: logging.Logger = None  # type: ignore
+        self._logger: logging.Logger
         self.name = name
         self.message = message
         self.level = level
