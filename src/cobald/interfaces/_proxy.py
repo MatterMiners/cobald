@@ -1,7 +1,6 @@
 from ._pool import Pool
 from typing import TypeVar, Type
 
-
 from ._partial import Partial
 
 

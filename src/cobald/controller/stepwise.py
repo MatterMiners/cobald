@@ -130,8 +130,8 @@ class UnboundStepwise(object):
 
     def __init__(self, base: ControlRule):
         self.base = base
-        self.rules = []  # type: List[Tuple[float, ControlRule]]
-        self._thresholds = set()  # type: Set[float]
+        self.rules: List[Tuple[float, ControlRule]] = []
+        self._thresholds: Set[float] = set()
 
     @overload  # noqa: F811
     def add(self, rule: ControlRule, *, supply: float) -> ControlRule:

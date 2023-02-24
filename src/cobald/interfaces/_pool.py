@@ -1,5 +1,5 @@
-import abc
 from typing import TypeVar, Type, TYPE_CHECKING
+import abc
 
 from ._partial import Partial
 

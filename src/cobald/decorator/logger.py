@@ -1,4 +1,4 @@
-from typing import NamedTuple, Any
+from typing import NamedTuple, Any, Optional
 import logging
 import warnings
 
@@ -107,7 +107,7 @@ class Logger(PoolDecorator):
         return self._logger.name
 
     @name.setter
-    def name(self, value: str):
+    def name(self, value: Optional[str]):
         if value is None:
             value = self.target.__class__.__qualname__
         self._logger = logging.getLogger(value)
@@ -115,7 +115,7 @@ class Logger(PoolDecorator):
     def __init__(
         self,
         target: Pool,
-        name: str = None,
+        name: Optional[str] = None,
         message: str = _DEFAULT_MESSAGE,
         level: int = logging.INFO,
     ):
@@ -127,7 +127,8 @@ class Logger(PoolDecorator):
             raise RuntimeError(
                 f"invalid {type(self).__name__} message field: {e}"
             ) from None
-        self._logger = None  # type: logging.Logger
-        self.message = message
+        # set properly by self.name setter immediately afterwards
+        self._logger: logging.Logger
         self.name = name
+        self.message = message
         self.level = level

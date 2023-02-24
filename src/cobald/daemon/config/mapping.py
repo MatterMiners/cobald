@@ -160,7 +160,7 @@ class SectionPlugin(Generic[M]):
         requirements = getattr(digest, "__requirements__", PluginRequirements())
         if entry_point.extras:
             raise ValueError(
-                f"SectionPlugin entry point '{entry_point.name}':"
+                f"SectionPlugin entry point {entry_point.name!r}:"
                 f" extras are no longer supported"
             )
         return cls(section=entry_point.name, digest=digest, requirements=requirements)
