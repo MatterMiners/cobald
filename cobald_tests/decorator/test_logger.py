@@ -59,16 +59,18 @@ class TestLogger(object):
         # no warnings by default
         with pytest.warns(None) as recorded_warnings:
             Logger(target=pool, name="test logger")
-            assert not recorded_warnings
+        assert not recorded_warnings
+
+        pool = FullMockPool()
         with pytest.warns(FutureWarning):
-            pool = FullMockPool()
             Logger(
                 target=pool,
                 name="test logger",
                 message="logging deprecated %(consumption)s",
             )
+
+        pool = FullMockPool()
         with pytest.raises(RuntimeError):
-            pool = FullMockPool()
             Logger(
                 target=pool,
                 name="test logger",
