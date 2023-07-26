@@ -54,6 +54,7 @@ if __name__ == "__main__":
             ],
         },
         # >>> Dependencies
+        python_requires=">=3.8",
         install_requires=[
             "pyyaml",
             "trio>=0.4.0",
