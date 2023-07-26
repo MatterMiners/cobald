@@ -1,0 +1,10 @@
+category: deprecated
+summary: "Minimal Python version is 3.8"
+description: |
+  Support for Python versions 3.6 and 3.7 has been dropped. This has no further
+  functional changes for users but reflects the end of life of these versions
+  and allows COBalD and plugins to drop outdated dependencies and compatibility layers.
+issues:
+- 124
+pull requests:
+- 126
