@@ -77,7 +77,6 @@ if __name__ == "__main__":
         license="MIT",
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
         classifiers=[
-            "Development Status :: 2 - Pre-Alpha",
             "Intended Audience :: Developers",
             "Intended Audience :: Information Technology",
             "Intended Audience :: Science/Research",
@@ -86,10 +85,10 @@ if __name__ == "__main__":
             "Topic :: Office/Business :: Scheduling",
             "Topic :: System :: Distributed Computing",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.6",
-            "Programming Language :: Python :: 3.7",
             "Programming Language :: Python :: 3.8",
             "Programming Language :: Python :: 3.9",
+            "Programming Language :: Python :: 3.10",
+            "Programming Language :: Python :: 3.11",
         ],
         keywords=package_about["__keywords__"],
         # unit tests
