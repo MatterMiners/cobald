@@ -2,7 +2,6 @@ from typing import Callable, Awaitable, Coroutine, Set
 import asyncio
 
 from .base_runner import BaseRunner, OrphanedReturn
-from ._compat import asyncio_current_task
 
 
 class AsyncioRunner(BaseRunner):
@@ -46,7 +45,7 @@ class AsyncioRunner(BaseRunner):
             if result is None:
                 return
             failure = OrphanedReturn(payload, result)
-        self._tasks.discard(asyncio_current_task())
+        self._tasks.discard(asyncio.current_task())
         if not self._payload_failure.done():
             self._payload_failure.set_exception(failure)
 

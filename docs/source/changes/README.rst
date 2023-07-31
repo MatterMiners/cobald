@@ -4,7 +4,7 @@ Changelog Fragments
 This folder contains fragments for the ``dev_tools/change-log.py`` tool to
 create formatted changelogs. Fragments are YAML files that contain meta-data
 and human-readable descriptions of changes. Files are mappings that must contain
-the fields ``category``, ``summary``, and ``description` and optionally the fields
+the fields ``category``, ``summary``, and ``description`` and optionally the fields
 ``pull requests`` and ``issues``; the naming convention of files is
 ``<first pull request>.<topic>.yaml``.
 Both ``summary`` and ``description`` fields are interpreted as reStructured Text.

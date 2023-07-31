@@ -1,9 +1,17 @@
-.. Created by log.py at 2022-08-16, command
-   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst'
+.. Created by log.py at 2023-07-26, command
+   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst --categories Added Changed Fixed Security Deprecated'
    based on the format of 'https://keepachangelog.com/'
 #########
 ChangeLog
 #########
+
+0.14 Series
+===========
+
+Version [0.14.0] - 2023-07-26
++++++++++++++++++++++++++++++
+
+* **[Deprecated]** Minimal Python version is 3.8
 
 0.13 Series
 ===========

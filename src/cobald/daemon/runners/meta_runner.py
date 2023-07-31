@@ -9,7 +9,6 @@ from .base_runner import BaseRunner
 from .trio_runner import TrioRunner
 from .asyncio_runner import AsyncioRunner
 from .thread_runner import ThreadRunner
-from ._compat import asyncio_run
 
 from ..debug import NameRepr
 
@@ -67,7 +66,7 @@ class MetaRunner(object):
         """Run all runners, blocking until completion or error"""
         self._logger.info("starting all runners")
         try:
-            asyncio_run(self._manage_runners())
+            asyncio.run(self._manage_runners())
         except KeyboardInterrupt:
             self._logger.info("runner interrupted")
         except Exception as err:
