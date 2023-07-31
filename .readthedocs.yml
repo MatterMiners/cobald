@@ -5,8 +5,8 @@ build:
 
 build:
   os: "ubuntu-22.04"
-  python:
-    version: 3
+  tools:
+    python: 3
 
 python:
   install:
