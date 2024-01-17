@@ -4,3 +4,6 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    reviewers:
+      - "maxfischer2781"
+      - "MatterMiners/review"
