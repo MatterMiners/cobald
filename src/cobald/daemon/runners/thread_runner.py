@@ -36,7 +36,7 @@ class ThreadRunner(BaseRunner):
     def _monitor_payload(self, payload):
         try:
             result = payload()
-        except BaseException as e:
+        except BaseException as e:  # noqa: B036
             failure = e
         else:
             if result is None:
