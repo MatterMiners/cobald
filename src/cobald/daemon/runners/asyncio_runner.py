@@ -39,7 +39,7 @@ class AsyncioRunner(BaseRunner):
             result = await payload()
         except (asyncio.CancelledError, KeyboardInterrupt):
             raise
-        except BaseException as e:
+        except BaseException as e:  # noqa: B036
             failure = e
         else:
             if result is None:
