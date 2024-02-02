@@ -6,12 +6,10 @@ from ..mock.pool import FullMockPool
 
 
 class MockController(Controller):
-    def regulate(self, interval: float):
-        ...
+    def regulate(self, interval: float): ...
 
 
-class MockDecorator(PoolDecorator):
-    ...
+class MockDecorator(PoolDecorator): ...
 
 
 class TestPartial(object):
