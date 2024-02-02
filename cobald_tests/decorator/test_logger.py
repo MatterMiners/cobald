@@ -1,6 +1,7 @@
 import threading
 import logging
 import io
+import warnings
 
 import pytest
 
@@ -57,9 +58,9 @@ class TestLogger(object):
     def test_verification(self):
         pool = FullMockPool()
         # no warnings by default
-        with pytest.warns(None) as recorded_warnings:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
             Logger(target=pool, name="test logger")
-        assert not recorded_warnings
 
         pool = FullMockPool()
         with pytest.warns(FutureWarning):

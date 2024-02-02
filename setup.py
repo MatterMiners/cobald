@@ -68,6 +68,7 @@ if __name__ == "__main__":
                 "flake8",
                 "flake8-bugbear",
                 "black; implementation_name=='cpython'",
+                "pytest>=8.0",
                 "pytest-cov",
             ]
             + TESTS_REQUIRE,
