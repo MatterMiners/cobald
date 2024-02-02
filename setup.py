@@ -57,7 +57,7 @@ if __name__ == "__main__":
         python_requires=">=3.8",
         install_requires=[
             "pyyaml",
-            "trio>=0.4.0",
+            "trio",
             "entrypoints",
             "toposort",
         ],
