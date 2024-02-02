@@ -25,9 +25,11 @@ def initialise_logging(level: str, target: str, short_format: bool):
     handler = create_handler(target=target)
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)-15s (%(process)d) %(message)s"
-        if not short_format
-        else "%(message)s",
+        format=(
+            "%(asctime)-15s (%(process)d) %(message)s"
+            if not short_format
+            else "%(message)s"
+        ),
         datefmt="%Y-%m-%d %H:%M:%S",
         handlers=[handler],
     )

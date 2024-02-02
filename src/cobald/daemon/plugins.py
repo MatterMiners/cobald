@@ -1,6 +1,7 @@
 """
 Tools and helpers to declare plugins
 """
+
 from typing import Iterable, FrozenSet, TypeVar, NamedTuple
 
 

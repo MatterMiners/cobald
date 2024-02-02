@@ -10,6 +10,7 @@ COBalD - the Opportunistic Balancing Daemon
 This is a **draft** for a feedback based balancing system for providing
 opportunistic resources.
 """
+
 __title__ = "cobald"
 __summary__ = "COBalD - the Opportunistic Balancing Daemon"
 __url__ = "https://github.com/MatterMiners/cobald"
