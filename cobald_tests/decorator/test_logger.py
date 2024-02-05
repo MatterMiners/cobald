@@ -57,7 +57,8 @@ class TestLogger(object):
 
     def test_verification(self):
         pool = FullMockPool()
-        # no warnings by default
+        # ensure no warnings by default
+        # see https://docs.pytest.org/en/8.0.x/how-to/capture-warnings.html#additional-use-cases-of-warnings-in-tests  # noqa
         with warnings.catch_warnings():
             warnings.simplefilter("error")
             Logger(target=pool, name="test logger")
