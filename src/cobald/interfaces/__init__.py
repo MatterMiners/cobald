@@ -23,6 +23,7 @@ any number of :py:class:`~.PoolDecorator` may proceed it.
     }
 
 """
+
 from ._composite import CompositePool
 from ._controller import Controller
 from ._pool import Pool

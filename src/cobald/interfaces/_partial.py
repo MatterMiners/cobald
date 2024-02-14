@@ -39,6 +39,7 @@ class Partial(Generic[C_co]):
            creates a temporary :py:class:`~.PartialBind`. Only binding to a
            :py:class:`~.Pool` as the last element creates a concrete binding.
     """
+
     __slots__ = ("ctor", "args", "kwargs", "leaf")
 
     def __init__(self, ctor: Type[C_co], *args, __leaf__, **kwargs):
@@ -74,12 +75,12 @@ class Partial(Generic[C_co]):
         return self.ctor(*args, *self.args, **kwargs, **self.kwargs)
 
     @overload  # noqa: F811
-    def __rshift__(self, other: "Union[Owner, Pool, PartialBind[Pool]]") -> "C_co":
-        ...
+    def __rshift__(self, other: "Union[Owner, Pool, PartialBind[Pool]]") -> "C_co": ...
 
     @overload  # noqa: F811
-    def __rshift__(self, other: "Union[Partial, PartialBind]") -> "PartialBind[C_co]":
-        ...
+    def __rshift__(
+        self, other: "Union[Partial, PartialBind]"
+    ) -> "PartialBind[C_co]": ...
 
     def __rshift__(self, other):  # noqa: F811
         if isinstance(other, PartialBind):
@@ -107,6 +108,7 @@ class PartialBind(Generic[C_co]):
     This helper is used to invert the operator precedence of ``>>``,
     allowing the last pair to be bound first.
     """
+
     __slots__ = ("parent", "targets")
 
     def __init__(
@@ -118,12 +120,10 @@ class PartialBind(Generic[C_co]):
         self.targets = targets
 
     @overload  # noqa: F811
-    def __rshift__(self, other: Partial[Owner]) -> "PartialBind[C_co]":
-        ...
+    def __rshift__(self, other: Partial[Owner]) -> "PartialBind[C_co]": ...
 
     @overload  # noqa: F811
-    def __rshift__(self, other: "Pool") -> "C_co":
-        ...
+    def __rshift__(self, other: "Pool") -> "C_co": ...
 
     def __rshift__(self, other: "Union[Pool, Partial[Owner]]"):  # noqa: F811
         if isinstance(other, _pool.Pool):

@@ -1,6 +1,7 @@
 """
 Daemon core specific to cobald
 """
+
 import asyncio
 import sys
 import logging

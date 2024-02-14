@@ -134,12 +134,12 @@ class UnboundStepwise(object):
         self._thresholds: Set[float] = set()
 
     @overload  # noqa: F811
-    def add(self, rule: ControlRule, *, supply: float) -> ControlRule:
-        ...
+    def add(self, rule: ControlRule, *, supply: float) -> ControlRule: ...
 
     @overload  # noqa: F811
-    def add(self, rule: None, *, supply: float) -> Callable[[ControlRule], ControlRule]:
-        ...
+    def add(
+        self, rule: None, *, supply: float
+    ) -> Callable[[ControlRule], ControlRule]: ...
 
     def add(self, rule: ControlRule = None, *, supply: float):  # noqa: F811
         """

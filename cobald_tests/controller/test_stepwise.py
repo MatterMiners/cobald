@@ -9,13 +9,13 @@ class TestStepwise:
     def test_add(self):
         @stepwise
         def control(pool, interval):
-            ...
+            pass
 
         assert isinstance(control, UnboundStepwise)
 
         @control.add(supply=20)
         def rule(pool, interval):
-            ...
+            pass
 
         assert isinstance(control, UnboundStepwise)
         assert isinstance(rule, FunctionType)
@@ -23,7 +23,7 @@ class TestStepwise:
     def test_instantiate(self):
         @stepwise
         def control(pool, interval):
-            ...
+            pass
 
         assert isinstance(control(FullMockPool()), Stepwise)
         assert isinstance(control.s() >> FullMockPool(), Stepwise)
@@ -32,7 +32,7 @@ class TestStepwise:
 
         @control.add(supply=20)
         def rule(pool, interval):
-            ...
+            pass
 
         assert isinstance(control(FullMockPool()), Stepwise)
         assert isinstance(control.s() >> FullMockPool(), Stepwise)
