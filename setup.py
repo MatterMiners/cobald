@@ -60,6 +60,7 @@ if __name__ == "__main__":
             "trio",
             "entrypoints",
             "toposort",
+            "exceptiongroup",
         ],
         extras_require={
             "docs": ["sphinx", "sphinx_rtd_theme"],

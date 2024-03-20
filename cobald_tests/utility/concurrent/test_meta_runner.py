@@ -1,3 +1,4 @@
+from typing import Iterator
 import threading
 import pytest
 import time
@@ -6,6 +7,7 @@ import contextlib
 import gc
 
 import trio
+from exceptiongroup import ExceptionGroup
 
 from cobald.daemon.runners.base_runner import OrphanedReturn
 from cobald.daemon.runners.meta_runner import MetaRunner
@@ -15,8 +17,15 @@ class TerminateRunner(Exception):
     pass
 
 
+def unwrap_cause(exc: BaseException) -> BaseException:
+    if isinstance(exc.__cause__, ExceptionGroup):
+        assert len(exc.__cause__.exceptions) == 1
+        return exc.__cause__.exceptions[0]
+    return exc.__cause__
+
+
 @contextlib.contextmanager
-def threaded_run(name):
+def threaded_run(name: str) -> Iterator[MetaRunner]:
     gc.collect()
     runner = MetaRunner()
     thread = threading.Thread(target=runner.run, name=name, daemon=True)
@@ -90,7 +99,7 @@ class TestMetaRunner(object):
         runner.register_payload(with_return, flavour=flavour)
         with pytest.raises(RuntimeError) as exc:
             runner.run()
-        assert isinstance(exc.value.__cause__, OrphanedReturn)
+        assert isinstance(unwrap_cause(exc.value), OrphanedReturn)
 
     @pytest.mark.parametrize("flavour", (threading,))
     def test_abort_subroutine(self, flavour):
@@ -130,7 +139,7 @@ class TestMetaRunner(object):
         runner.register_payload(abort, flavour=flavour)
         with pytest.raises(RuntimeError) as exc:
             runner.run()
-        assert isinstance(exc.value.__cause__, TerminateRunner)
+        assert isinstance(unwrap_cause(exc.value), TerminateRunner)
 
         async def noop():
             return
@@ -144,4 +153,4 @@ class TestMetaRunner(object):
         runner.register_payload(abort, flavour=flavour)
         with pytest.raises(RuntimeError) as exc:
             runner.run()
-        assert isinstance(exc.value.__cause__, TerminateRunner)
+        assert isinstance(unwrap_cause(exc.value), TerminateRunner)
