@@ -45,6 +45,9 @@ then recursively passed to its predecessor for construction.
         - !CpuPool
           interval: 1
 
+High allocation: Increases number of drones if the allocation exceeds this value. It is calculated per machine type.
+Low utilisation: Drains/reduces the number of drones if the utilisation falls below this value for a certain time.
+
 Object References
 *****************
 
