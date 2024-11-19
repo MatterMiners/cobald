@@ -29,4 +29,4 @@ jobs:
         pytest -v --cov
       timeout-minutes: 5
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
