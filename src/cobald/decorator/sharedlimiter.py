@@ -1,5 +1,16 @@
 from cobald.interfaces import Pool, PoolDecorator
 
+import sqlite3
+
+
+def _connect_to_db(mode, path):
+    """Connect to SQL database of one of the supported types and return connection"""
+    match mode:
+        case "local":
+            return sqlite3.connect(path)
+        case _:
+            raise NotImplementedError
+
 
 class SharedLimiter(PoolDecorator):
     """
@@ -23,7 +34,21 @@ class SharedLimiter(PoolDecorator):
 
     @property
     def utilisation(self):
-        sf = 1.0
+        #update CPU allocation and retrieve total load on shared resource
+        con = _connect_to_db(self.mode, self.db_path)
+        cur = con.cursor()
+        cur.execute("UPDATE %s SET usage = ? WHERE id=?"%self.db_resource_id, [self.target.supply, self.db_pool_id])
+        con.commit()
+        limit = float(cur.execute("SELECT upper_limit FROM limits WHERE feature=?", [self.db_resource_id]).fetchone()[0])
+        total_usage = float(cur.execute("SELECT SUM(weight*usage) FROM %s"%self.db_resource_id).fetchone()[0])
+        con.close()
+
+        #throttle down utilization if shared resource close to maximum
+        load = min(total_usage/limit, 1.0)
+        if load <= 0.9:
+            return self.target.utilisation
+        else:
+            sf = 1.0-(load-0.9)**2*100.0
         return self.target.utilisation * sf
 
     def __init__(
@@ -37,4 +62,10 @@ class SharedLimiter(PoolDecorator):
         db_global_max_default: float,
     ):
         super().__init__(target)
+        self.mode = mode
+        self.db_path = db_path
+        self.db_pool_id = db_pool_id
+        self.db_resource_id = db_resource_id
+        self.db_weight = db_weight
+        self.db_global_max_default = db_global_max_default
         # prepare DB
