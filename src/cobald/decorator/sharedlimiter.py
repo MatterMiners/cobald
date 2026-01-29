@@ -1,5 +1,7 @@
 from cobald.interfaces import Pool, PoolDecorator
 
+from ..utility import enforce
+
 import sqlite3
 import psycopg2
 
@@ -74,7 +76,7 @@ class SharedLimiter(PoolDecorator):
     def __init__(
         self,
         target: Pool,
-        mode: string,
+        mode: str,
         db_path: str,
         db_pool_id: str,
         db_resource_id: str,
@@ -94,6 +96,8 @@ class SharedLimiter(PoolDecorator):
         self.db_global_max_default = db_global_max_default
         self.db_throttle_threshold = db_throttle_threshold
         # prepare DB
+
+        self._prepare_db()
     
     def _prepare_db(self) -> None:
         """ 
