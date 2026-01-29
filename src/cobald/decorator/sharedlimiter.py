@@ -3,7 +3,6 @@ from cobald.interfaces import Pool, PoolDecorator
 from ..utility import enforce
 
 import sqlite3
-import psycopg2
 
 def _connect_to_db(mode, path):
     """Connect to SQL database of one of the supported types and return connection"""
@@ -11,6 +10,7 @@ def _connect_to_db(mode, path):
         case "local":
             return sqlite3.connect(path)
         case "postgres":
+            import psycopg2
             return psycopg2.connect(path)
         case _:
             raise NotImplementedError
