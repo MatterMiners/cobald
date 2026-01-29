@@ -39,10 +39,26 @@ class SharedLimiter(PoolDecorator):
         #update CPU allocation and retrieve total load on shared resource
         con = _connect_to_db(self.mode, self.db_path)
         cur = con.cursor()
-        cur.execute("UPDATE %s SET usage = ? WHERE id=?"%self.db_resource_id, [self.target.supply, self.db_pool_id])
+        
+        cur.execute(
+            f"UPDATE {self.db_resource_id} "
+            f"SET usage = {self.target.supply} "
+            f"WHERE id = '{self.db_pool_id}'"
+        )
+
         con.commit()
-        limit = float(cur.execute("SELECT upper_limit FROM limits WHERE feature=?", [self.db_resource_id]).fetchone()[0])
-        total_usage = float(cur.execute("SELECT SUM(weight*usage) FROM %s"%self.db_resource_id).fetchone()[0])
+        
+        cur.execute(
+            f"SELECT upper_limit FROM limits "
+            f"WHERE feature = '{self.db_resource_id}'"
+        )
+        limit = float(cur.fetchone()[0])
+
+        cur.execute(
+            f"SELECT SUM(weight*usage) FROM {self.db_resource_id}"
+        )
+        total_usage = float(cur.fetchone()[0] or 0.0)
+        
         con.close()
 
         #throttle down utilization if shared resource close to maximum
