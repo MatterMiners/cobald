@@ -1,13 +1,15 @@
 from cobald.interfaces import Pool, PoolDecorator
 
 import sqlite3
-
+import psycopg2
 
 def _connect_to_db(mode, path):
     """Connect to SQL database of one of the supported types and return connection"""
     match mode:
         case "local":
             return sqlite3.connect(path)
+        case "postgres":
+            return psycopg2.connect(path)
         case _:
             raise NotImplementedError
 
@@ -69,3 +71,65 @@ class SharedLimiter(PoolDecorator):
         self.db_weight = db_weight
         self.db_global_max_default = db_global_max_default
         # prepare DB
+    
+    def _prepare_db(self) -> None:
+        """ 
+        Prepare all the necessary tables in the DB.
+        """
+
+        con = _connect_to_db(self.mode, self.db_path)
+
+        try:
+            cur = con.cursor()
+
+            # Create Limits table
+            cur.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS limits (
+                    feature TEXT PRIMARY KEY,
+                    upper_limit REAL NOT NULL
+                )
+                """
+            )
+
+            # Crete feature table:
+            cur.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS {self.db_resource_id} (
+                    id TEXT PRIMARY KEY,
+                    weight REAL NOT NULL,
+                    usage REAL NOT NULL
+                )
+                """
+            )
+
+            # Add the limit
+            cur.execute(
+                f"SELECT upper_limit FROM limits WHERE feature = '{self.db_resource_id}'"
+            )
+
+            row = cur.fetchone()
+            
+            if row is None:
+                cur.execute(
+                    f"INSERT INTO limits(feature, upper_limit) VALUES ('{self.db_resource_id}', {self.db_global_max_default})"
+                )
+            
+            cur.execute(
+                f"SELECT id FROM {self.db_resource_id} WHERE id = '{self.db_pool_id}'"
+            )
+
+            
+            row = cur.fetchone()
+            
+            if row is None:
+                cur.execute(
+                    f"INSERT INTO {self.db_resource_id}(id, weight, usage) VALUES ('{self.db_pool_id}', {self.db_weight}, {0.0})"
+                )
+            
+            con.commit()
+        except Exception:
+            con.rollback()
+            raise
+        finally:
+            con.close()
