@@ -2,6 +2,9 @@ from cobald.interfaces import Pool, PoolDecorator
 
 from ..utility import enforce
 
+import logging
+logger = logging.getLogger(__name__)
+
 import sqlite3
 
 try:
@@ -50,28 +53,45 @@ class SharedLimiter(PoolDecorator):
     def utilisation(self):
         #update CPU allocation and retrieve total load on shared resource
         con = _connect_to_db(self.mode, self.db_path)
-        cur = con.cursor()
-        
-        cur.execute(
-            f"UPDATE {self.db_resource_id} "
-            f"SET usage = {self.target.supply} "
-            f"WHERE id = '{self.db_pool_id}'"
-        )
+        try:
+            cur = con.cursor()
+            
+            cur.execute(
+                f"UPDATE {self.db_resource_id} "
+                f"SET usage = {self.target.supply} "
+                f"WHERE id = '{self.db_pool_id}'"
+            )
 
-        con.commit()
-        
-        cur.execute(
-            f"SELECT upper_limit FROM limits "
-            f"WHERE feature = '{self.db_resource_id}'"
-        )
-        limit = float(cur.fetchone()[0])
+            con.commit()
+            
+            cur.execute(
+                f"SELECT upper_limit FROM limits "
+                f"WHERE feature = '{self.db_resource_id}'"
+            )
+            row = cur.fetchone()
+            limit = float(row[0] if row and row[0] is not None else 0.0)
 
-        cur.execute(
-            f"SELECT SUM(weight*usage) FROM {self.db_resource_id}"
-        )
-        total_usage = float(cur.fetchone()[0] or 0.0)
-        
-        con.close()
+            if limit <= 0:
+                logger.warning(
+                    "SharedLimiter: upper_limit <= 0, forcing utilisation=0",
+                    {
+                        "resource": self.db_resource_id,
+                        "pool_id": self.db_pool_id,
+                        "upper_limit": limit,
+                        "mode": self.mode,
+                        "db_path": self.db_path,
+                        "supply": float(self.target.supply),
+                    },
+                )
+                return 0
+
+            cur.execute(
+                f"SELECT SUM(weight*usage) FROM {self.db_resource_id}"
+            )
+            row = cur.fetchone()
+            total_usage = float(row[0] if row and row[0] is not None else 0.0)
+        finally:
+            con.close()
 
         threshold = self.db_throttle_threshold
 
@@ -79,8 +99,8 @@ class SharedLimiter(PoolDecorator):
         load = min(total_usage/limit, 1.0)
         if load <= threshold:
             return self.target.utilisation
-        else:
-            sf = 1.0 - (load-threshold)**2 / (1-threshold)**2
+        
+        sf = 1.0 - (load-threshold)**2 / (1-threshold)**2
         return self.target.utilisation * sf
 
     def __init__(
