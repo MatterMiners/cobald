@@ -63,6 +63,7 @@ if __name__ == "__main__":
             "toposort",
         ],
         extras_require={
+            "postgres": ["psycopg2-binary"],
             "docs": ["sphinx", "sphinx_rtd_theme"],
             "test": TESTS_REQUIRE,
             "contrib": [
