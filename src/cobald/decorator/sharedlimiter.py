@@ -4,13 +4,23 @@ from ..utility import enforce
 
 import sqlite3
 
+try:
+    import psycopg2
+    _HAS_PSYCOPG2 = True
+except ImportError:
+    psycopg2 = None
+    _HAS_PSYCOPG2 = False
+
 def _connect_to_db(mode, path):
     """Connect to SQL database of one of the supported types and return connection"""
     match mode:
         case "local":
             return sqlite3.connect(path)
         case "postgres":
-            import psycopg2
+            if not _HAS_PSYCOPG2:
+                raise ModuleNotFoundError(
+                    "Postgres mode requires 'psycopg2' package"
+            )
             return psycopg2.connect(path)
         case _:
             raise NotImplementedError
