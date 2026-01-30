@@ -14,6 +14,7 @@ except ImportError:
     psycopg2 = None
     _HAS_PSYCOPG2 = False
 
+
 def _connect_to_db(mode, path):
     """Connect to SQL database of one of the supported types and return connection"""
     match mode:
@@ -29,6 +30,29 @@ def _connect_to_db(mode, path):
             raise NotImplementedError
 
 
+def model_nominal(x):
+    return 1.0-x**2
+
+
+def model_plus(x):
+    return 1.0-x
+
+
+def model_minus(x):
+    return 1.0-x**4
+
+
+def _scale_factor(x, delta):
+    enforce(x >= 0 and x <= 1, ValueError(f"x for scale factor must be between 0 and 1"))
+    if delta:
+        if delta >= 0:
+            return (1.0-delta)*model_nominal(x)+delta*model_plus(x)
+        else:
+            return (1.0+delta)*model_nominal(x)-delta*model_minus(x)
+    else:
+        return model_nominal(x)
+
+
 class SharedLimiter(PoolDecorator):
     """
     Limit on utilisation based on a resource shared between multiple pools
@@ -40,13 +64,16 @@ class SharedLimiter(PoolDecorator):
     :param db_resource_id: name of the shared resource
     :param db_weight: weight to be appied to ``target.supply`` to calculate consumption of the shared resource
     :param db_global_max_default: default global maximum availability of shared resource if not already set in database
+    :param threshold: optional parameter from 0 to 1 to define the threshold relative resource usage for the limiter
+    :param share: nominal resource share of this pool to be pursued by the limiter (optional)
 
     The weighted ``supply`` determines how much of the shared resource this pool
     is currently consuming, which is written to the database.
 
-    Once the total consumption of all involved pools together is approaching the
-    global maximum value defined in the database, the pool ``utilisation`` is
-    gradually throttled in order to prevent further resource allocation.
+    Once the total consumption of all involved pools together exceeds
+    ``threshold`` and is approaching the global maximum value defined in the
+    database, the pool ``utilisation`` is gradually throttled in order to prevent
+    further resource allocation.
     """
 
     @property
@@ -90,6 +117,12 @@ class SharedLimiter(PoolDecorator):
             )
             row = cur.fetchone()
             total_usage = float(row[0] if row and row[0] is not None else 0.0)
+
+            cur.execute(
+                f"SELECT weight*usage FROM {self.db_resource_id} WHERE id = '{self.db_pool_id}'"
+            )
+            row = cur.fetchone()
+            my_usage = float(row[0] if row and row[0] is not None else 0.0)
         finally:
             con.close()
 
@@ -100,8 +133,12 @@ class SharedLimiter(PoolDecorator):
         if load <= threshold:
             return self.target.utilisation
         
-        sf = 1.0 - (load-threshold)**2 / (1-threshold)**2
-        return self.target.utilisation * sf
+        x = (load-threshold) / (1-threshold)
+        delta_share = None
+        if self.share:
+            delta_share = my_usage/total_usage - self.share #does not get here if total_usage==0
+            delta_share = 20.0 * max(min(delta_share, 0.05), -0.05) #crop to +-5% and normalise
+        return self.target.utilisation * _scale_factor(x, delta_share)
 
     def __init__(
         self,
@@ -113,10 +150,13 @@ class SharedLimiter(PoolDecorator):
         db_weight: float,
         db_global_max_default: float,
         threshold: float = 0.9,
+        share: float = None,
     ):
         super().__init__(target)
 
-        enforce(threshold >= 0 and threshold <= 1, ValueError(f"threshold must be between 0 and 1"))
+        enforce(threshold >= 0 and threshold < 1, ValueError(f"threshold must be between 0 and 1"))
+        if share:
+            enforce(share >= 0 and share <= 1, ValueError(f"threshold must be between 0 and 1"))
 
         self.mode = mode
         self.db_path = db_path
@@ -125,6 +165,7 @@ class SharedLimiter(PoolDecorator):
         self.db_weight = db_weight
         self.db_global_max_default = db_global_max_default
         self.threshold = threshold
+        self.share = share
         # prepare DB
 
         self._prepare_db()
