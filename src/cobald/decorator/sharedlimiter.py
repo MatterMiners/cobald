@@ -93,7 +93,7 @@ class SharedLimiter(PoolDecorator):
         finally:
             con.close()
 
-        threshold = self.db_throttle_threshold
+        threshold = self.threshold
 
         #throttle down utilization if shared resource close to maximum
         load = min(total_usage/limit, 1.0)
@@ -112,11 +112,11 @@ class SharedLimiter(PoolDecorator):
         db_resource_id: str,
         db_weight: float,
         db_global_max_default: float,
-        db_throttle_threshold: float = 0.9,
+        threshold: float = 0.9,
     ):
         super().__init__(target)
 
-        enforce(db_throttle_threshold >= 0 and db_throttle_threshold <= 1, ValueError(f"db_throttle_threshold must be between 0 and 1"))
+        enforce(threshold >= 0 and threshold <= 1, ValueError(f"threshold must be between 0 and 1"))
 
         self.mode = mode
         self.db_path = db_path
@@ -124,7 +124,7 @@ class SharedLimiter(PoolDecorator):
         self.db_resource_id = db_resource_id
         self.db_weight = db_weight
         self.db_global_max_default = db_global_max_default
-        self.db_throttle_threshold = db_throttle_threshold
+        self.threshold = threshold
         # prepare DB
 
         self._prepare_db()
