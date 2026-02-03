@@ -44,7 +44,7 @@ def model_minus(x):
 
 def _scale_factor(x, delta):
     enforce(x >= 0 and x <= 1, ValueError(f"x for scale factor must be between 0 and 1"))
-    if delta:
+    if delta is not None:
         if delta >= 0:
             return (1.0-delta)*model_nominal(x)+delta*model_plus(x)
         else:
@@ -135,7 +135,7 @@ class SharedLimiter(PoolDecorator):
         
         x = (load-threshold) / (1-threshold)
         delta_share = None
-        if self.share:
+        if self.share is not None:
             delta_share = my_usage/total_usage - self.share #does not get here if total_usage==0
             delta_share = 20.0 * max(min(delta_share, 0.05), -0.05) #crop to +-5% and normalise
         return self.target.utilisation * _scale_factor(x, delta_share)
@@ -155,7 +155,7 @@ class SharedLimiter(PoolDecorator):
         super().__init__(target)
 
         enforce(threshold >= 0 and threshold < 1, ValueError(f"threshold must be between 0 and 1"))
-        if share:
+        if share is not None:
             enforce(share >= 0 and share <= 1, ValueError(f"threshold must be between 0 and 1"))
 
         self.mode = mode
