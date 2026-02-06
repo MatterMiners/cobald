@@ -44,7 +44,7 @@ def model_minus(x):
 
 def _scale_factor(x, delta):
     enforce(x >= 0 and x <= 1, ValueError(f"x for scale factor must be between 0 and 1"))
-    if delta is not None:
+    if delta:
         if delta >= 0:
             return (1.0-delta)*model_nominal(x)+delta*model_plus(x)
         else:
@@ -156,7 +156,7 @@ class SharedLimiter(PoolDecorator):
 
         enforce(threshold >= 0 and threshold < 1, ValueError(f"threshold must be between 0 and 1"))
         if share is not None:
-            enforce(share >= 0 and share <= 1, ValueError(f"threshold must be between 0 and 1"))
+            enforce(share >= 0 and share <= 1, ValueError(f"share must be between 0 and 1"))
 
         self.mode = mode
         self.db_path = db_path
