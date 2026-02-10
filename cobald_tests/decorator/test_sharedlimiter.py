@@ -168,13 +168,13 @@ class TestSharedLimiter(object):
             got = limiter.utilisation
             assert got == pytest.approx(pool.utilisation)
 
-    def test_utilisation_usage_zero_passthrough(self):
+    def test_utilisation_total_usage_zero_division(self):
         pool = FullMockPool()
         pool.utilisation = 0.77
         pool.supply = 0.0
 
         for db_input in db_inputs:
-            limiter = SharedLimiter(pool, **db_input, **default_inputs, threshold=0.9)
+            limiter = SharedLimiter(pool, **db_input, **default_inputs, threshold=0.9, share=0.2)
 
             # ensure total_usage/limit <= threshold
             # our own row will be overwritten with supply on property access; keep supply 0 => my usage 0.
@@ -184,104 +184,71 @@ class TestSharedLimiter(object):
             got = limiter.utilisation
             assert got == pytest.approx(pool.utilisation)
 
-    def test_utilisation_throttles_above_threshold_nominal(self):
-        pool = FullMockPool()
-        pool.utilisation = 0.8
-        pool.supply = 50.0
+    def test_utilisation_models_delta_and_sf_ordering(self):
+        """
+        Combine nominal/plus/minus checks:
 
-        for db_input in db_inputs:
-            threshold = 0.9
-            limiter = SharedLimiter(pool, **db_input, **default_inputs, threshold=threshold, share=None)
-
-            # create another pool row so total_usage is deterministic:
-            # Mock: weight=0.5, usage=pool.supply=50 => 25
-            # Other: weight=1.0, usage=70 => 70
-            # total=95 => load=0.95
-            other_usage = 70.0
-            _update_or_insert_pool_row(db_input, **other_pool_inputs, usage=other_usage)
-
-            expected_params = {
-                "my_usage": 25,
-                "total_usage": 95,
-                "load": 0.95
-            }
-
-            x, delta_share = _calculate_x_and_delta_share(pool, limiter, other_usage, expected_params)
-
-            assert x == pytest.approx(0.5)
-            assert delta_share is None
-
-            expected = pool.utilisation * _scale_factor_expected(x, None)
-
-            got = limiter.utilisation
-            assert got == pytest.approx(expected)
-    
-    def test_utilisation_share_positive_delta_increases_throttle_towards_plus_model(self):
+        Expect: util_plus < util_nom < util_minus (for same x)
+        """
         pool = FullMockPool()
         pool.utilisation = 1.0
-        pool.supply = 50.0
+        pool.supply = 50.0  # weighted my_usage = 0.5 * 50 = 25
 
         for db_input in db_inputs:
-            # share = 0.2, but actual share will be higher -> positive delta
             threshold = 0.9
-            limiter = SharedLimiter(
-                pool, **db_input, **default_inputs,
-                threshold=threshold, share=0.2
-            )
-
-            # Increase Other so load > threshold but keep Mock share > 0.2
-            # create another pool row so total_usage is deterministic:
-            # Mock: weight=0.5, usage=pool.supply=50 => 25
-            # Other: weight=1.0, usage=80 => 80
-            # total=105 -> load=1.0 => x=1 => delta_share>0
-            other_usage = 80.0
-            _update_or_insert_pool_row(db_input, **other_pool_inputs, usage=other_usage)
+            other_usage = 70.0  # ensures load < 1.0
 
             expected_params = {
                 "my_usage": 25.0,
-                "total_usage": 105.0,
-                "load": 1
+                "total_usage": 95.0,
+                "load": 0.95
             }
 
-            x, delta_share = _calculate_x_and_delta_share(pool, limiter, other_usage, expected_params)
+            # --- Nominal (delta None) ---
+            nominal = SharedLimiter(
+                pool, **db_input, **default_inputs,
+                threshold=threshold, share=None
+            )
 
-            assert x == pytest.approx(1)
-            assert delta_share > 0
+            _update_or_insert_pool_row(db_input, **other_pool_inputs, usage=other_usage)
 
-            expected = pool.utilisation * _scale_factor_expected(x, delta_share)
-            got = limiter.utilisation
-            assert got == pytest.approx(expected)
+            x_nom, delta_nom = _calculate_x_and_delta_share(pool, nominal, other_usage, expected_params)
+            assert x_nom == pytest.approx(0.5)
+            assert delta_nom is None
+            util_nom = nominal.utilisation
 
-    def test_utilisation_share_negative_delta_towards_minus_model(self):
-        pool = FullMockPool()
-        pool.utilisation = 1.0
-        pool.supply = 10.0
+            # --- Plus (delta > 0) ---
+            plus = SharedLimiter(
+                pool, **db_input, **default_inputs,
+                threshold=threshold, share=0.05
+            )
+            x_plus, delta_plus = _calculate_x_and_delta_share(pool, plus, other_usage, expected_params)
+            assert x_plus == pytest.approx(0.5)
+            assert delta_plus > 0
+            util_plus = plus.utilisation
 
-        for db_input in db_inputs:
-            threshold = 0.9
-            limiter = SharedLimiter(
+            # --- Minus (delta < 0) ---
+            minus = SharedLimiter(
                 pool, **db_input, **default_inputs,
                 threshold=threshold, share=0.6
             )
+            x_minus, delta_minus = _calculate_x_and_delta_share(pool, minus, other_usage, expected_params)
+            assert x_minus == pytest.approx(0.5)
+            assert delta_minus < 0
+            util_minus = minus.utilisation
 
-            # Make Mock small compared to Others, but push load over threshold:
-            # Mock: 0.5*10 = 5
-            # Other: 200 -> load clamps to 1.0, Mock share tiny -> negative delta
-            # total=205 -> load=1 => x=1 =>delta_share<0
-            other_usage = 200.0
-            _update_or_insert_pool_row(db_input, **other_pool_inputs, usage=other_usage)
+            # SFs
+            sf_nom = _scale_factor_expected(x_nom, delta_nom)
+            sf_plus = _scale_factor_expected(x_plus, delta_plus)
+            sf_minus = _scale_factor_expected(x_minus, delta_minus)
 
-            expected_params = {
-                "my_usage": 5.0,
-                "total_usage": 205.0,
-                "load": 1
-            }
+            assert sf_nom == pytest.approx(0.75)
+            assert sf_plus == pytest.approx(0.5)
+            assert sf_minus == pytest.approx(0.9375)
 
-            x, delta_share = _calculate_x_and_delta_share(pool, limiter, other_usage)
+            # Ordering
+            assert util_plus < util_nom < util_minus
 
-            assert x == pytest.approx(1)
-            assert delta_share < 0
-
-            expected = pool.utilisation * _scale_factor_expected(x, delta_share)
-            got = limiter.utilisation
-            assert got == pytest.approx(expected)
+            assert util_nom == pytest.approx(pool.utilisation * sf_nom)
+            assert util_plus == pytest.approx(pool.utilisation * sf_plus)
+            assert util_minus == pytest.approx(pool.utilisation * sf_minus)
