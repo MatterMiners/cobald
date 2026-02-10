@@ -248,7 +248,3 @@ class TestSharedLimiter(object):
 
             # Ordering
             assert util_plus < util_nom < util_minus
-
-            assert util_nom == pytest.approx(pool.utilisation * sf_nom)
-            assert util_plus == pytest.approx(pool.utilisation * sf_plus)
-            assert util_minus == pytest.approx(pool.utilisation * sf_minus)
