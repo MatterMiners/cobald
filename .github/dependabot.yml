@@ -7,3 +7,5 @@ updates:
     reviewers:
       - "maxfischer2781"
       - "MatterMiners/review"
+    cooldown:
+      default-days: 7
