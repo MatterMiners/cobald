@@ -97,7 +97,7 @@ class TestStreamingController(object):
         assert controller.interpreter == sys.executable
         assert controller.restart_delay == 5
 
-    def test_stream_demand_applies_parsed_values(self, tmp_path):
+    def test_stream_demand_applies_parsed_values(self, tmp_path, caplog):
         script = write_script(
             tmp_path,
             """
@@ -111,9 +111,12 @@ class TestStreamingController(object):
             target=pool, script=script, interpreter=sys.executable
         )
 
-        asyncio.run(controller._stream_demand())
+        with caplog.at_level(logging.WARNING, logger="cobald.controller.streaming"):
+            asyncio.run(controller._stream_demand())
 
-        assert pool.demand == -3
+        # negative demand is clamped to 0 (and applied), not ignored
+        assert pool.demand == 0
+        assert "negative demand" in caplog.text
 
     def test_stream_demand_skips_unparsable_lines(self, tmp_path, caplog):
         script = write_script(

@@ -18,8 +18,9 @@ class StreamingController(Controller):
     The ``script`` is repeatedly run as a subprocess via ``interpreter``.
     Each line the subprocess writes to stdout is parsed as a ``float`` and
     applied as the new demand of ``target``; lines that cannot be parsed are
-    logged and skipped. If the subprocess exits or fails, it is restarted
-    after waiting ``restart_delay`` seconds.
+    logged and skipped. Negative values are clamped to ``0`` and logged as a
+    warning. If the subprocess exits or fails, it is restarted after waiting
+    ``restart_delay`` seconds.
 
     :param target: the pool to manage
     :param script: path to the script producing demand values on stdout
@@ -60,9 +61,14 @@ class StreamingController(Controller):
             # stream demand
             async for line in proc.stdout:
                 try:
-                    self.target.demand = float(line.decode().strip())
+                    demand = float(line.decode().strip())
                 except (ValueError, TypeError) as e:
                     logger.warning(e)
+                    continue
+                if demand < 0:
+                    logger.warning("received negative demand %r, clamping to 0", demand)
+                    demand = 0
+                self.target.demand = demand
             await proc.wait()
         finally:
             # make sure subprocess is terminated
