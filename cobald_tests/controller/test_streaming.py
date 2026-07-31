@@ -155,6 +155,7 @@ class TestStreamingController(object):
     def test_run_restarts_after_script_exits(self, monkeypatch):
         # fake create_subprocess_exec to avoid actually spawning a process
         spawn_count = 0
+
         async def fake_create_subprocess_exec(*args, **kwargs):
             nonlocal spawn_count
             spawn_count += 1
@@ -176,8 +177,14 @@ class TestStreamingController(object):
 
     def test_stream_demand_terminates_process_on_cancellation(self, monkeypatch):
         # fake create_subprocess_exec to avoid actually spawning a process
-        proc = FakeProcess(lines=[b"1\n"])
+        # (constructed lazily: asyncio.Event() binds to the running loop at
+        # creation time on Python <=3.9, so it must not be created before
+        # asyncio.run() starts the loop)
+        proc = None
+
         async def fake_create_subprocess_exec(*args, **kwargs):
+            nonlocal proc
+            proc = FakeProcess(lines=[b"1\n"])
             return proc
 
         monkeypatch.setattr(
@@ -190,19 +197,22 @@ class TestStreamingController(object):
             target=pool, script="s.py", interpreter=sys.executable
         )
 
-        # cancel it after short time and check that the process was terminated (but not killed)
+        # cancel after a short time and check the process was terminated
+        # (but not killed)
         asyncio.run(run_briefly(controller._stream_demand, duration=0.05))
 
         assert proc.terminated is True
         assert proc.killed is False
 
     def test_stream_demand_kills_process_that_ignores_terminate(self, monkeypatch):
-        proc = FakeProcess(lines=[b"1\n"], exits_on_terminate=False)
+        proc = None
         original_wait_for = asyncio.wait_for
 
         # fake create_subprocess_exec to avoid actually spawning a process
         # fake wait_for to avoid waiting too long for the process to exit
         async def fake_create_subprocess_exec(*args, **kwargs):
+            nonlocal proc
+            proc = FakeProcess(lines=[b"1\n"], exits_on_terminate=False)
             return proc
 
         def fast_wait_for(coro, timeout):
