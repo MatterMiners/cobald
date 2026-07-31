@@ -54,10 +54,10 @@ class StreamingController(Controller):
             "-u",
             self.script,
             stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
         )
 
         try:
+            # stream demand
             async for line in proc.stdout:
                 try:
                     self.target.demand = float(line.decode().strip())
@@ -65,6 +65,7 @@ class StreamingController(Controller):
                     logger.warning(e)
             await proc.wait()
         finally:
+            # make sure subprocess is terminated
             if proc.returncode is None:
                 proc.terminate()
                 try:
