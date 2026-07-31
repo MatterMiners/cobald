@@ -69,9 +69,10 @@ class StreamingController(Controller):
                     logger.warning("received negative demand %r, clamping to 0", demand)
                     demand = 0
                 self.target.demand = demand
+            # wait for process to finish
             await proc.wait()
         finally:
-            # make sure subprocess is terminated
+            # in case of not finishing properly, ensure proper temrination 
             if proc.returncode is None:
                 proc.terminate()
                 try:
