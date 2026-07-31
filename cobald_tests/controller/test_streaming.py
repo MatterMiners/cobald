@@ -6,10 +6,10 @@ import textwrap
 
 import pytest
 
-from ..mock.pool import MockPool
-
 from cobald.controller.streaming import StreamingController
 from cobald.utility import InvariantError
+
+from ..mock.pool import MockPool
 
 
 def write_script(tmp_path, body):
@@ -69,7 +69,7 @@ class FakeProcess:
         self._exited.set()
 
 
-class TestStreamingController(object):
+class TestStreamingController:
     def test_init_requires_target_script_interpreter(self):
         with pytest.raises(TypeError):
             StreamingController()

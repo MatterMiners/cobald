@@ -1,10 +1,9 @@
-import logging
 import asyncio
-
-from cobald.interfaces import Pool, Controller
-from cobald.utility import enforce, InvariantError
+import logging
 
 from cobald.daemon import service
+from cobald.interfaces import Controller, Pool
+from cobald.utility import InvariantError, enforce
 
 logger = logging.getLogger("cobald.controller.streaming")
 
