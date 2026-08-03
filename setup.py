@@ -45,6 +45,7 @@ if __name__ == "__main__":
                     ("Limiter", "cobald.decorator.limiter"),
                     ("Logger", "cobald.decorator.logger"),
                     ("Standardiser", "cobald.decorator.standardiser"),
+                    ("SharedLimiter", "cobald.decorator.sharedlimiter"),
                     ("__yaml_tag_test", "cobald.daemon.plugins"),
                 )
             ],
@@ -54,7 +55,7 @@ if __name__ == "__main__":
             ],
         },
         # >>> Dependencies
-        python_requires=">=3.8",
+        python_requires=">=3.10",
         install_requires=[
             "pyyaml",
             "trio",
@@ -62,6 +63,7 @@ if __name__ == "__main__":
             "toposort",
         ],
         extras_require={
+            "postgres": ["psycopg2-binary"],
             "docs": ["sphinx", "sphinx_rtd_theme"],
             "test": TESTS_REQUIRE,
             "contrib": [
