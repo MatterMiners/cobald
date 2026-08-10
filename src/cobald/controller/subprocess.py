@@ -4,7 +4,6 @@ from typing import List
 
 from cobald.daemon import service
 from cobald.interfaces import Controller, Pool
-from cobald.utility import InvariantError, enforce
 
 logger = logging.getLogger("cobald.controller.subprocess")
 
