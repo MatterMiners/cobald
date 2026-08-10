@@ -20,6 +20,8 @@ class SubprocessController(Controller):
     cannot be parsed as a demand, the failure is logged and the command is
     restarted after waiting ``restart_delay`` seconds.
 
+    ``command`` must write unbuffered, or demand updates lag.
+
     :param target: the pool to manage
     :param command: command producing demand values on stdout, as a list of
         the executable and its arguments, e.g. ``["python3", "-u", "script.py"]``
