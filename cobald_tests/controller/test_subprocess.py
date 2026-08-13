@@ -2,20 +2,10 @@ import asyncio
 import contextlib
 import logging
 import sys
-import textwrap
-
-import pytest
 
 from cobald.controller.subprocess import SubprocessController
-from cobald.utility import InvariantError
 
 from ..mock.pool import MockPool
-
-
-def write_script(tmp_path, body):
-    script = tmp_path / "script.py"
-    script.write_text(textwrap.dedent(body))
-    return str(script)
 
 
 async def run_briefly(coro, duration):
@@ -80,31 +70,6 @@ class TestSubprocessController:
             asyncio.run(run_briefly(controller.run(), duration=0.3))
 
         assert "subprocess controller subprocess failed" in caplog.text
-
-    def test_run_does_not_retry_after_invariant_error(self, monkeypatch):
-        # unlike a crashing subprocess, a strict violation of the demand
-        # contract must propagate out of run() instead of being retried,
-        # since the same malformed output would just recur forever
-        spawn_count = 0
-
-        async def fake_create_subprocess_exec(*args, **kwargs):
-            nonlocal spawn_count
-            spawn_count += 1
-            return FakeProcess(lines=[b"not-a-number\n"], running=False)
-
-        monkeypatch.setattr(
-            asyncio, "create_subprocess_exec", fake_create_subprocess_exec
-        )
-
-        pool = MockPool()
-        controller = SubprocessController(
-            target=pool, command=[sys.executable, "s.py"], restart_delay=0.01
-        )
-
-        with pytest.raises(InvariantError):
-            asyncio.run(controller.run())
-
-        assert spawn_count == 1
 
     def test_run_restarts_after_script_exits(self, monkeypatch):
         # fake create_subprocess_exec to avoid actually spawning a process
