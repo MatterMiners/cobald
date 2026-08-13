@@ -28,7 +28,12 @@ class SubprocessController(Controller):
     :param restart_delay: delay in seconds before restarting a stopped command
     """
 
-    def __init__(self, target: Pool, command: List[str], restart_delay: "float | None" = 3):
+    def __init__(
+        self,
+        target: Pool,
+        command: List[str],
+        restart_delay: "float | None" = 3,
+    ):
         super().__init__(target=target)
 
         assert restart_delay >= 0, "restart_delay must not be negative"
