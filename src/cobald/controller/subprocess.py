@@ -53,7 +53,7 @@ class SubprocessController(Controller):
         try:
             # stream demand
             async for line in proc.stdout:
-                self.target.demand = float(line.decode().strip())
+                self.target.demand = float(line)
             # wait for process to finish
             await proc.wait()
         finally:
