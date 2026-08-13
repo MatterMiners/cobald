@@ -57,7 +57,7 @@ class SubprocessController(Controller):
             # wait for process to finish
             await proc.wait()
         finally:
-            # in case of not finishing properly, ensure proper temrination
+            # in case of not finishing properly, ensure proper termination
             if proc.returncode is None:
                 proc.terminate()
                 try:
