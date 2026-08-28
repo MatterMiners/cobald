@@ -1,6 +1,7 @@
 from typing import Optional, Callable, Awaitable, Coroutine
 import asyncio
 from functools import partial
+import warnings
 
 import trio
 
@@ -22,6 +23,12 @@ class TrioRunner(BaseRunner):
     # Since the trio loop runs in its own thread, all public methods have to move
     # payloads/tasks into that thread.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        warnings.warn(
+            DeprecationWarning(
+                "'TrioRunner' is deprecated, directly use 'asyncio' instead"
+            ),
+            stacklevel=2,
+        )
         super().__init__(asyncio_loop)
         self._ready = asyncio.Event()
         self._trio_token: Optional[trio.lowlevel.TrioToken] = None

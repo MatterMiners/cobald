@@ -2,38 +2,39 @@
 Tools and helpers to declare plugins
 """
 
-from typing import Iterable, FrozenSet, TypeVar, NamedTuple
+from typing import Callable, Iterable, TypeVar, NamedTuple, Hashable
+from collections import defaultdict
 
-T = TypeVar("T")
+P = TypeVar("P", bound=Hashable)
+A = TypeVar("A")
+K = TypeVar("K")
 
 
-class PluginRequirements:
+class PluginRequirements(NamedTuple):
     """Requirements of a :py:class:`~.SectionPlugin`"""
 
-    __slots__ = "required", "before", "after"
+    required: bool = False
+    before: frozenset[str] = frozenset()
+    after: frozenset[str] = frozenset()
 
-    def __init__(
-        self,
-        required: bool = False,
-        before: FrozenSet[str] = frozenset(),
-        after: FrozenSet[str] = frozenset(),
-    ):
-        self.required = required
-        self.before = before
-        self.after = after
 
-    def __repr__(self):
-        return (
-            f"{self.__class__.__name__}"
-            f"(required={self.required},"
-            f" before={self.before},"
-            f" after={self.after})"
-        )
+class YAMLTagSettings(NamedTuple):
+    """Settings for interpreting a YAML tag"""
+
+    eager: bool = False
+
+
+_PLUGIN_REQUIREMENTS: "dict[Hashable, PluginRequirements]" = defaultdict(
+    lambda m=PluginRequirements(): m
+)
+_YAML_SETTINGS: "dict[Hashable, YAMLTagSettings]" = defaultdict(
+    lambda m=YAMLTagSettings(): m
+)
 
 
 def constraints(
     *, before: Iterable[str] = (), after: Iterable[str] = (), required: bool = False
-):
+) -> Callable[[P], P]:
     """
     Mark a callable as a plugin with constraints
 
@@ -47,8 +48,8 @@ def constraints(
         A plugin must still be registered using ``entry_points``.
     """
 
-    def section_wrapper(plugin: T) -> T:
-        plugin.__requirements__ = PluginRequirements(
+    def section_wrapper(plugin: P) -> P:
+        _PLUGIN_REQUIREMENTS[plugin] = PluginRequirements(
             required=required, before=frozenset(before), after=frozenset(after)
         )
         return plugin
@@ -56,33 +57,15 @@ def constraints(
     return section_wrapper
 
 
-class YAMLTagSettings(NamedTuple):
-    """Settings for interpreting a YAML tag"""
-
-    eager: bool = False
-
-    @classmethod
-    def fetch(cls, plugin):
-        """Provide the settings for `plugin`"""
-        try:
-            return plugin.__cobald_yaml_tag__
-        except AttributeError:
-            return cls()
-
-    def mark(self, plugin):
-        """Mark `plugin` to use the current settings"""
-        plugin.__cobald_yaml_tag__ = self
-
-
-def yaml_tag(*, eager: bool = False):
+def yaml_tag(*, eager: bool = False) -> Callable[[P], P]:
     """
     Mark a callable as a YAML tag constructor with specific settings
 
     :param eager: whether the YAML content must be evaluated eagerly
 
     Since YAML can express recursive data, nested data structures are evaluated lazily
-    by default. This means a constructor receives nested data structures
-    (e.g. a ``dict`` of ``dict``s) upfront but nested content is added later on.
+    by default. This means a constructor receives mutable nested data structures
+    (e.g. a ``dict[..., list[...]]``) upfront but nested content is added later on.
     If a constructor requires the entire data at once, set ``eager=True`` to enforce
     eager evaluation before calling the constructor.
 
@@ -92,15 +75,15 @@ def yaml_tag(*, eager: bool = False):
         A plugin must still be registered using ``entry_points``.
     """
 
-    def mark_settings(plugin: T) -> T:
-        YAMLTagSettings(eager=eager).mark(plugin)
+    def mark_settings(plugin: P) -> P:
+        _YAML_SETTINGS[plugin] = YAMLTagSettings(eager=eager)
         return plugin
 
     return mark_settings
 
 
 @yaml_tag(eager=True)
-def __yaml_tag_test(*args, **kwargs):
+def __yaml_tag_test(*args: A, **kwargs: K) -> tuple[tuple[A, ...], dict[str, K]]:
     """YAML tag constructor for testing only"""
     import copy
 

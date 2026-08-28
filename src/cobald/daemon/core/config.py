@@ -1,18 +1,18 @@
-import os
+from typing import Any
 from contextlib import contextmanager
-from typing import Type, Tuple, Dict, Set
+import pathlib
 
-from yaml import SafeLoader, BaseLoader
+from yaml import SafeLoader
 from entrypoints import get_group_all as get_entrypoints
 from toposort import toposort_flatten
 
-from ..plugins import constraints as plugin_constraints, YAMLTagSettings
+from ..plugins import constraints as plugin_constraints, _YAML_SETTINGS
 from ..config.yaml import (
     load_configuration as load_yaml_configuration,
     yaml_constructor,
 )
 from ..config.python import load_configuration as load_python_configuration
-from ..config.mapping import Translator, SectionPlugin
+from ..config.mapping import Node, Translator, SectionPlugin
 from ...interfaces._partial import Partial
 
 
@@ -20,51 +20,46 @@ class COBalDLoader(SafeLoader):
     """Loader with access to COBalD configuration constructors"""
 
 
-def add_constructor_plugins(entry_point_group: str, loader: Type[BaseLoader]) -> None:
+def add_constructor_plugins(entry_point_group: str, loader: type[SafeLoader]) -> None:
     """
     Add PyYAML constructors from an entry point group to a loader
 
-    :param loader: the PyYAML loader which uses the plugins
+    :param loader: the PyYAML loader which should use the plugins
     :param entry_point_group: entry point group to search
-
-    .. note::
-
-        This directly modifies the ``loader`` by
-        calling :py:meth:`~.BaseLoader.add_constructor`.
     """
     for entry in get_entrypoints(entry_point_group):
-        if entry.name[0] == "!":
+        if entry.name.startswith("!"):
             raise RuntimeError(
-                "plugin name %r in entry point group %r may not start with '!'"
-                % (entry.name, entry_point_group)
+                f"plugin name {entry.name!r} in entry point group {entry_point_group!r}"
+                " may not start with '!'"
             )
         try:
             pipeline_factory = entry.load().s
         except AttributeError:
             pipeline_factory = entry.load()
-        settings = YAMLTagSettings.fetch(pipeline_factory)
+        settings = _YAML_SETTINGS[pipeline_factory]
         loader.add_constructor(
             tag="!" + entry.name,
             constructor=yaml_constructor(pipeline_factory, eager=settings.eager),
         )
 
 
-def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
+def load_section_plugins(entry_point_group: str) -> tuple[SectionPlugin, ...]:
     """
     Load configuration plugins from an entry point group
 
     :param entry_point_group: entry point group to search
     :return: all loaded plugins
     """
-    plugins: Dict[str, SectionPlugin] = {
+    plugins: dict[str, SectionPlugin] = {
         plugin.section: plugin
         for plugin in map(SectionPlugin.load, get_entrypoints(entry_point_group))
     }
-    dependencies: Dict[str, Set[str]] = {
-        plugin.section: set(plugin.after) for plugin in plugins.values()
+    dependencies: dict[str, set[str]] = {
+        plugin.section: set(plugin.requirements.after) for plugin in plugins.values()
     }
     for plugin in plugins.values():
-        for before in plugin.before:
+        for before in plugin.requirements.before:
             dependencies[before].add(plugin.section)
     return tuple(
         plugins[plugin_name]
@@ -74,29 +69,25 @@ def load_section_plugins(entry_point_group: str) -> Tuple[SectionPlugin]:
 
 
 @contextmanager
-def load(config_path: str):
+def load(config_path: pathlib.Path):
     """
     Load a configuration and keep it alive for the given context
 
     :param config_path: path to a configuration file
     """
     # we bind the config to c to keep it alive
-    if os.path.splitext(config_path)[1] in (".yaml", ".yml"):
-        add_constructor_plugins(
-            "cobald.config.yaml_constructors", COBalDLoader  # type: ignore
-        )
+    if config_path.suffix in (".yaml", ".yml"):
+        add_constructor_plugins("cobald.config.yaml_constructors", COBalDLoader)
         config_plugins = load_section_plugins("cobald.config.sections")
         c = load_yaml_configuration(
             config_path,
             loader=COBalDLoader,  # type: ignore
             plugins=config_plugins,
         )
-    elif os.path.splitext(config_path)[1] == ".py":
+    elif config_path.suffix == ".py":
         c = load_python_configuration(config_path)
     else:
-        raise ValueError(
-            "Unknown configuration extension: %r" % os.path.splitext(config_path)[1]
-        )
+        raise ValueError(f"Unknown configuration extension: {config_path.suffix!r}")
     # yielded value used in tests, runtime does not use configuration result
     yield c
 
@@ -131,7 +122,9 @@ class PipelineTranslator(Translator):
             - __type__: package.module.Pool
     """
 
-    def translate_hierarchy(self, structure, *, where="", **construct_kwargs):
+    def translate_hierarchy(
+        self, structure: Node, *, where: str = "", **construct_kwargs: Any
+    ) -> Node:
         try:
             pipeline = structure["pipeline"]
         except (KeyError, TypeError):
