@@ -31,7 +31,7 @@ class SubprocessController(Controller):
     def __init__(
         self,
         target: Pool,
-        command: List[str],
+        command: "list[str]",
         restart_delay: "float | None" = 3,
     ):
         super().__init__(target=target)
