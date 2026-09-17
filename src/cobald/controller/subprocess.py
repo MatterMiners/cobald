@@ -20,7 +20,7 @@ class SubprocessController(Controller):
     cannot be parsed as a demand, the failure is logged and the command is
     restarted after waiting ``restart_delay`` seconds.
 
-    ``command`` must write unbuffered, or demand updates lag.
+    ``command`` must write to stdout unbuffered, otherwise demand updates may be delayed.
 
     :param target: the pool to manage
     :param command: command producing demand values on stdout, as a list of
