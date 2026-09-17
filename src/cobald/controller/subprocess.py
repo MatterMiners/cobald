@@ -59,7 +59,7 @@ class SubprocessController(Controller):
             # stream demand
             async for line in proc.stdout:
                 self.target.demand = float(line)
-            # wait for process to finish
+            # wait for process to clean up
             await proc.wait()
         finally:
             # in case of not finishing properly, ensure proper termination
