@@ -21,7 +21,8 @@ class SubprocessController(Controller):
     ``None``, the command is not restarted and the failure is raised instead,
     crashing the service.
 
-    ``command`` must write to stdout unbuffered, otherwise demand updates may be delayed.
+    ``command`` must write to stdout unbuffered, otherwise demand updates may
+    be delayed.
 
     :param target: the pool to manage
     :param command: command producing demand values on stdout, as a list of
