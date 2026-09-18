@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from typing import List
 
 from cobald.daemon import service
 from cobald.interfaces import Controller, Pool
@@ -18,14 +17,17 @@ class SubprocessController(Controller):
     writes to stdout is parsed as a ``float`` and applied as the new demand of
     ``target``. If the subprocess exits, fails to start, or writes a line that
     cannot be parsed as a demand, the failure is logged and the command is
-    restarted after waiting ``restart_delay`` seconds.
+    restarted after waiting ``restart_delay`` seconds. If ``restart_delay`` is
+    ``None``, the command is not restarted and the failure is raised instead,
+    crashing the service.
 
     ``command`` must write to stdout unbuffered, otherwise demand updates may be delayed.
 
     :param target: the pool to manage
     :param command: command producing demand values on stdout, as a list of
         the executable and its arguments, e.g. ``["python3", "-u", "script.py"]``
-    :param restart_delay: delay in seconds before restarting a stopped command
+    :param restart_delay: delay in seconds before restarting a stopped command,
+        or ``None`` to just let the service crash.
     """
 
     def __init__(
@@ -36,7 +38,9 @@ class SubprocessController(Controller):
     ):
         super().__init__(target=target)
 
-        assert restart_delay >= 0, "restart_delay must not be negative"
+        assert (
+            restart_delay is None or restart_delay >= 0
+        ), "restart_delay must not be negative"
 
         self.command = command
         self.restart_delay = restart_delay
@@ -47,6 +51,8 @@ class SubprocessController(Controller):
                 await self._stream_demand()
             except Exception:
                 logger.exception("subprocess controller subprocess failed")
+                if self.restart_delay is None:
+                    raise
             await asyncio.sleep(self.restart_delay)
 
     async def _stream_demand(self):

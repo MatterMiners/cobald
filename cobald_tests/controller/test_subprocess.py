@@ -3,6 +3,8 @@ import contextlib
 import logging
 import sys
 
+import pytest
+
 from cobald.controller.subprocess import SubprocessController
 
 from ..mock.pool import MockPool
@@ -93,6 +95,32 @@ class TestSubprocessController:
         asyncio.run(run_briefly(controller.run(), duration=0.1))
 
         assert spawn_count >= 2
+
+    def test_raise_exception_if_exec_cashes_and_restart_delay_is_none(
+        self, monkeypatch
+    ):
+        # fake create_subprocess_exec and let it fail
+        spawn_count = 0
+
+        async def fake_create_subprocess_exec(*args, **kwargs):
+            nonlocal spawn_count
+            spawn_count += 1
+            raise OSError("simulated failure")
+
+        monkeypatch.setattr(
+            asyncio, "create_subprocess_exec", fake_create_subprocess_exec
+        )
+
+        # actual test
+        pool = MockPool()
+        controller = SubprocessController(
+            target=pool, command=[sys.executable, "s.py"], restart_delay=None
+        )
+
+        with pytest.raises(OSError, match="simulated failure"):
+            asyncio.run(controller.run())
+
+        assert spawn_count == 1
 
     def test_stream_demand_terminates_process_on_cancellation(self, monkeypatch):
         # fake create_subprocess_exec to avoid actually spawning a process
