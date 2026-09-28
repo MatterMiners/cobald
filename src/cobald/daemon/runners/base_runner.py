@@ -108,6 +108,9 @@ class OrphanedReturn(Exception):
     """A runnable returned a value without anyone to receive it"""
 
     def __init__(self, who, value):
-        super().__init__("no caller to receive %s from %s" % (value, who))
+        super().__init__(who, value)
         self.who = who
         self.value = value
+
+    def __str__(self) -> str:
+        return f"no caller to receive {self.value} from {self.who}"

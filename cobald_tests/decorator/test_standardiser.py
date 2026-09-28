@@ -8,13 +8,13 @@ from cobald.decorator.standardiser import Standardiser
 class TestStandardiser(object):
     def test_init_enforcement(self):
         pool = FullMockPool()
-        with pytest.raises(ValueError):
+        with pytest.raises(AssertionError):
             Standardiser(pool, minimum=10, maximum=-10)
-        with pytest.raises(ValueError):
+        with pytest.raises(AssertionError):
             Standardiser(pool, surplus=-20)
-        with pytest.raises(ValueError):
+        with pytest.raises(AssertionError):
             Standardiser(pool, backlog=-20)
-        with pytest.raises(ValueError):
+        with pytest.raises(AssertionError):
             Standardiser(pool, granularity=-20)
 
     def test_granularity(self):

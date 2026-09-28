@@ -7,3 +7,12 @@ updates:
     reviewers:
       - "maxfischer2781"
       - "MatterMiners/review"
+    cooldown:
+      default-days: 7
+    groups:
+      gha minor:
+        update-types:
+          - "minor"
+      gha patches:
+        update-types:
+          - "patch"

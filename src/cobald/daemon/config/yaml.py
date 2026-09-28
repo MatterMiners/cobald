@@ -8,7 +8,6 @@ from .mapping import (
     SectionPlugin,
 )
 
-
 R = TypeVar("R")
 
 

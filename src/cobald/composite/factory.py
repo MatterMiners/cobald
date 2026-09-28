@@ -1,13 +1,13 @@
 from typing import Callable
 import weakref
 
-import trio
+import asyncio
 
 from cobald.interfaces import Pool, CompositePool
 from cobald.daemon import service
 
 
-@service(flavour=trio)
+@service(flavour=asyncio)
 class FactoryPool(CompositePool):
     """
     Composition that adds and removes pools to satisfy demand
@@ -38,25 +38,29 @@ class FactoryPool(CompositePool):
     """
 
     @property
-    def children(self):
+    def children(self) -> list[Pool]:
         return [*self._hatchery, *self._mortuary]
 
+    @children.setter
+    def children(self, value: list[Pool]) -> None:
+        raise NotImplementedError(f"{self.__class__.__name__}.children cannot be set")
+
     @property
-    def demand(self):
+    def demand(self) -> float:
         return self._demand
 
     @demand.setter
-    def demand(self, value):
+    def demand(self, value: float) -> None:
         # we may spend an arbitrary time spawning Drones,
         # just acknowledge demand and defer any actions
         self._demand = value
 
     @property
-    def supply(self):
+    def supply(self) -> float:
         return sum(child.supply for child in self.children)
 
     @property
-    def utilisation(self):
+    def utilisation(self) -> float:
         active_children = [child for child in self.children if child.supply > 0]
         try:
             return sum(child.utilisation for child in active_children) / len(
@@ -82,13 +86,13 @@ class FactoryPool(CompositePool):
         #: children fulfilling our demand
         self._hatchery = set(children)
         #: children shutting down
-        self._mortuary = weakref.WeakSet()
+        self._mortuary: weakref.WeakSet[Pool] = weakref.WeakSet()
         self.factory = factory
         self.interval = interval
 
     async def run(self):
         while True:
-            await trio.sleep(self.interval)
+            await asyncio.sleep(self.interval)
             # freeze target demand in case another thread updates us
             supply, demand = self.supply, self.demand
             if supply > demand:

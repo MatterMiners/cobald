@@ -1,7 +1,7 @@
+from typing import Any
 from collections.abc import Mapping
 from logging import Formatter, LogRecord
 import json
-
 
 #: Attributes of a LogRecord.
 # See <the docs `https://docs.python.org/3/library/logging.html#logrecord-attributes`>_.
@@ -45,12 +45,10 @@ class JsonFormatter(Formatter):
     false excludes the timestamp from reports.
     """
 
-    def __init__(self, fmt: dict = None, datefmt: str = None):
+    def __init__(self, fmt: dict[str, Any] | None = None, datefmt: str | None = None):
         super().__init__(fmt=None, datefmt=datefmt, style="%")
         self._defaults = fmt or {}
-        if not isinstance(self._defaults, Mapping):
-            raise TypeError("`fmt` must be a Mapping or None")
-        self._add_time = self.datefmt or self.datefmt is None
+        self._add_time = self.datefmt is None or bool(self.datefmt)
 
     def format(self, record: LogRecord):
         args = record.args

@@ -1,11 +1,11 @@
-import trio
+import asyncio
 
 from cobald.interfaces import Pool, Controller
 
 from cobald.daemon import service
 
 
-@service(flavour=trio)
+@service(flavour=asyncio)
 class RelativeSupplyController(Controller):
     """
     Controller that adjusts demand relative to supply
@@ -21,11 +21,11 @@ class RelativeSupplyController(Controller):
     def __init__(
         self,
         target: Pool,
-        low_utilisation=0.5,
-        high_allocation=0.5,
-        low_scale=0.9,
-        high_scale=1.1,
-        interval=1,
+        low_utilisation: float = 0.5,
+        high_allocation: float = 0.5,
+        low_scale: float = 0.9,
+        high_scale: float = 1.1,
+        interval: float = 1,
     ):
         super().__init__(target=target)
         self.interval = interval
@@ -40,9 +40,9 @@ class RelativeSupplyController(Controller):
     async def run(self):
         while True:
             self.regulate(self.interval)
-            await trio.sleep(self.interval)
+            await asyncio.sleep(self.interval)
 
-    def regulate(self, interval):
+    def regulate(self, interval: float):
         if self.target.utilisation < self.low_utilisation:
             self.target.demand = self.target.supply * self.low_scale
         elif self.target.allocation > self.high_allocation:

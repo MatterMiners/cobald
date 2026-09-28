@@ -16,13 +16,17 @@ M = TypeVar("M", str, int, float, bool, dict, list)
 
 
 class ConfigurationError(Exception):
-    def __init__(self, what: Any, where: str = None):
-        self.where = where
+    def __init__(self, what: Any, where: "str | None" = None):
+        super().__init__(what, where)
         self.what = what
-        super().__init__("invalid configuration element '%s': %s" % (where, what))
+        self.where = where
+
+    def __str__(self) -> str:
+        where = f" {self.where!r}" if self.where is not None else ""
+        return f"invalid configuration element{where}: {self.what}"
 
 
-def configure_logging(logging_mapping: dict):
+def configure_logging(logging_mapping: "dict[str, Any]"):
     _logger.info("Configuring logging")
     # > takes a default parameter, disable_existing_loggers, which defaults to True
     # > for reasons of backward compatibility. This may or may not be what you want

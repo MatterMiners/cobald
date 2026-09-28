@@ -1,7 +1,7 @@
-from typing import TypeVar, Set
+from typing import Any, Coroutine, Callable, TypeVar, Protocol
+import asyncio
 import logging
 import weakref
-import trio
 import functools
 import threading
 
@@ -11,21 +11,31 @@ from .meta_runner import MetaRunner
 from .guard import exclusive
 from ..debug import NameRepr
 
-
 T = TypeVar("T")
 
 
-def _weakset_copy(ws: "weakref.WeakSet[T]") -> Set[T]:
+def _weakset_copy(ws: "weakref.WeakSet[T]") -> set[T]:
     """Thread-safely copy all items from a weakset to a set"""
     # The various WeakSet methods are not thread-safe because they miss locking.
     # The main issue is that all copy approaches use ``__iter__``, which is not
     # thread-safe against items being garbage collected. However, we can access
     # the actual backing real set ``ws.data`` and ``set(some_set)`` is GIL-atomic.
-    refs = set(ws.data)
+    refs: "set[weakref.ReferenceType[T]]" = set(ws.data)
     return {item for item in (ref() for ref in refs) if item is not None}
 
 
-class ServiceUnit(object):
+class Service(Protocol):
+    """
+    Protocol for classes that provide a service to run in the background
+    """
+
+    def run(self) -> None | Coroutine[Any, Any, None]: ...
+
+
+S = TypeVar("S", bound=Service)
+
+
+class ServiceUnit:
     """
     Definition for running a service
 
@@ -33,9 +43,9 @@ class ServiceUnit(object):
     :param flavour: runner flavour to use for running the service
     """
 
-    __active_units__: "weakref.WeakSet[ServiceUnit]" = weakref.WeakSet()
+    __defined_units__: "weakref.WeakSet[ServiceUnit]" = weakref.WeakSet()
 
-    def __init__(self, service, flavour):
+    def __init__(self, service: Service, flavour: ModuleType):
         assert hasattr(service, "run"), "service must implement a 'run' method"
         assert any(
             flavour == runner.flavour for runner in MetaRunner.runner_types
@@ -45,15 +55,16 @@ class ServiceUnit(object):
         self.service = weakref.ref(service)
         self.flavour = flavour
         self._started = False
-        ServiceUnit.__active_units__.add(self)
+        ServiceUnit.__defined_units__.add(self)
 
     @classmethod
-    def units(cls) -> "Set[ServiceUnit]":
+    def units(cls) -> "set[ServiceUnit]":
         """Container of all currently defined units"""
-        return _weakset_copy(cls.__active_units__)
+        return _weakset_copy(cls.__defined_units__)
 
     @property
     def running(self):
+        """Whether this specific service is running"""
         return self._started
 
     def start(self, runner: MetaRunner):
@@ -72,24 +83,22 @@ class ServiceUnit(object):
         )
 
 
-def service(flavour):
+def service(flavour: ModuleType) -> Callable[[type[S]], type[S]]:
     r"""
     Mark a class as implementing a Service
 
     Each Service class must have a ``run`` method, which does not take any arguments.
-    This method is :py:meth:`~.ServiceRunner.adopt`\ ed after the daemon starts, unless
-
-    * the Service has been garbage collected, or
-    * the ServiceUnit has been :py:meth:`~.ServiceUnit.cancel`\ ed.
+    This method is :py:meth:`~.ServiceRunner.adopt`\ ed after the daemon starts,
+    unless the Service has been garbage collected
 
     For each service instance, its :py:class:`~.ServiceUnit` is available at
     ``service_instance.__service_unit__``.
     """
 
-    def service_unit_decorator(raw_cls):
+    def service_unit_decorator(raw_cls: type[S]) -> type[S]:
         __new__ = raw_cls.__new__
 
-        def __new_service__(cls, *args, **kwargs):
+        def __new_service__(cls: type[S], *args: Any, **kwargs: Any) -> S:
             if __new__ is object.__new__:
                 self = __new__(cls)
             else:
@@ -106,7 +115,7 @@ def service(flavour):
     return service_unit_decorator
 
 
-class ServiceRunner(object):
+class ServiceRunner:
     """
     Runner for coroutines, subroutines and services
 
@@ -130,7 +139,9 @@ class ServiceRunner(object):
         self.running = threading.Event()
         self.accept_delay = accept_delay
 
-    def execute(self, payload, *args, flavour: ModuleType, **kwargs):
+    def execute(
+        self, payload: Callable[..., T], *args: Any, flavour: ModuleType, **kwargs: Any
+    ) -> T:
         """
         Synchronously run ``payload`` and provide its output
 
@@ -141,7 +152,9 @@ class ServiceRunner(object):
             payload = functools.partial(payload, *args, **kwargs)
         return self._meta_runner.run_payload(payload, flavour=flavour)
 
-    def adopt(self, payload, *args, flavour: ModuleType, **kwargs):
+    def adopt(
+        self, payload: Callable[..., T], *args: Any, flavour: ModuleType, **kwargs: Any
+    ) -> None:
         """
         Concurrently run ``payload`` in the background
 
@@ -153,7 +166,7 @@ class ServiceRunner(object):
         self._meta_runner.register_payload(payload, flavour=flavour)
 
     @exclusive()
-    def accept(self):
+    def accept(self) -> None:
         """
         Start accepting synchronous, asynchronous and service payloads
 
@@ -162,16 +175,16 @@ class ServiceRunner(object):
         """
         self._must_shutdown = False
         self._logger.info("%s starting", self.__class__.__name__)
-        self.adopt(self._accept_services, flavour=trio)
+        self.adopt(self._accept_services, flavour=asyncio)
         self._meta_runner.run()
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Shutdown the accept loop and stop running payloads"""
         self._must_shutdown = True
         self._is_shutdown.wait()
         self._meta_runner.stop()
 
-    async def _accept_services(self):
+    async def _accept_services(self) -> None:
         delay, max_delay, increase = 0.0, self.accept_delay, self.accept_delay / 10
         self._is_shutdown.clear()
         self.running.set()
@@ -179,9 +192,9 @@ class ServiceRunner(object):
             self._logger.info("%s started", self.__class__.__name__)
             while not self._must_shutdown:
                 self._adopt_services()
-                await trio.sleep(delay)
+                await asyncio.sleep(delay)
                 delay = min(delay + increase, max_delay)
-        except trio.Cancelled:
+        except asyncio.CancelledError:
             self._logger.info("%s cancelled", self.__class__.__name__)
         except BaseException:
             self._logger.exception("%s aborted", self.__class__.__name__)
