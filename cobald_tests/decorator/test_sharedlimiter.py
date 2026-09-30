@@ -86,13 +86,13 @@ class TestSharedLimiter(object):
     def test_init_enforcement(self):
         pool = FullMockPool()
         for db_ipnut in db_inputs:
-            with pytest.raises(ValueError):
+            with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, threshold=-1)
-            with pytest.raises(ValueError):
+            with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, threshold=2)
-            with pytest.raises(ValueError):
+            with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, share=-1)
-            with pytest.raises(ValueError):
+            with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, share=2)
     
     def test_prepare_db(self):

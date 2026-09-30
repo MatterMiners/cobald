@@ -1,7 +1,5 @@
 from cobald.interfaces import Pool, PoolDecorator
 
-from ..utility import enforce
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -43,7 +41,7 @@ def model_minus(x):
 
 
 def _scale_factor(x, delta):
-    enforce(x >= 0 and x <= 1, ValueError(f"x for scale factor must be between 0 and 1"))
+    assert x >= 0 and x <= 1
     if delta:
         if delta >= 0:
             return (1.0-delta)*model_nominal(x)+delta*model_plus(x)
@@ -154,9 +152,9 @@ class SharedLimiter(PoolDecorator):
     ):
         super().__init__(target)
 
-        enforce(threshold >= 0 and threshold < 1, ValueError(f"threshold must be between 0 and 1"))
+        assert threshold >= 0 and threshold < 1
         if share is not None:
-            enforce(share >= 0 and share <= 1, ValueError(f"share must be between 0 and 1"))
+            assert share >= 0 and share <= 1
 
         self.mode = mode
         self.db_path = db_path
