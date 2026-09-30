@@ -4,6 +4,8 @@ from typing import Any
 import logging
 logger = logging.getLogger(__name__)
 
+_DEFAULT_MAX_SHARE_DEVIATION = 0.05
+
 
 def _connect_to_db(backend: str, path: str) -> Any:
     """Connect to SQL database of one of the supported types and return connection"""
@@ -20,27 +22,57 @@ def _connect_to_db(backend: str, path: str) -> Any:
             raise NotImplementedError
 
 
-def model_nominal(x):
-    return 1.0-x**2
+def _model_nominal(normalized_load: float) -> float:
+    """The default quadratic throttling curve for the normalized load."""
+    return 1.0 - normalized_load**2
 
 
-def model_plus(x):
-    return 1.0-x
+def _model_plus(normalized_load: float) -> float:
+    """The linear curve that throttles more strongly than the default."""
+    return 1.0 - normalized_load
 
 
-def model_minus(x):
-    return 1.0-x**4
+def _model_minus(normalized_load: float) -> float:
+    """The quartic curve that throttles more gently than the default."""
+    return 1.0 - normalized_load**4
 
 
-def _scale_factor(x, delta):
-    assert x >= 0 and x <= 1
-    if delta:
-        if delta >= 0:
-            return (1.0-delta)*model_nominal(x)+delta*model_plus(x)
-        else:
-            return (1.0+delta)*model_nominal(x)-delta*model_minus(x)
-    else:
-        return model_nominal(x)
+def _scale_factor(
+    normalized_load: float,
+    share_deviation: float,
+    max_share_deviation: float,
+) -> float:
+    """Blend throttling curves according to deviation from 
+    the desired share and output scale factor for utilisation value.
+
+    share_deviation is mapped to a curve blend between -1 and 1. Zero uses
+    only the nominal curve. Positive values blend toward stronger throttling,
+    while negative values blend toward gentler throttling. Deviations at or
+    beyond ``max_share_deviation`` use the respective curve fully.
+    """
+    assert 0 <= normalized_load <= 1
+    assert 0 < max_share_deviation <= 1
+
+    # Convert the raw share difference to the [-1, 1] range used for blending.
+    # For example, with max_share_deviation=0.05, share_deviation=0.01 gives a
+    # curve_blend of 0.2: 80% nominal curve and 20% stronger curve.
+    bounded_deviation = max(
+        min(share_deviation, max_share_deviation),
+        -max_share_deviation,
+    )
+    curve_blend = bounded_deviation / max_share_deviation
+
+    if curve_blend > 0:
+        return (
+            (1.0 - curve_blend) * _model_nominal(normalized_load)
+            + curve_blend * _model_plus(normalized_load)
+        )
+    elif curve_blend < 0:
+        return (
+            (1.0 + curve_blend) * _model_nominal(normalized_load)
+            - curve_blend * _model_minus(normalized_load)
+        )
+    return _model_nominal(normalized_load)
 
 
 class SharedLimiter(PoolDecorator):
@@ -56,6 +88,7 @@ class SharedLimiter(PoolDecorator):
     :param db_global_max_default: default global maximum availability of shared resource if not already set in database
     :param threshold: optional parameter from 0 to 1 to define the threshold relative resource usage for the limiter
     :param share: nominal resource share of this pool to be pursued by the limiter (optional)
+    :param max_share_deviation: share difference at which the stronger or gentler throttling curve is applied fully
 
     The weighted ``supply`` determines how much of the shared resource this pool
     is currently consuming, which is written to the database.
@@ -121,14 +154,24 @@ class SharedLimiter(PoolDecorator):
         #throttle down utilization if shared resource close to maximum
         load = min(total_usage/limit, 1.0)
         if load <= threshold:
+            # A total usage of zero produces zero load and returns here, which
+            # also prevents division by zero in the share calculation below.
             return self.target.utilisation
-        
-        x = (load-threshold) / (1-threshold)
-        delta_share = None
+
+        normalized_load = (load - threshold) / (1 - threshold)
+        share_deviation = 0.0
         if self.share is not None:
-            delta_share = my_usage/total_usage - self.share #does not get here if total_usage==0
-            delta_share = 20.0 * max(min(delta_share, 0.05), -0.05) #crop to +-5% and normalise
-        return self.target.utilisation * _scale_factor(x, delta_share)
+            # Compare this pool's actual share of the total usage with its
+            # desired share and calculate the deviation.
+            share_deviation = my_usage / total_usage - self.share
+
+        # The selected curve produces a value between zero and one. Multiplying
+        # by it reduces the utilisation by the chosen throttling strength.
+        return self.target.utilisation * _scale_factor(
+            normalized_load,
+            share_deviation,
+            self.max_share_deviation,
+        )
 
     def __init__(
         self,
@@ -141,12 +184,14 @@ class SharedLimiter(PoolDecorator):
         db_global_max_default: float,
         threshold: float = 0.9,
         share: float = None,
+        max_share_deviation: float = _DEFAULT_MAX_SHARE_DEVIATION,
     ):
         super().__init__(target)
 
         assert threshold >= 0 and threshold < 1
         if share is not None:
             assert share >= 0 and share <= 1
+        assert max_share_deviation > 0 and max_share_deviation <= 1
 
         self.backend = backend
         self.db_path = db_path
@@ -156,6 +201,7 @@ class SharedLimiter(PoolDecorator):
         self.db_global_max_default = db_global_max_default
         self.threshold = threshold
         self.share = share
+        self.max_share_deviation = max_share_deviation
 
         self._prepare_db()
     

@@ -94,6 +94,10 @@ class TestSharedLimiter(object):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, share=-1)
             with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, share=2)
+            with pytest.raises(AssertionError):
+                SharedLimiter(pool, **db_ipnut, **default_inputs, max_share_deviation=0)
+            with pytest.raises(AssertionError):
+                SharedLimiter(pool, **db_ipnut, **default_inputs, max_share_deviation=2)
     
     def test_prepare_db(self):
         pool = FullMockPool()
@@ -149,11 +153,11 @@ class TestSharedLimiter(object):
             got = limiter.utilisation
             assert got == pytest.approx(pool.utilisation)
 
-    def test_utilisation_models_delta_and_sf_ordering(self):
+    def test_utilisation_models_curve_blend_and_sf_ordering(self):
         """
         Combine nominal/plus/minus checks:
 
-        Expect: util_plus < util_nom < util_minus (for same x)
+        Expect: util_plus < util_nom < util_minus (for the same normalized load)
         """
         pool = FullMockPool()
         pool.utilisation = 1.0
@@ -169,7 +173,7 @@ class TestSharedLimiter(object):
                 "load": 0.95
             }
 
-            # --- Nominal (delta None) ---
+            # --- Nominal (curve_blend == 0) ---
             nominal = SharedLimiter(
                 pool, **db_input, **default_inputs,
                 threshold=threshold, share=None
@@ -179,14 +183,14 @@ class TestSharedLimiter(object):
 
             util_nom = nominal.utilisation
 
-            # --- Plus (delta > 0) ---
+            # --- Plus (curve_blend > 0) ---
             plus = SharedLimiter(
                 pool, **db_input, **default_inputs,
                 threshold=threshold, share=0.05
             )
             util_plus = plus.utilisation
 
-            # --- Minus (delta < 0) ---
+            # --- Minus (curve_blend < 0) ---
             minus = SharedLimiter(
                 pool, **db_input, **default_inputs,
                 threshold=threshold, share=0.6
