@@ -1,28 +1,20 @@
 from cobald.interfaces import Pool, PoolDecorator
+from typing import Any
 
 import logging
 logger = logging.getLogger(__name__)
 
-import sqlite3
 
-try:
-    import psycopg2
-    _HAS_PSYCOPG2 = True
-except ImportError:
-    psycopg2 = None
-    _HAS_PSYCOPG2 = False
-
-
-def _connect_to_db(mode, path):
+def _connect_to_db(backend: str, path: str) -> Any:
     """Connect to SQL database of one of the supported types and return connection"""
-    match mode:
-        case "local":
+    match backend:
+        case "sqlite":
+            import sqlite3
+
             return sqlite3.connect(path)
-        case "postgres":
-            if not _HAS_PSYCOPG2:
-                raise ModuleNotFoundError(
-                    "Postgres mode requires 'psycopg2' package"
-            )
+        case "postgresql":
+            import psycopg2
+
             return psycopg2.connect(path)
         case _:
             raise NotImplementedError
@@ -56,7 +48,7 @@ class SharedLimiter(PoolDecorator):
     Limit on utilisation based on a resource shared between multiple pools
 
     :param target: the pool to which changes are applied
-    :param mode: type of sql database, i.e. ``local`` or ``postgres``
+    :param backend: type of SQL database, i.e. ``sqlite`` or ``postgresql``
     :param db_path: path or connection string to database
     :param db_pool_id: choose a unique id for this pool
     :param db_resource_id: name of the shared resource
@@ -77,7 +69,7 @@ class SharedLimiter(PoolDecorator):
     @property
     def utilisation(self):
         #update CPU allocation and retrieve total load on shared resource
-        con = _connect_to_db(self.mode, self.db_path)
+        con = _connect_to_db(self.backend, self.db_path)
         try:
             cur = con.cursor()
             
@@ -103,7 +95,7 @@ class SharedLimiter(PoolDecorator):
                         "resource": self.db_resource_id,
                         "pool_id": self.db_pool_id,
                         "upper_limit": limit,
-                        "mode": self.mode,
+                        "backend": self.backend,
                         "db_path": self.db_path,
                         "supply": float(self.target.supply),
                     },
@@ -141,7 +133,7 @@ class SharedLimiter(PoolDecorator):
     def __init__(
         self,
         target: Pool,
-        mode: str,
+        backend: str,
         db_path: str,
         db_pool_id: str,
         db_resource_id: str,
@@ -156,7 +148,7 @@ class SharedLimiter(PoolDecorator):
         if share is not None:
             assert share >= 0 and share <= 1
 
-        self.mode = mode
+        self.backend = backend
         self.db_path = db_path
         self.db_pool_id = db_pool_id
         self.db_resource_id = db_resource_id
@@ -164,7 +156,6 @@ class SharedLimiter(PoolDecorator):
         self.db_global_max_default = db_global_max_default
         self.threshold = threshold
         self.share = share
-        # prepare DB
 
         self._prepare_db()
     
@@ -173,7 +164,7 @@ class SharedLimiter(PoolDecorator):
         Prepare all the necessary tables in the DB.
         """
 
-        con = _connect_to_db(self.mode, self.db_path)
+        con = _connect_to_db(self.backend, self.db_path)
 
         try:
             cur = con.cursor()

@@ -8,13 +8,13 @@ from cobald.decorator.sharedlimiter import SharedLimiter
 
 import sqlite3
 
-db_inputs_local = {
-    "mode": "local",
+db_inputs_sqlite = {
+    "backend": "sqlite",
     "db_path": "test.db",
 }
 
 db_inputs = [
-    db_inputs_local
+    db_inputs_sqlite
 ]
 
 default_inputs = {
@@ -71,14 +71,14 @@ def _update_or_insert_pool_row(db_inputs, db_resource_id: str, db_pool_id: str, 
         con.close()
 
 @pytest.fixture(autouse=True)
-def clean_local_test_db():
+def clean_sqlite_test_db():
     try:
-        os.remove(db_inputs_local["db_path"])
+        os.remove(db_inputs_sqlite["db_path"])
     except FileNotFoundError:
         pass
     yield
     try:
-        os.remove(db_inputs_local["db_path"])
+        os.remove(db_inputs_sqlite["db_path"])
     except FileNotFoundError:
         pass
 
