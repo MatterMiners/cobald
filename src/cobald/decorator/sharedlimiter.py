@@ -1,7 +1,12 @@
+import asyncio
+import logging
+
 from cobald.interfaces import Pool, PoolDecorator
+from cobald.daemon import service
 from typing import Any
 
 _DEFAULT_MAX_SHARE_DEVIATION = 0.05
+logger = logging.getLogger(__name__)
 
 
 def _connect_to_db(backend: tuple[Any, ...]) -> Any:
@@ -81,6 +86,7 @@ def _scale_factor(
     return _model_nominal(normalized_load)
 
 
+@service(flavour=asyncio)
 class SharedLimiter(PoolDecorator):
     """
     Limit on utilisation based on a resource shared between multiple pools
@@ -94,6 +100,7 @@ class SharedLimiter(PoolDecorator):
     :param threshold: relative total resource load at or below which no throttling is applied
     :param share: desired fraction of the total weighted supply attributed to this pool
     :param max_share_deviation: share difference at which the stronger or gentler throttling curve is applied fully
+    :param interval: seconds between updates of the shared resource state
 
     The weighted ``supply`` determines how much of the shared resource this pool
     is currently consuming, which is written to the database.
@@ -105,8 +112,17 @@ class SharedLimiter(PoolDecorator):
     """
 
     @property
-    def utilisation(self):
-        #update CPU allocation and retrieve total load on shared resource
+    def utilisation(self) -> float:
+        return self.target.utilisation * self._utilisation_scale
+
+    async def run(self) -> None:
+        """Periodically refresh the cached utilisation scale."""
+        while True:
+            await asyncio.to_thread(self._update)
+            await asyncio.sleep(self.interval)
+
+    def _update(self) -> None:
+        """Synchronize supply through the database and update the cached scale."""
         supply = float(self.target.supply)
 
         con = _connect_to_db(self.backend)
@@ -160,26 +176,39 @@ class SharedLimiter(PoolDecorator):
 
         threshold = self.threshold
 
-        #throttle down utilization if shared resource close to maximum
-        load = min(total_usage/limit, 1.0)
+        # Throttle utilisation if the shared resource exceeds its threshold.
+        load = min(total_usage / limit, 1.0)
+        share_deviation = 0.0
         if load <= threshold:
             # A total usage of zero produces zero load and returns here, which
             # also prevents division by zero in the share calculation below.
-            return self.target.utilisation
+            self._utilisation_scale = 1.0
+        else:
+            normalized_load = (load - threshold) / (1 - threshold)
+            if self.share is not None:
+                # Compare this pool's actual share of the total usage with its
+                # desired share and calculate the deviation.
+                share_deviation = my_usage / total_usage - self.share
 
-        normalized_load = (load - threshold) / (1 - threshold)
-        share_deviation = 0.0
-        if self.share is not None:
-            # Compare this pool's actual share of the total usage with its
-            # desired share and calculate the deviation.
-            share_deviation = my_usage / total_usage - self.share
+            self._utilisation_scale = _scale_factor(
+                normalized_load,
+                share_deviation,
+                self.max_share_deviation,
+            )
 
-        # The selected curve produces a value between zero and one. Multiplying
-        # by it reduces the utilisation by the chosen throttling strength.
-        return self.target.utilisation * _scale_factor(
-            normalized_load,
+        logger.debug(
+            "updated shared limit: resource=%r pool=%r supply=%s "
+            "weighted_total=%s limit=%s load=%s share_deviation=%s "
+            "scale=%s utilisation=%s",
+            self.resource_id,
+            self.pool_id,
+            supply,
+            total_usage,
+            limit,
+            load,
             share_deviation,
-            self.max_share_deviation,
+            self._utilisation_scale,
+            self.utilisation,
         )
 
     def __init__(
@@ -193,6 +222,7 @@ class SharedLimiter(PoolDecorator):
         threshold: float = 0.9,
         share: "float | None" = None,
         max_share_deviation: float = _DEFAULT_MAX_SHARE_DEVIATION,
+        interval: float = 1.0,
     ):
         super().__init__(target)
 
@@ -201,6 +231,7 @@ class SharedLimiter(PoolDecorator):
             assert share >= 0 and share <= 1
         assert max_share_deviation > 0 and max_share_deviation <= 1
         assert default_limit > 0
+        assert interval > 0
 
         self.backend = backend
         self.pool_id = pool_id
@@ -210,6 +241,8 @@ class SharedLimiter(PoolDecorator):
         self.threshold = threshold
         self.share = share
         self.max_share_deviation = max_share_deviation
+        self.interval = interval
+        self._utilisation_scale = 1.0
 
         self._prepare_db()
     

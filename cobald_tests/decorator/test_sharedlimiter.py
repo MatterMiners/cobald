@@ -102,11 +102,22 @@ class TestSharedLimiter(object):
                     **db_ipnut,
                     **{**default_inputs, "default_limit": 0},
                 )
+            with pytest.raises(AssertionError):
+                SharedLimiter(pool, **db_ipnut, **default_inputs, interval=0)
     
     def test_prepare_db(self):
         pool = FullMockPool()
         for db_ipnut in db_inputs:
             sharedlimiter = SharedLimiter(pool, **db_ipnut, **default_inputs)
+
+    def test_utilisation_uses_cached_scale(self):
+        pool = FullMockPool()
+        pool.utilisation = 0.8
+        limiter = SharedLimiter(pool, **db_inputs_sqlite, **default_inputs)
+
+        limiter._utilisation_scale = 0.25
+
+        assert limiter.utilisation == pytest.approx(0.2)
     
     @pytest.mark.parametrize("invalid_limit", [0.0, -1.0])
     def test_utilisation_invalid_limit_raises(self, invalid_limit):
@@ -126,7 +137,7 @@ class TestSharedLimiter(object):
             )
 
             with pytest.raises(RuntimeError) as error:
-                limiter.utilisation
+                limiter._update()
 
             message = str(error.value)
             assert "invalid resource limit read from database" in message
@@ -220,6 +231,7 @@ class TestSharedLimiter(object):
             _update_or_insert_pool_row(**other_pool_inputs, supply=10.0) # total usage = 10
             # load = 10/100 = 0.1 <= 0.9
 
+            limiter._update()
             got = limiter.utilisation
             assert got == pytest.approx(pool.utilisation)
 
@@ -236,6 +248,7 @@ class TestSharedLimiter(object):
             _update_or_insert_pool_row(**other_pool_inputs, supply=0.0) # total usage = 0
             # load = 0
 
+            limiter._update()
             got = limiter.utilisation
             assert got == pytest.approx(pool.utilisation)
 
@@ -267,6 +280,7 @@ class TestSharedLimiter(object):
 
             _update_or_insert_pool_row(**other_pool_inputs, supply=other_usage)
 
+            nominal._update()
             util_nom = nominal.utilisation
 
             # --- Plus (curve_blend > 0) ---
@@ -274,6 +288,7 @@ class TestSharedLimiter(object):
                 pool, **db_input, **default_inputs,
                 threshold=threshold, share=0.05
             )
+            plus._update()
             util_plus = plus.utilisation
 
             # --- Minus (curve_blend < 0) ---
@@ -281,6 +296,7 @@ class TestSharedLimiter(object):
                 pool, **db_input, **default_inputs,
                 threshold=threshold, share=0.6
             )
+            minus._update()
             util_minus = minus.utilisation
 
             # Ordering
