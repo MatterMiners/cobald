@@ -13,7 +13,6 @@ import pytest
 
 from cobald.daemon.runners.service import ServiceRunner, service
 
-
 logging.getLogger().level = 10
 
 

@@ -1,8 +1,7 @@
 from functools import partial
-from itertools import chain
-from typing import Callable, Tuple, Optional, TypeVar, List, Set, Dict, overload
+from typing import Any, Callable, Optional, TypeVar, TypeAlias, overload
 
-import trio
+import asyncio
 
 from ..interfaces import Pool, Controller, Partial
 from ..daemon import service
@@ -21,7 +20,7 @@ C = TypeVar("C", bound="Controller")
 #: .. py:function:: \ rule(pool: Pool, interval: float) -> Optional[float]
 #:
 #: Note that a rule should *not* modify the ``pool`` directly.
-ControlRule = Callable[[Pool, float], Optional[float]]
+ControlRule: TypeAlias = Callable[[Pool, float], Optional[float]]
 
 
 class RangeSelector(object):
@@ -32,32 +31,36 @@ class RangeSelector(object):
     :param rules: lower bound and its control rule
     """
 
-    def __init__(self, base: ControlRule, *rules: Tuple[float, ControlRule]):
+    def __init__(self, base: ControlRule, *rules: tuple[float, ControlRule]):
         self._lookup = self._compile_lookup(base, rules)
 
     def get_rule(self, supply: float):
+        """Fetch the rule that applies for a given `supply`"""
         for (low, high), rule in self._lookup.items():
             if low <= supply < high:
                 return rule
+        raise RuntimeError(f"_lookup was compiled with an upper bound: {self._lookup}")
 
     @staticmethod
-    def _compile_lookup(base, rules) -> Dict[Tuple[float, float], ControlRule]:
+    def _compile_lookup(
+        base: ControlRule, rules: tuple[tuple[float, ControlRule], ...]
+    ) -> dict[tuple[float, float], ControlRule]:
         if not rules:
             return {(0, float("inf")): base}
         lookup = {}
         thresholds, _rules = zip(*sorted(rules))
         for low, high, rule in zip(
-            chain([0], thresholds),
-            chain(thresholds, [float("inf")]),
-            chain([base], _rules),
+            (0.0, *thresholds),
+            (*thresholds, float("inf")),
+            (base, *_rules),
         ):
             if low == high:
                 raise ValueError("Duplicate entries for threshold %s" % low)
             lookup[low, high] = rule
-        return lookup
+        return lookup  # type: ignore
 
 
-@service(flavour=trio)
+@service(flavour=asyncio)
 class Stepwise(Controller):
     """
     Controller that selects from several strategies based on supply
@@ -70,7 +73,7 @@ class Stepwise(Controller):
         self,
         target: Pool,
         base: ControlRule,
-        *rules: Tuple[float, ControlRule],
+        *rules: tuple[float, ControlRule],
         interval: float = 1,
     ):
         super().__init__(target)
@@ -84,7 +87,7 @@ class Stepwise(Controller):
             demand = current_rule(target, interval)
             if demand is not None:
                 self.target.demand = demand
-            await trio.sleep(interval)
+            await asyncio.sleep(interval)
 
 
 class UnboundStepwise(object):
@@ -130,8 +133,8 @@ class UnboundStepwise(object):
 
     def __init__(self, base: ControlRule):
         self.base = base
-        self.rules: List[Tuple[float, ControlRule]] = []
-        self._thresholds: Set[float] = set()
+        self.rules: list[tuple[float, ControlRule]] = []
+        self._thresholds: set[float] = set()
 
     @overload  # noqa: F811
     def add(self, rule: ControlRule, *, supply: float) -> ControlRule: ...
@@ -141,7 +144,9 @@ class UnboundStepwise(object):
         self, rule: None, *, supply: float
     ) -> Callable[[ControlRule], ControlRule]: ...
 
-    def add(self, rule: ControlRule = None, *, supply: float):  # noqa: F811
+    def add(
+        self, rule: ControlRule | None = None, *, supply: float
+    ) -> ControlRule | Callable[[ControlRule], ControlRule]:  # noqa: F811
         """
         Register a new rule above a given ``supply`` threshold
 
@@ -175,7 +180,7 @@ class UnboundStepwise(object):
         else:
             return partial(self.add, supply=supply)
 
-    def s(self, *args, **kwargs) -> Partial[Stepwise]:
+    def s(self, *args: Any, **kwargs: Any) -> Partial[Stepwise]:
         """
         Create an unbound prototype of this class, partially applying arguments
 
@@ -192,7 +197,7 @@ class UnboundStepwise(object):
         """
         return Partial(Stepwise, self.base, *self.rules, *args, __leaf__=True, **kwargs)
 
-    def __call__(self, target: Pool, interval: float = None):
+    def __call__(self, target: Pool, interval: float | None = None):
         if interval is None:
             return Stepwise(target, self.base, *self.rules)
         return Stepwise(target, self.base, *self.rules, interval=interval)

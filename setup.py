@@ -55,7 +55,7 @@ if __name__ == "__main__":
             ],
         },
         # >>> Dependencies
-        python_requires=">=3.10",
+        python_requires=">=3.11",
         install_requires=[
             "pyyaml",
             "trio",
@@ -87,10 +87,10 @@ if __name__ == "__main__":
             "Topic :: Office/Business :: Scheduling",
             "Topic :: System :: Distributed Computing",
             "Programming Language :: Python :: 3",
-            "Programming Language :: Python :: 3.8",
-            "Programming Language :: Python :: 3.9",
-            "Programming Language :: Python :: 3.10",
             "Programming Language :: Python :: 3.11",
+            "Programming Language :: Python :: 3.12",
+            "Programming Language :: Python :: 3.13",
+            "Programming Language :: Python :: 3.14",
         ],
         keywords=package_about["__keywords__"],
         # unit tests

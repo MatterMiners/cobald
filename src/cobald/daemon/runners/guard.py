@@ -2,7 +2,6 @@ from typing import Callable, TypeVar
 import threading
 import functools
 
-
 C = TypeVar("C", bound=Callable)
 
 

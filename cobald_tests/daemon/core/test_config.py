@@ -9,7 +9,6 @@ from cobald.controller.linear import LinearController
 
 from ...mock.pool import MockPool
 
-
 # register test pool as safe for YAML configurations
 COBalDLoader.add_constructor(tag="!MockPool", constructor=yaml_constructor(MockPool))
 
@@ -48,15 +47,13 @@ class TestYamlConfig:
         """Load a valid YAML config"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !LinearController
                           low_utilisation: 0.9
                           high_allocation: 1.1
                         - !MockPool
-                    """
-                )
+                    """)
             with load(config.name):
                 assert True
             assert True
@@ -65,15 +62,13 @@ class TestYamlConfig:
         """Load a invalid YAML config (invalid keyword argument)"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !LinearController
                           low_utilisation: 0.9
                           foo: 0
                         - !MockPool
-                    """
-                )
+                    """)
             with pytest.raises(TypeError):
                 with load(config.name):
                     assert False
@@ -82,8 +77,7 @@ class TestYamlConfig:
         """Forbid loading a YAML config with dangling content"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !LinearController
                           low_utilisation: 0.9
@@ -91,8 +85,7 @@ class TestYamlConfig:
                         - !MockPool
                     random_things:
                         foo: bar
-                    """
-                )
+                    """)
             with pytest.raises(ConfigurationError):
                 with load(config.name):
                     assert False
@@ -101,12 +94,10 @@ class TestYamlConfig:
         """Forbid loading a YAML config with missing content"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     logging:
                         version: 1.0
-                    """
-                )
+                    """)
             with pytest.raises(ConfigurationError):
                 with load(config.name):
                     assert False
@@ -115,15 +106,13 @@ class TestYamlConfig:
         """Load a YAML config with mixed pipeline step creation methods"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - __type__: cobald.controller.linear.LinearController
                           low_utilisation: 0.9
                           high_allocation: 0.9
                         - !MockPool
-                    """
-                )
+                    """)
             with load(config.name) as config:
                 pipeline = get_config_section(config, "pipeline")
                 assert isinstance(pipeline[0], LinearController)
@@ -133,8 +122,7 @@ class TestYamlConfig:
         """Load !Tags with substructure"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !MockPool
                     __config_test:
@@ -146,8 +134,7 @@ class TestYamlConfig:
                             - user_name: tardis
                               scopes:
                                 - user:read
-                    """
-                )
+                    """)
             with load(config.name) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
@@ -161,8 +148,7 @@ class TestYamlConfig:
         """Load !Tags with substructure, immediately using them"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !MockPool
                     __config_test:
@@ -170,8 +156,7 @@ class TestYamlConfig:
                           top: "top level value"
                           nested:
                             - leaf: "leaf level value"
-                    """
-                )
+                    """)
             with load(config.name) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
@@ -184,8 +169,7 @@ class TestYamlConfig:
         """Load !Tags with substructure, lazily using them"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !MockPool
                     __config_test:
@@ -193,8 +177,7 @@ class TestYamlConfig:
                           top: "top level value"
                           nested:
                             - leaf: "leaf level value"
-                    """
-                )
+                    """)
             with load(config.name) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
@@ -208,8 +191,7 @@ class TestYamlConfig:
         """Load !Tags with nested !Tags"""
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !MockPool
                     __config_test:
@@ -219,8 +201,7 @@ class TestYamlConfig:
                           - leaf_lazy: !TagTrackerLazy
                               nested:
                                 - leaf: "leaf level value"
-                    """
-                )
+                    """)
             with load(config.name) as config:
                 top_eager = get_config_section(config, "__config_test")["top_eager"]
                 # eager tags are evaluated eagerly
@@ -236,8 +217,7 @@ class TestYamlConfig:
         # __yaml_tag_test is provided by the cobald package
         with NamedTemporaryFile(suffix=".yaml") as config:
             with open(config.name, "w") as write_stream:
-                write_stream.write(
-                    """
+                write_stream.write("""
                     pipeline:
                         - !MockPool
                     __config_test:
@@ -245,8 +225,7 @@ class TestYamlConfig:
                             top: "top level value"
                             nested:
                             - leaf: "leaf level value"
-                    """
-                )
+                    """)
             with load(config.name) as config:
                 section = get_config_section(config, "__config_test")
                 args, kwargs = section["settings_tag"]

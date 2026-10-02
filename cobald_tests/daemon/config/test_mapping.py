@@ -1,3 +1,4 @@
+from typing import Any
 import random
 import sys
 
@@ -7,7 +8,7 @@ from collections import Counter
 from cobald.daemon.config.mapping import Translator, ConfigurationError
 
 
-def fqdn(obj):
+def fqdn(obj: Any) -> Any:
     """Assign an fully qualified name to an object"""
     obj.fqdn = obj.__module__ + "." + obj.__qualname__
     return obj
@@ -17,7 +18,7 @@ def fqdn(obj):
 class Construct(object):
     """Type that stores its parameters on construction"""
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any):
         self.args = args
         self.kwargs = kwargs
 
@@ -26,24 +27,25 @@ class Construct(object):
 
 
 @fqdn
-def count(key):
+def count(key: str):
     _counts[key] += 1
     return _counts[key]
 
 
-_counts = Counter()
+_counts: "Counter[str]" = Counter()
 
 
-def counted(key):
+def counted(key: str) -> "dict[str, Any]":
     return {"__type__": count.fqdn, "__args__": [key]}
 
 
 class SomeError(Exception):
-    pass
+    """Unique error type for testing"""
 
 
 @fqdn
-def raises(exc=SomeError):
+def raises(exc: "type[BaseException]" = SomeError):
+    """Force raising an error from a call"""
     raise exc("this is an error")
 
 
@@ -127,12 +129,14 @@ class TestTranslate(object):
                 {"__type__": raises.fqdn}, where="test_translate_error"
             )
         assert err.value.where == "test_translate_error"
+        assert "test_translate_error" in str(err.value)
         # make sure errors propagate up without being raised anew
         with pytest.raises(ConfigurationError) as err:
             translator.translate_hierarchy(
                 [1, {"foo": {"__type__": raises.fqdn}}], where="test_translate_error"
             )
         assert err.value.where == "test_translate_error[1].foo"
+        assert "test_translate_error[1].foo" in str(err.value)
 
     def test_lookup_failure(self):
         translator = Translator()

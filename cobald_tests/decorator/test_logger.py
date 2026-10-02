@@ -64,7 +64,7 @@ class TestLogger(object):
             Logger(target=pool, name="test logger")
 
         pool = FullMockPool()
-        with pytest.warns(FutureWarning):
+        with pytest.raises(RuntimeError):
             Logger(
                 target=pool,
                 name="test logger",

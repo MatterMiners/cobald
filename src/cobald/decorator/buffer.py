@@ -1,11 +1,11 @@
-import trio
+import asyncio
 
 from cobald.interfaces import Pool, PoolDecorator
 
 from cobald.daemon import service
 
 
-@service(flavour=trio)
+@service(flavour=asyncio)
 class Buffer(PoolDecorator):
     """
     A timed buffer for changes to a pool
@@ -28,4 +28,4 @@ class Buffer(PoolDecorator):
         while True:
             if self.demand != self.target.demand:
                 self.target.demand = self.demand
-            await trio.sleep(self.window)
+            await asyncio.sleep(self.window)
