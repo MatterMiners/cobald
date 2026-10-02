@@ -96,13 +96,20 @@ class TestSharedLimiter(object):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, max_share_deviation=0)
             with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, max_share_deviation=2)
+            with pytest.raises(AssertionError):
+                SharedLimiter(
+                    pool,
+                    **db_ipnut,
+                    **{**default_inputs, "default_limit": 0},
+                )
     
     def test_prepare_db(self):
         pool = FullMockPool()
         for db_ipnut in db_inputs:
             sharedlimiter = SharedLimiter(pool, **db_ipnut, **default_inputs)
     
-    def test_utilisation_limit_zero_forces_zero(self):
+    @pytest.mark.parametrize("invalid_limit", [0.0, -1.0])
+    def test_utilisation_invalid_limit_raises(self, invalid_limit):
         pool = FullMockPool()
         pool.utilisation = 0.42
         pool.supply = 10.0
@@ -111,14 +118,23 @@ class TestSharedLimiter(object):
             # create limiter (creates tables/rows)
             limiter = SharedLimiter(pool, **db_input, **default_inputs)
 
-            # mutate DB: set upper_limit <= 0
+            # Simulate an invalid limit introduced outside SharedLimiter.
             _db_exec(
                 test_db_path,
                 "UPDATE resources SET upper_limit = ? WHERE resource_id = ?",
-                (0.0, limiter.resource_id),
+                (invalid_limit, limiter.resource_id),
             )
 
-            assert limiter.utilisation == 0
+            with pytest.raises(RuntimeError) as error:
+                limiter.utilisation
+
+            message = str(error.value)
+            assert "invalid resource limit read from database" in message
+            assert f"resource_id={limiter.resource_id!r}" in message
+            assert f"pool_id={limiter.pool_id!r}" in message
+            assert "backend='sqlite'" in message
+            assert f"row=({invalid_limit!r},)" in message
+            assert f"supply={pool.supply!r}" in message
 
     def test_ids_are_scoped_and_passed_as_query_parameters(self):
         pool = FullMockPool()

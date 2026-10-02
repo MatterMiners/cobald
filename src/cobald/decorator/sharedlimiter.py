@@ -139,17 +139,15 @@ class SharedLimiter(PoolDecorator):
             limit = float(row[0])
 
             if limit <= 0:
-                logger.warning(
-                    "SharedLimiter: upper_limit <= 0, forcing utilisation=0",
-                    {
-                        "resource": self.resource_id,
-                        "pool_id": self.pool_id,
-                        "upper_limit": limit,
-                        "backend": self.backend[0],
-                        "supply": supply,
-                    },
+                raise RuntimeError(
+                    "invalid resource limit read from database: "
+                    f"resource_id={self.resource_id!r}, "
+                    f"pool_id={self.pool_id!r}, "
+                    f"backend={self.backend[0]!r}, "
+                    f"row={row!r}, "
+                    f"supply={supply!r}; "
+                    "expected upper_limit to be greater than zero"
                 )
-                return 0
 
             cur.execute(
                 f"SELECT COALESCE(SUM(weight * supply), 0) FROM pool_supply "
@@ -205,6 +203,7 @@ class SharedLimiter(PoolDecorator):
         if share is not None:
             assert share >= 0 and share <= 1
         assert max_share_deviation > 0 and max_share_deviation <= 1
+        assert default_limit > 0
 
         self.backend = backend
         self.pool_id = pool_id
