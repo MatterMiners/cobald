@@ -1,9 +1,6 @@
 from cobald.interfaces import Pool, PoolDecorator
 from typing import Any
 
-import logging
-logger = logging.getLogger(__name__)
-
 _DEFAULT_MAX_SHARE_DEVIATION = 0.05
 
 
