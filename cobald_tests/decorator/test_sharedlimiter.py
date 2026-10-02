@@ -8,26 +8,25 @@ from cobald.decorator.sharedlimiter import SharedLimiter
 
 import sqlite3
 
-db_inputs_sqlite = {
-    "backend": "sqlite",
-    "db_path": "test.db",
-}
+test_db_path = "test.db"
+
+db_inputs_sqlite = {"backend": ("sqlite", test_db_path)}
 
 db_inputs = [
     db_inputs_sqlite
 ]
 
 default_inputs = {
-    "db_pool_id": "Mock",
-    "db_resource_id": "cpu",
-    "db_weight": 0.5,
-    "db_global_max_default": 100.0
+    "pool_id": "Mock",
+    "resource_id": "cpu",
+    "weight": 0.5,
+    "default_limit": 100.0
 }
 
 other_pool_inputs = {
-    "db_pool_id": "Other",
-    "db_resource_id": "cpu",
-    "db_weight": 1.0,
+    "pool_id": "Other",
+    "resource_id": "cpu",
+    "weight": 1.0,
 }
 
 def _db_con(db_path):
@@ -35,12 +34,12 @@ def _db_con(db_path):
     return con
 
 
-def _db_exec(db_path, sql: str):
+def _db_exec(db_path, sql: str, parameters=()):
     con = _db_con(db_path)
 
     try:
         cur = con.cursor()
-        cur.execute(sql)
+        cur.execute(sql, parameters)
         con.commit()
     except Exception:
         con.rollback()
@@ -48,37 +47,36 @@ def _db_exec(db_path, sql: str):
     finally:
         con.close()
 
-def _update_or_insert_pool_row(db_inputs, db_resource_id: str, db_pool_id: str, db_weight: float, usage: float):
-    _db_exec(
-        db_inputs["db_path"],
-        f"UPDATE {db_resource_id} SET weight={db_weight}, usage={usage} WHERE id='{db_pool_id}'"
-    )
-
-    db_path = db_inputs["db_path"]
-
-    con = _db_con(db_path)
+def _update_or_insert_pool_row(
+    resource_id: str,
+    pool_id: str,
+    weight: float,
+    supply: float,
+):
+    con = _db_con(test_db_path)
 
     try:
         cur = con.cursor()
-        cur.execute(f"SELECT id FROM {db_resource_id} WHERE id='{db_pool_id}'")
-        row = cur.fetchone()
-        if row is None:
-            cur.execute(
-                f"INSERT INTO {db_resource_id}(id, weight, usage) VALUES ('{db_pool_id}', {db_weight}, {usage})"
-            )
-            con.commit()
+        cur.execute(
+            "INSERT INTO pool_supply(resource_id, pool_id, weight, supply) "
+            "VALUES (?, ?, ?, ?) "
+            "ON CONFLICT(resource_id, pool_id) DO UPDATE SET "
+            "weight = excluded.weight, supply = excluded.supply",
+            (resource_id, pool_id, weight, supply),
+        )
+        con.commit()
     finally:
         con.close()
 
 @pytest.fixture(autouse=True)
 def clean_sqlite_test_db():
     try:
-        os.remove(db_inputs_sqlite["db_path"])
+        os.remove(test_db_path)
     except FileNotFoundError:
         pass
     yield
     try:
-        os.remove(db_inputs_sqlite["db_path"])
+        os.remove(test_db_path)
     except FileNotFoundError:
         pass
 
@@ -115,11 +113,83 @@ class TestSharedLimiter(object):
 
             # mutate DB: set upper_limit <= 0
             _db_exec(
-                db_input["db_path"],
-                f"UPDATE limits SET upper_limit = {0.0} WHERE feature = '{limiter.db_resource_id}'"
+                test_db_path,
+                "UPDATE resources SET upper_limit = ? WHERE resource_id = ?",
+                (0.0, limiter.resource_id),
             )
 
             assert limiter.utilisation == 0
+
+    def test_ids_are_scoped_and_passed_as_query_parameters(self):
+        pool = FullMockPool()
+        pool.supply = 12.0
+        quoted_pool_id = "pool'; DROP TABLE resources; --"
+        quoted_resource_id = "resource'; DROP TABLE pool_supply; --"
+
+        SharedLimiter(
+            pool,
+            **db_inputs_sqlite,
+            pool_id=quoted_pool_id,
+            resource_id=quoted_resource_id,
+            weight=0.5,
+            default_limit=100.0,
+        )
+        SharedLimiter(
+            pool,
+            **db_inputs_sqlite,
+            pool_id=quoted_pool_id,
+            resource_id="another-resource",
+            weight=1.0,
+            default_limit=200.0,
+        )
+
+        con = _db_con(test_db_path)
+        try:
+            rows = con.execute(
+                "SELECT resource_id, pool_id FROM pool_supply "
+                "WHERE pool_id = ? ORDER BY resource_id",
+                (quoted_pool_id,),
+            ).fetchall()
+        finally:
+            con.close()
+
+        assert rows == [
+            ("another-resource", quoted_pool_id),
+            (quoted_resource_id, quoted_pool_id),
+        ]
+
+    def test_restart_updates_weight_and_supply_but_preserves_limit(self):
+        pool = FullMockPool()
+        pool.supply = 10.0
+        SharedLimiter(pool, **db_inputs_sqlite, **default_inputs)
+
+        pool.supply = 20.0
+        SharedLimiter(
+            pool,
+            **db_inputs_sqlite,
+            **{
+                **default_inputs,
+                "weight": 0.75,
+                "default_limit": 200.0,
+            },
+        )
+
+        con = _db_con(test_db_path)
+        try:
+            limit = con.execute(
+                "SELECT upper_limit FROM resources WHERE resource_id = ?",
+                (default_inputs["resource_id"],),
+            ).fetchone()[0]
+            pool_row = con.execute(
+                "SELECT weight, supply FROM pool_supply "
+                "WHERE resource_id = ? AND pool_id = ?",
+                (default_inputs["resource_id"], default_inputs["pool_id"]),
+            ).fetchone()
+        finally:
+            con.close()
+
+        assert limit == 100.0
+        assert pool_row == (0.75, 20.0)
 
     def test_utilisation_below_threshold_passthrough(self):
         pool = FullMockPool()
@@ -131,7 +201,7 @@ class TestSharedLimiter(object):
 
             # ensure total_usage/limit <= threshold
             # our own row will be overwritten with supply on property access; keep supply 0 => my usage 0.
-            _update_or_insert_pool_row(db_input, **other_pool_inputs, usage=10.0) # total usage = 10
+            _update_or_insert_pool_row(**other_pool_inputs, supply=10.0) # total usage = 10
             # load = 10/100 = 0.1 <= 0.9
 
             got = limiter.utilisation
@@ -147,7 +217,7 @@ class TestSharedLimiter(object):
 
             # ensure total_usage/limit <= threshold
             # our own row will be overwritten with supply on property access; keep supply 0 => my usage 0.
-            _update_or_insert_pool_row(db_input, **other_pool_inputs, usage=0.0) # total usage = 0
+            _update_or_insert_pool_row(**other_pool_inputs, supply=0.0) # total usage = 0
             # load = 0
 
             got = limiter.utilisation
@@ -179,7 +249,7 @@ class TestSharedLimiter(object):
                 threshold=threshold, share=None
             )
 
-            _update_or_insert_pool_row(db_input, **other_pool_inputs, usage=other_usage)
+            _update_or_insert_pool_row(**other_pool_inputs, supply=other_usage)
 
             util_nom = nominal.utilisation
 
