@@ -14,5 +14,6 @@ Submodules
    cobald.controller.linear
    cobald.controller.relative_supply
    cobald.controller.stepwise
+   cobald.controller.subprocess
    cobald.controller.switch
 

@@ -40,6 +40,7 @@ if __name__ == "__main__":
                 "%s = %s:%s" % (name, module, name)
                 for name, module in (
                     ("LinearController", "cobald.controller.linear"),
+                    ("SubprocessController", "cobald.controller.subprocess"),
                     ("RelativeSupplyController", "cobald.controller.relative_supply"),
                     ("Buffer", "cobald.decorator.buffer"),
                     ("Limiter", "cobald.decorator.limiter"),
