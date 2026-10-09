@@ -1,5 +1,6 @@
-import asyncio
 import logging
+import threading
+import time
 
 from cobald.interfaces import Pool, PoolDecorator
 from cobald.daemon import service
@@ -67,34 +68,23 @@ def _scale_factor(
     # Convert the raw share difference to the [-1, 1] range used for blending.
     # For example, with max_share_deviation=0.05, share_deviation=0.01 gives a
     # curve_blend of 0.2: 80% nominal curve and 20% stronger curve.
-    bounded_deviation = max(
-        min(share_deviation, max_share_deviation),
-        -max_share_deviation,
-    )
-    curve_blend = bounded_deviation / max_share_deviation
+    curve_blend = min(1, max(-1, share_deviation / max_share_deviation))
 
-    if curve_blend > 0:
-        return (
-            (1.0 - curve_blend) * _model_nominal(normalized_load)
-            + curve_blend * _model_plus(normalized_load)
-        )
-    elif curve_blend < 0:
-        return (
-            (1.0 + curve_blend) * _model_nominal(normalized_load)
-            - curve_blend * _model_minus(normalized_load)
-        )
-    return _model_nominal(normalized_load)
+    share_model = _model_plus if curve_blend > 0 else _model_minus
+    blend = abs(curve_blend)
+    
+    return (1.0 - blend) * _model_nominal(normalized_load) + blend * share_model(normalized_load)
 
 
-@service(flavour=asyncio)
+@service(flavour=threading)
 class SharedLimiter(PoolDecorator):
     """
     Limit on utilisation based on a resource shared between multiple pools
 
     :param target: the pool to which changes are applied
     :param backend: open tuple with backend database type name followed by the connection arguments, for example ``("sqlite", path)``
-    :param pool_id: identifier for this pool, (e.g. it's name)
-    :param resource_id: identifier for the shared resource (e.g. it's name)
+    :param pool_id: identifier unique among all pool instances, hosts and processes accessing the same ``resource_id`` in the same database
+    :param resource_id: identifier shared by every pool that consumes the same resource in the database. Different resources must use different identifiers
     :param weight: weight to be appied to ``target.supply`` to calculate consumption of the shared resource
     :param default_limit: resource limit to store if ``resource_id`` is not yet present in the database
     :param threshold: relative total resource load at or below which no throttling is applied
@@ -115,11 +105,11 @@ class SharedLimiter(PoolDecorator):
     def utilisation(self) -> float:
         return self.target.utilisation * self._utilisation_scale
 
-    async def run(self) -> None:
+    def run(self) -> None:
         """Periodically refresh the cached utilisation scale."""
         while True:
-            await asyncio.to_thread(self._update)
-            await asyncio.sleep(self.interval)
+            self._update()
+            time.sleep(self.interval)
 
     def _update(self) -> None:
         """Synchronize supply through the database and update the cached scale."""
@@ -136,6 +126,11 @@ class SharedLimiter(PoolDecorator):
                 f"WHERE resource_id = {parameter} AND pool_id = {parameter}",
                 (supply, self.resource_id, self.pool_id),
             )
+            if cur.rowcount != 1:
+                raise RuntimeError(
+                    "pool is missing from the shared resource database: "
+                    f"resource_id={self.resource_id!r}, pool_id={self.pool_id!r}"
+                )
 
             con.commit()
 
@@ -163,7 +158,7 @@ class SharedLimiter(PoolDecorator):
                 )
 
             cur.execute(
-                f"SELECT COALESCE(SUM(weight * supply), 0) FROM pool_supply "
+                f"SELECT SUM(weight * supply) FROM pool_supply "
                 f"WHERE resource_id = {parameter}",
                 (self.resource_id,),
             )
@@ -226,10 +221,9 @@ class SharedLimiter(PoolDecorator):
     ):
         super().__init__(target)
 
-        assert threshold >= 0 and threshold < 1
-        if share is not None:
-            assert share >= 0 and share <= 1
-        assert max_share_deviation > 0 and max_share_deviation <= 1
+        assert 0 <= threshold < 1
+        assert share is None or 0 <= share <= 1
+        assert 0 < max_share_deviation <= 1
         assert default_limit > 0
         assert interval > 0
 

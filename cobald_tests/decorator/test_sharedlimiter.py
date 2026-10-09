@@ -1,4 +1,5 @@
 import os
+import threading
 
 import pytest
 
@@ -109,6 +110,7 @@ class TestSharedLimiter(object):
         pool = FullMockPool()
         for db_ipnut in db_inputs:
             sharedlimiter = SharedLimiter(pool, **db_ipnut, **default_inputs)
+            assert sharedlimiter.__service_unit__.flavour is threading
 
     def test_utilisation_uses_cached_scale(self):
         pool = FullMockPool()
@@ -146,6 +148,18 @@ class TestSharedLimiter(object):
             assert "backend='sqlite'" in message
             assert f"row=({invalid_limit!r},)" in message
             assert f"supply={pool.supply!r}" in message
+
+    def test_missing_pool_row_raises(self):
+        pool = FullMockPool()
+        limiter = SharedLimiter(pool, **db_inputs_sqlite, **default_inputs)
+        _db_exec(
+            test_db_path,
+            "DELETE FROM pool_supply WHERE resource_id = ? AND pool_id = ?",
+            (limiter.resource_id, limiter.pool_id),
+        )
+
+        with pytest.raises(RuntimeError, match="pool is missing"):
+            limiter._update()
 
     def test_ids_are_scoped_and_passed_as_query_parameters(self):
         pool = FullMockPool()
