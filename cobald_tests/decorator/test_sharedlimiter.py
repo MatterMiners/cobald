@@ -20,14 +20,14 @@ db_inputs = [
 default_inputs = {
     "pool_id": "Mock",
     "resource_id": "cpu",
-    "weight": 0.5,
+    "usage_weight": 0.5,
     "default_limit": 100.0
 }
 
 other_pool_inputs = {
     "pool_id": "Other",
     "resource_id": "cpu",
-    "weight": 1.0,
+    "usage_weight": 1.0,
 }
 
 def _db_con(db_path):
@@ -51,19 +51,22 @@ def _db_exec(db_path, sql: str, parameters=()):
 def _update_or_insert_pool_row(
     resource_id: str,
     pool_id: str,
-    weight: float,
+    usage_weight: float,
     supply: float,
+    shares: float = 1.0,
 ):
     con = _db_con(test_db_path)
 
     try:
         cur = con.cursor()
         cur.execute(
-            "INSERT INTO pool_supply(resource_id, pool_id, weight, supply) "
-            "VALUES (?, ?, ?, ?) "
+            "INSERT INTO pool_supply"
+            "(resource_id, pool_id, usage_weight, shares, supply) "
+            "VALUES (?, ?, ?, ?, ?) "
             "ON CONFLICT(resource_id, pool_id) DO UPDATE SET "
-            "weight = excluded.weight, supply = excluded.supply",
-            (resource_id, pool_id, weight, supply),
+            "usage_weight = excluded.usage_weight, "
+            "shares = excluded.shares, supply = excluded.supply",
+            (resource_id, pool_id, usage_weight, shares, supply),
         )
         con.commit()
     finally:
@@ -90,9 +93,13 @@ class TestSharedLimiter(object):
             with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, threshold=2)
             with pytest.raises(AssertionError):
-                SharedLimiter(pool, **db_ipnut, **default_inputs, share=-1)
+                SharedLimiter(pool, **db_ipnut, **default_inputs, shares=0)
             with pytest.raises(AssertionError):
-                SharedLimiter(pool, **db_ipnut, **default_inputs, share=2)
+                SharedLimiter(
+                    pool,
+                    **db_ipnut,
+                    **{**default_inputs, "usage_weight": 0},
+                )
             with pytest.raises(AssertionError):
                 SharedLimiter(pool, **db_ipnut, **default_inputs, max_share_deviation=0)
             with pytest.raises(AssertionError):
@@ -172,7 +179,7 @@ class TestSharedLimiter(object):
             **db_inputs_sqlite,
             pool_id=quoted_pool_id,
             resource_id=quoted_resource_id,
-            weight=0.5,
+            usage_weight=0.5,
             default_limit=100.0,
         )
         SharedLimiter(
@@ -180,7 +187,7 @@ class TestSharedLimiter(object):
             **db_inputs_sqlite,
             pool_id=quoted_pool_id,
             resource_id="another-resource",
-            weight=1.0,
+            usage_weight=1.0,
             default_limit=200.0,
         )
 
@@ -210,7 +217,7 @@ class TestSharedLimiter(object):
             **db_inputs_sqlite,
             **{
                 **default_inputs,
-                "weight": 0.75,
+                "usage_weight": 0.75,
                 "default_limit": 200.0,
             },
         )
@@ -222,7 +229,7 @@ class TestSharedLimiter(object):
                 (default_inputs["resource_id"],),
             ).fetchone()[0]
             pool_row = con.execute(
-                "SELECT weight, supply FROM pool_supply "
+                "SELECT usage_weight, shares, supply FROM pool_supply "
                 "WHERE resource_id = ? AND pool_id = ?",
                 (default_inputs["resource_id"], default_inputs["pool_id"]),
             ).fetchone()
@@ -230,7 +237,7 @@ class TestSharedLimiter(object):
             con.close()
 
         assert limit == 100.0
-        assert pool_row == (0.75, 20.0)
+        assert pool_row == (0.75, 1.0, 20.0)
 
     def test_utilisation_below_threshold_passthrough(self):
         pool = FullMockPool()
@@ -255,7 +262,7 @@ class TestSharedLimiter(object):
         pool.supply = 0.0
 
         for db_input in db_inputs:
-            limiter = SharedLimiter(pool, **db_input, **default_inputs, threshold=0.9, share=0.2)
+            limiter = SharedLimiter(pool, **db_input, **default_inputs, threshold=0.9)
 
             # ensure total_usage/limit <= threshold
             # our own row will be overwritten with supply on property access; keep supply 0 => my usage 0.
@@ -289,10 +296,14 @@ class TestSharedLimiter(object):
             # --- Nominal (curve_blend == 0) ---
             nominal = SharedLimiter(
                 pool, **db_input, **default_inputs,
-                threshold=threshold, share=None
+                threshold=threshold, shares=25.0
             )
 
-            _update_or_insert_pool_row(**other_pool_inputs, supply=other_usage)
+            _update_or_insert_pool_row(
+                **other_pool_inputs,
+                supply=other_usage,
+                shares=70.0,
+            )
 
             nominal._update()
             util_nom = nominal.utilisation
@@ -300,7 +311,7 @@ class TestSharedLimiter(object):
             # --- Plus (curve_blend > 0) ---
             plus = SharedLimiter(
                 pool, **db_input, **default_inputs,
-                threshold=threshold, share=0.05
+                threshold=threshold, shares=5.0
             )
             plus._update()
             util_plus = plus.utilisation
@@ -308,7 +319,7 @@ class TestSharedLimiter(object):
             # --- Minus (curve_blend < 0) ---
             minus = SharedLimiter(
                 pool, **db_input, **default_inputs,
-                threshold=threshold, share=0.6
+                threshold=threshold, shares=60.0
             )
             minus._update()
             util_minus = minus.utilisation

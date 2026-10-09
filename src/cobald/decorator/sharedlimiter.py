@@ -85,10 +85,10 @@ class SharedLimiter(PoolDecorator):
     :param backend: open tuple with backend database type name followed by the connection arguments, for example ``("sqlite", path)``
     :param pool_id: identifier unique among all pool instances, hosts and processes accessing the same ``resource_id`` in the same database
     :param resource_id: identifier shared by every pool that consumes the same resource in the database. Different resources must use different identifiers
-    :param weight: weight to be appied to ``target.supply`` to calculate consumption of the shared resource
+    :param usage_weight: multiplier applied to ``target.supply`` to calculate consumption of the shared resource
     :param default_limit: resource limit to store if ``resource_id`` is not yet present in the database
     :param threshold: relative total resource load at or below which no throttling is applied
-    :param share: desired fraction of the total weighted supply attributed to this pool
+    :param shares: relative number of shares assigned to this pool. Its desired fraction is this value divided by the shares of all pools using the resource
     :param max_share_deviation: share difference at which the stronger or gentler throttling curve is applied fully
     :param interval: seconds between updates of the shared resource state
 
@@ -158,14 +158,15 @@ class SharedLimiter(PoolDecorator):
                 )
 
             cur.execute(
-                f"SELECT SUM(weight * supply) FROM pool_supply "
+                f"SELECT SUM(usage_weight * supply), SUM(shares) FROM pool_supply "
                 f"WHERE resource_id = {parameter}",
                 (self.resource_id,),
             )
             row = cur.fetchone()
 
             total_usage = float(row[0])
-            my_usage = self.weight * supply
+            total_shares = float(row[1])
+            my_usage = self.usage_weight * supply
         finally:
             con.close()
 
@@ -173,6 +174,7 @@ class SharedLimiter(PoolDecorator):
 
         # Throttle utilisation if the shared resource exceeds its threshold.
         load = min(total_usage / limit, 1.0)
+        desired_share = self.shares / total_shares
         share_deviation = 0.0
         if load <= threshold:
             # A total usage of zero produces zero load and returns here, which
@@ -180,10 +182,9 @@ class SharedLimiter(PoolDecorator):
             self._utilisation_scale = 1.0
         else:
             normalized_load = (load - threshold) / (1 - threshold)
-            if self.share is not None:
-                # Compare this pool's actual share of the total usage with its
-                # desired share and calculate the deviation.
-                share_deviation = my_usage / total_usage - self.share
+            # Compare this pool's actual share of the total usage with its
+            # desired share and calculate the deviation.
+            share_deviation = my_usage / total_usage - desired_share
 
             self._utilisation_scale = _scale_factor(
                 normalized_load,
@@ -193,14 +194,17 @@ class SharedLimiter(PoolDecorator):
 
         logger.debug(
             "updated shared limit: resource=%r pool=%r supply=%s "
-            "weighted_total=%s limit=%s load=%s share_deviation=%s "
-            "scale=%s utilisation=%s",
+            "weighted_total=%s limit=%s load=%s shares=%s total_shares=%s "
+            "desired_share=%s share_deviation=%s scale=%s utilisation=%s",
             self.resource_id,
             self.pool_id,
             supply,
             total_usage,
             limit,
             load,
+            self.shares,
+            total_shares,
+            desired_share,
             share_deviation,
             self._utilisation_scale,
             self.utilisation,
@@ -212,17 +216,18 @@ class SharedLimiter(PoolDecorator):
         backend: tuple[Any, ...],
         pool_id: str,
         resource_id: str,
-        weight: float,
+        usage_weight: float,
         default_limit: float,
         threshold: float = 0.9,
-        share: "float | None" = None,
+        shares: float = 1.0,
         max_share_deviation: float = _DEFAULT_MAX_SHARE_DEVIATION,
         interval: float = 1.0,
     ):
         super().__init__(target)
 
         assert 0 <= threshold < 1
-        assert share is None or 0 <= share <= 1
+        assert usage_weight > 0
+        assert shares > 0
         assert 0 < max_share_deviation <= 1
         assert default_limit > 0
         assert interval > 0
@@ -230,10 +235,10 @@ class SharedLimiter(PoolDecorator):
         self.backend = backend
         self.pool_id = pool_id
         self.resource_id = resource_id
-        self.weight = weight
+        self.usage_weight = usage_weight
         self.default_limit = default_limit
         self.threshold = threshold
-        self.share = share
+        self.shares = shares
         self.max_share_deviation = max_share_deviation
         self.interval = interval
         self._utilisation_scale = 1.0
@@ -265,7 +270,8 @@ class SharedLimiter(PoolDecorator):
                 CREATE TABLE IF NOT EXISTS pool_supply (
                     resource_id TEXT NOT NULL,
                     pool_id TEXT NOT NULL,
-                    weight REAL NOT NULL,
+                    usage_weight REAL NOT NULL,
+                    shares REAL NOT NULL,
                     supply REAL NOT NULL,
                     PRIMARY KEY (resource_id, pool_id)
                 )
@@ -280,14 +286,17 @@ class SharedLimiter(PoolDecorator):
             )
 
             cur.execute(
-                f"INSERT INTO pool_supply(resource_id, pool_id, weight, supply) "
-                f"VALUES ({parameter}, {parameter}, {parameter}, {parameter}) "
+                f"INSERT INTO pool_supply"
+                f"(resource_id, pool_id, usage_weight, shares, supply) "
+                f"VALUES ({parameter}, {parameter}, {parameter}, {parameter}, {parameter}) "
                 f"ON CONFLICT(resource_id, pool_id) DO UPDATE SET "
-                f"weight = excluded.weight, supply = excluded.supply",
+                f"usage_weight = excluded.usage_weight, "
+                f"shares = excluded.shares, supply = excluded.supply",
                 (
                     self.resource_id,
                     self.pool_id,
-                    self.weight,
+                    self.usage_weight,
+                    self.shares,
                     float(self.target.supply),
                 ),
             )
