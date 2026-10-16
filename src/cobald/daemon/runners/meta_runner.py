@@ -21,6 +21,12 @@ class MetaRunner(object):
     runner_types = (TrioRunner, AsyncioRunner, ThreadRunner)
 
     def __init__(self):
+        warnings.warn(
+            DeprecationWarning(
+                "'MetaRunner' is deprecated, directly use the concurrency frameworks"
+            ),
+            stacklevel=2,
+        )
         self._logger = logging.getLogger("cobald.runtime.runner.meta")
         self._runners: Dict[ModuleType, BaseRunner] = {}
         # queue to store payloads submitted before the runner is started

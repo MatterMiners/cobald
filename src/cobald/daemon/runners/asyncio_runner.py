@@ -1,5 +1,6 @@
 from typing import Callable, Awaitable, Coroutine, Set
 import asyncio
+import warnings
 
 from .base_runner import BaseRunner, OrphanedReturn
 
@@ -19,6 +20,10 @@ class AsyncioRunner(BaseRunner):
     # Tasks are registered in a container to allow cancelling them. The payload wrapper
     # takes care of adding/removing tasks.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        warnings.warn(
+            DeprecationWarning("'AsyncioRunner' is deprecated, directly use 'asyncio'"),
+            stacklevel=2,
+        )
         super().__init__(asyncio_loop)
         self._tasks: Set[asyncio.Task] = set()
         self._payload_failure = asyncio_loop.create_future()

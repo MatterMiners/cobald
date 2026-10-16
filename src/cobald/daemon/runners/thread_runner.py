@@ -1,5 +1,6 @@
 import threading
 import asyncio
+import warnings
 
 from .base_runner import BaseRunner, OrphanedReturn
 
@@ -18,6 +19,12 @@ class ThreadRunner(BaseRunner):
     # To detect errors, each payload is wrapped; errors and unexpected return values
     # are pushed to a queue from which the main task re-raises.
     def __init__(self, asyncio_loop: asyncio.AbstractEventLoop):
+        warnings.warn(
+            DeprecationWarning(
+                "'ThreadRunner' is deprecated, directly use 'threading'"
+            ),
+            stacklevel=2,
+        )
         super().__init__(asyncio_loop)
         self._payload_failure = asyncio_loop.create_future()
 

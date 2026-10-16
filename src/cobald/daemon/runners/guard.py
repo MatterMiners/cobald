@@ -1,6 +1,7 @@
 from typing import Callable, TypeVar
 import threading
 import functools
+import warnings
 
 C = TypeVar("C", bound=Callable)
 
@@ -18,6 +19,12 @@ def exclusive(via=threading.Lock) -> Callable[[C], C]:
     """
 
     def make_exclusive(fnc: C) -> C:
+        warnings.warn(
+            DeprecationWarning(
+                f"'{exclusive.__module__}.{exclusive.__qualname__}' is deprecated"
+            ),
+            stacklevel=2,
+        )
         fnc_guard = via()
 
         @functools.wraps(fnc)

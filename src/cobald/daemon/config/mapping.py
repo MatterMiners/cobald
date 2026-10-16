@@ -1,18 +1,20 @@
+"""
+Load a configuration from a mapping-like data format matching JSON and YAML
+"""
+
+from typing import Any, Callable, NamedTuple, TypeAlias
 import logging
 import logging.config
 import sys
-from typing import Any, Dict, TypeVar, Callable, Tuple, Generic
 
 from entrypoints import EntryPoint
 
-from ..plugins import PluginRequirements
+from ..plugins import PluginRequirements, _PLUGIN_REQUIREMENTS
 
 _logger = logging.getLogger(__package__)
 
-
-T = TypeVar("T")
 #: type of a mapping element, matching JSON/YAML
-M = TypeVar("M", str, int, float, bool, dict, list)
+Node: TypeAlias = "str | int | float | dict[str, Node] | list[Node]"
 
 
 class ConfigurationError(Exception):
@@ -43,12 +45,12 @@ class Translator(object):
     """
 
     def translate_hierarchy(
-        self, structure: M, *, where: str = "", **construct_kwargs
-    ) -> M:
+        self, structure: Node, *, where: str = "", **construct_kwargs: Any
+    ) -> Node:
         try:
             if isinstance(structure, dict):
                 structure = {
-                    key: self.translate_hierarchy(value, where="%s.%s" % (where, key))
+                    key: self.translate_hierarchy(value, where=f"{where}.{key}")
                     for key, value in structure.items()
                 }
                 if "__type__" in structure:
@@ -60,9 +62,7 @@ class Translator(object):
                 return list(
                     reversed(
                         [
-                            self.translate_hierarchy(
-                                item, where="%s[%s]" % (where, index)
-                            )
+                            self.translate_hierarchy(item, where=f"{where}[{index}]")
                             for index, item in reversed(list(enumerate(structure)))
                         ]
                     )
@@ -76,11 +76,11 @@ class Translator(object):
         except Exception as err:
             raise ConfigurationError(where=where, what=err) from err
 
-    def construct(self, mapping: dict, **kwargs):
+    def construct(self, mapping: dict[str, Any], **kwargs: Any) -> Any:
         """
         Construct an object from a mapping
 
-        :param mapping: constructor definition, with ``__type__`` and keyword arguments
+        :param mapping: definition with ``__type__`` and optional ``__args__``
         :param kwargs: additional keyword arguments to pass to the constructor
         """
         assert "__type__" not in kwargs and "__args__" not in kwargs
@@ -91,30 +91,31 @@ class Translator(object):
         return factory(*args, **mapping)
 
     @staticmethod
-    def load_name(absolute_name: str):
+    def load_name(absolute_name: str) -> Any:
         """Load an object based on an absolute, dotted name"""
-        path = absolute_name.split(".")
+        # __import__ loads everything, but does not fetch the element
         try:
             __import__(absolute_name)
         except ImportError:
+            path = absolute_name.split(".")
             try:
                 obj = sys.modules[path[0]]
             except KeyError:
-                raise ImportError("No module named %r" % path[0]) from None
+                raise ImportError(f"No module named {path[0]!r}") from None
             else:
                 for component in path[1:]:
                     try:
                         obj = getattr(obj, component)
                     except AttributeError as err:
                         raise ConfigurationError(
-                            what="no such object %r" % absolute_name
+                            what=f"no such object {absolute_name!r}"
                         ) from err
                 return obj
         else:  # ImportError is not raised if ``absolute_name`` points to a valid module
             return sys.modules[absolute_name]
 
 
-class SectionPlugin(Generic[M]):
+class SectionPlugin(NamedTuple):
     """
     Plugin to digest a top-level configuration section
 
@@ -123,64 +124,22 @@ class SectionPlugin(Generic[M]):
     :param requirements: plugin requirements
     """
 
-    __slots__ = "section", "digest", "requirements"
-
-    @property
-    def required(self):
-        return self.requirements.required
-
-    @property
-    def before(self):
-        return self.requirements.before
-
-    @property
-    def after(self):
-        return self.requirements.after
-
-    def __init__(
-        self, section: str, digest: Callable[[M], Any], requirements: PluginRequirements
-    ):
-        self.section = section
-        self.digest = digest
-        self.requirements = requirements
+    section: str
+    digest: Callable[[Node], Any]
+    requirements: PluginRequirements
 
     @classmethod
     def load(cls, entry_point: EntryPoint) -> "SectionPlugin":
-        """
-        Load a plugin from a pre-parsed entry point
-
-        Parses the following options:
-
-        ``required``
-            If present implies ``required=True``.
-
-        ``before=other``
-            This plugin must be processed before ``other``.
-
-        ``after=other``
-            This plugin must be processed after ``other``.
-        """
+        """Load a plugin from a pre-parsed entry point"""
         digest = entry_point.load()
-        requirements = getattr(digest, "__requirements__", PluginRequirements())
-        if entry_point.extras:
-            raise ValueError(
-                f"SectionPlugin entry point {entry_point.name!r}:"
-                f" extras are no longer supported"
-            )
+        requirements = _PLUGIN_REQUIREMENTS[digest]
+        assert not entry_point.extras, "SectionPlugin entry point extras not supported"
         return cls(section=entry_point.name, digest=digest, requirements=requirements)
-
-    def __repr__(self):
-        return (
-            f"{self.__class__.__name__}"
-            f"(section={self.section},"
-            f" digest={self.digest},"
-            f" requirements={self.requirements})"
-        )
 
 
 def load_configuration(
-    config_data: Dict[str, Any], plugins: Tuple[SectionPlugin] = ()
-) -> Dict[SectionPlugin, Any]:
+    config_data: dict[str, Any], plugins: tuple[SectionPlugin, ...] = ()
+) -> dict[SectionPlugin, Any]:
     """
     Load the configuration from a mapping, applying plugins to sections
 
@@ -195,19 +154,18 @@ def load_configuration(
     else:
         configure_logging(logging_mapping)
     # see if there is any unexpected config content
-    unmatched = config_data.keys() - {plugin.section for plugin in plugins}
-    if unmatched:
+    if unmatched := config_data.keys() - {plugin.section for plugin in plugins}:
         raise ConfigurationError(
-            where="root", what="unknown config sections %s" % ", ".join(unmatched)
+            where="root", what=f"unknown config sections {', '.join(unmatched)}"
         )
-    content = {}
+    content: dict[SectionPlugin, Any] = {}
     for plugin in plugins:
         try:
             section_data = config_data[plugin.section]
         except KeyError:
-            if plugin.required:
+            if plugin.requirements.required:
                 raise ConfigurationError(
-                    where="root", what="missing section %r" % plugin.section
+                    where="root", what="missing section {plugin.section!r}"
                 ) from None
         else:
             # invoke the plugin and store possible output
