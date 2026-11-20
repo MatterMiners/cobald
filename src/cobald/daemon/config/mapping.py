@@ -165,7 +165,7 @@ def load_configuration(
         except KeyError:
             if plugin.requirements.required:
                 raise ConfigurationError(
-                    where="root", what="missing section {plugin.section!r}"
+                    where="root", what=f"missing section {plugin.section!r}"
                 ) from None
         else:
             # invoke the plugin and store possible output
