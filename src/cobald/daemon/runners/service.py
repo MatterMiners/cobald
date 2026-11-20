@@ -264,7 +264,7 @@ class ServiceRunner:
             thread = threading.Thread(
                 target=self._monitor_run, args=(service.run,), daemon=True
             )
-            thread.run()
+            thread.start()
         elif unit.flavour is trio:
             warnings.warn(
                 DeprecationWarning(
