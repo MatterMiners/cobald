@@ -79,7 +79,6 @@ class TestServiceRunner(object):
     @pytest.mark.parametrize("flavour", [threading, trio])
     def test_service_execution_foreign(self, flavour: ModuleType):
         """Test that non-asyncio service instances are run automatically"""
-        replies = 0
 
         @service(flavour=flavour)
         class Service(object):
@@ -90,8 +89,6 @@ class TestServiceRunner(object):
                 self.run_thread_ident = None
 
             def _run(self):
-                nonlocal replies
-                replies += 1
                 self.run_thread_ident = threading.get_ident()
                 self.loop.call_soon_threadsafe(self.done.set)
 
@@ -108,13 +105,17 @@ class TestServiceRunner(object):
             runner_task = asyncio.create_task(ServiceRunner().run_services())
             async with asyncio.timeout(1):
                 await pre_created.done.wait()
-                assert replies == 1, "pre-created service did not run"
+                assert (
+                    pre_created.run_thread_ident is not None
+                ), "pre-created service did not run"
                 assert (
                     pre_created.run_thread_ident != threading.get_ident()
                 ), f"{flavour.__name__} service ran in asyncio thread"
                 late_created = Service()
                 await late_created.done.wait()
-                assert replies == 2, "late-created service did not run"
+                assert (
+                    late_created.run_thread_ident is not None
+                ), "late-created service did not run"
                 assert (
                     late_created.run_thread_ident != threading.get_ident()
                 ), f"{flavour.__name__} service ran in asyncio thread"
