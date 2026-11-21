@@ -114,6 +114,34 @@ class TestServiceRunner(object):
 
         asyncio.run(run_services_automatically())
 
+    def test_threading_service_in_separate_thread(self):
+        """Test that threading services run in their own thread"""
+
+        @service(flavour=threading)
+        class Service(object):
+            def __init__(self):
+                self.done = threading.Event()
+                self.thread_id = None
+
+            def run(self):
+                self.thread_id = threading.get_ident()
+                self.done.set()
+
+        async def run_services_automatically():
+            pre_created = Service()
+            runner_task = asyncio.create_task(ServiceRunner().run_services())
+            try:
+                async with asyncio.timeout(1):
+                    while not pre_created.done.is_set():
+                        await asyncio.sleep(0.01)
+                    assert (
+                        pre_created.thread_id != threading.get_ident()
+                    ), "threading service ran on the event loop thread"
+            finally:
+                runner_task.cancel()
+
+        asyncio.run(run_services_automatically())
+
     # legacy meta runner framework
     def test_execute(self):
         """Test running payloads synchronously"""
