@@ -209,6 +209,9 @@ class ServiceRunner:
         try:
             put = cls._running_instance._state.put_threadsafe
         except AttributeError:
+            # We can arrive here while _running_instance still creates its _state
+            # This is fine as it means the instance has yet to look for previously
+            # defined ServiceUnits and run them - including the `of` unit.
             return
         else:
             put((of, None))
