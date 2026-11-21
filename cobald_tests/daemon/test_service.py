@@ -179,7 +179,7 @@ class TestServiceRunner(object):
                     assert set(reply_store) == {default, *range(1, 7)}
                     break
             else:
-                assert False, "tasks were not adopeted/run in the background"
+                assert False, "tasks were not adopted/run in the background"
             runner_task.cancel()
 
         asyncio.run(adopt_payloads())
