@@ -17,7 +17,7 @@ T = TypeVar("T")
 
 
 def _weakdict_values(wd: "weakref.WeakKeyDictionary[Any, T]") -> set[T]:
-    """Thread-safely copy all values from a weakset to a set"""
+    """Thread-safely copy all values from a weakdict to a set"""
     # The WeakXYZ methods are not thread-safe because they miss locking until py3.14.
     # See https://github.com/python/cpython/issues/123089 and related.
     # Directly copy the underlying data-dict as this is GIL-atomic.
