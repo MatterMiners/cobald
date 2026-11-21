@@ -1,4 +1,5 @@
 from tempfile import NamedTemporaryFile
+import pathlib
 
 import pytest
 import copy
@@ -54,7 +55,7 @@ class TestYamlConfig:
                           high_allocation: 1.1
                         - !MockPool
                     """)
-            with load(config.name):
+            with load(pathlib.Path(config.name)):
                 assert True
             assert True
 
@@ -70,7 +71,7 @@ class TestYamlConfig:
                         - !MockPool
                     """)
             with pytest.raises(TypeError):
-                with load(config.name):
+                with load(pathlib.Path(config.name)):
                     assert False
 
     def test_load_dangling(self):
@@ -87,7 +88,7 @@ class TestYamlConfig:
                         foo: bar
                     """)
             with pytest.raises(ConfigurationError):
-                with load(config.name):
+                with load(pathlib.Path(config.name)):
                     assert False
 
     def test_load_missing(self):
@@ -99,7 +100,7 @@ class TestYamlConfig:
                         version: 1.0
                     """)
             with pytest.raises(ConfigurationError):
-                with load(config.name):
+                with load(pathlib.Path(config.name)):
                     assert False
 
     def test_load_mixed_creation(self):
@@ -113,7 +114,7 @@ class TestYamlConfig:
                           high_allocation: 0.9
                         - !MockPool
                     """)
-            with load(config.name) as config:
+            with load(pathlib.Path(config.name)) as config:
                 pipeline = get_config_section(config, "pipeline")
                 assert isinstance(pipeline[0], LinearController)
                 assert isinstance(pipeline[0].target, MockPool)
@@ -135,7 +136,7 @@ class TestYamlConfig:
                               scopes:
                                 - user:read
                     """)
-            with load(config.name) as config:
+            with load(pathlib.Path(config.name)) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
                 assert tagged.final_kwargs["host"] == "127.0.0.1"
@@ -157,7 +158,7 @@ class TestYamlConfig:
                           nested:
                             - leaf: "leaf level value"
                     """)
-            with load(config.name) as config:
+            with load(pathlib.Path(config.name)) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
                 # eager loading => all data should exist immediately
@@ -178,7 +179,7 @@ class TestYamlConfig:
                           nested:
                             - leaf: "leaf level value"
                     """)
-            with load(config.name) as config:
+            with load(pathlib.Path(config.name)) as config:
                 tagged = get_config_section(config, "__config_test")["tagged"]
                 assert isinstance(tagged, TagTracker)
                 # eager loading => only some data should exist immediately...
@@ -202,7 +203,7 @@ class TestYamlConfig:
                               nested:
                                 - leaf: "leaf level value"
                     """)
-            with load(config.name) as config:
+            with load(pathlib.Path(config.name)) as config:
                 top_eager = get_config_section(config, "__config_test")["top_eager"]
                 # eager tags are evaluated eagerly
                 assert top_eager.orig_kwargs["nested"][0] == {
@@ -226,7 +227,7 @@ class TestYamlConfig:
                             nested:
                             - leaf: "leaf level value"
                     """)
-            with load(config.name) as config:
+            with load(pathlib.Path(config.name)) as config:
                 section = get_config_section(config, "__config_test")
                 args, kwargs = section["settings_tag"]
                 assert args == ()
