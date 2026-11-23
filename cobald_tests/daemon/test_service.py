@@ -50,7 +50,6 @@ class TestServiceRunner(object):
 
     def test_service_execution(self):
         """Test that service instances are run automatically"""
-        replies = 0
 
         @service(flavour=asyncio)
         class Service(object):
@@ -61,8 +60,6 @@ class TestServiceRunner(object):
 
             async def run(self):
                 self.run_thread_ident = threading.get_ident()
-                nonlocal replies
-                replies += 1
                 self.done.set()
 
         async def run_services_automatically():
