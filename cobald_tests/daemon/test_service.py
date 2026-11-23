@@ -41,12 +41,13 @@ class TestServiceRunner(object):
         """Assert that no two runners may run services"""
 
         async def run_services_twice():
-            return await asyncio.gather(
-                ServiceRunner().run_services(), ServiceRunner().run_services()
-            )
+            runner_task = asyncio.create_task(ServiceRunner().run_services())
+            await asyncio.sleep(0)  # let runner start in background task
+            with pytest.raises(RuntimeError):
+                await ServiceRunner().run_services()
+            runner_task.cancel()
 
-        with pytest.raises(RuntimeError):
-            asyncio.run(run_services_twice())
+        asyncio.run(run_services_twice())
 
     def test_service_execution(self):
         """Test that service instances are run automatically"""
