@@ -1,0 +1,9 @@
+category: deprecated
+summary: "Meta and concurrency runners are deprecated; use concurrency frameworks directly"
+description: |
+  The runner infrastructure for launching concurrent tasks has been deprecated
+  and will be removed in a future version. The underlying concurrency frameworks
+  have matured enough to surpass the quality of the runner design.
+  Plugin authors should directly use the respective concurrency frameworks.
+pull requests:
+- 175
