@@ -57,21 +57,34 @@ class TestServiceRunner(object):
             def __init__(self):
                 self.done = asyncio.Event()
                 self.done.clear()
+                self.run_thread_ident = None
 
             async def run(self):
+                self.run_thread_ident = threading.get_ident()
                 nonlocal replies
                 replies += 1
                 self.done.set()
 
         async def run_services_automatically():
             pre_created = Service()
+            asyncio_thread_ident = threading.get_ident()
             runner_task = asyncio.create_task(ServiceRunner().run_services())
             async with asyncio.timeout(1):
                 await pre_created.done.wait()
-                assert replies == 1, "pre-created service did not run"
+                assert (
+                    pre_created.run_thread_ident is not None
+                ), "pre-created service did not run"
+                assert (
+                    pre_created.run_thread_ident == asyncio_thread_ident
+                ), "asyncio service ran in separate thread"
                 late_created = Service()
                 await late_created.done.wait()
-                assert replies == 2, "late-created service did not run"
+                assert (
+                    late_created.run_thread_ident is not None
+                ), "late-created service did not run"
+                assert (
+                    late_created.run_thread_ident == asyncio_thread_ident
+                ), "asyncio service ran in separate thread"
             runner_task.cancel()
 
         asyncio.run(run_services_automatically())
