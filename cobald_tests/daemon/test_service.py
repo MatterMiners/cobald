@@ -72,16 +72,10 @@ class TestServiceRunner(object):
             async with asyncio.timeout(1):
                 await pre_created.done.wait()
                 assert (
-                    pre_created.run_thread_ident is not None
-                ), "pre-created service did not run"
-                assert (
                     pre_created.run_thread_ident == asyncio_thread_ident
                 ), "asyncio service ran in separate thread"
                 late_created = Service()
                 await late_created.done.wait()
-                assert (
-                    late_created.run_thread_ident is not None
-                ), "late-created service did not run"
                 assert (
                     late_created.run_thread_ident == asyncio_thread_ident
                 ), "asyncio service ran in separate thread"
@@ -120,16 +114,10 @@ class TestServiceRunner(object):
             async with asyncio.timeout(1):
                 await pre_created.done.wait()
                 assert (
-                    pre_created.run_thread_ident is not None
-                ), "pre-created service did not run"
-                assert (
                     pre_created.run_thread_ident != asyncio_thread_ident
                 ), f"{flavour.__name__} service ran in asyncio thread"
                 late_created = Service()
                 await late_created.done.wait()
-                assert (
-                    late_created.run_thread_ident is not None
-                ), "late-created service did not run"
                 assert (
                     late_created.run_thread_ident != asyncio_thread_ident
                 ), f"{flavour.__name__} service ran in asyncio thread"
