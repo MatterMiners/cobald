@@ -2,7 +2,7 @@
 source = cobald
 branch = TRUE
 cover_pylib = FALSE
-parallel = False
+patch = subprocess
 
 [report]
 exclude_lines =

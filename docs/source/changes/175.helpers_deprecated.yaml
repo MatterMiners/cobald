@@ -1,0 +1,8 @@
+category: deprecated
+summary: "Deprecated various obscure features: ServiceUnit introspection, `guard.exclusive`, `enforce`, ServiceRunner features"
+description: |
+  Various features that were intended for internal use and seem unused in the ecosystem
+  have been deprecated and will be removed in a future version.
+pull requests:
+- 175
+- 170

@@ -5,6 +5,7 @@ Daemon core specific to cobald
 import asyncio
 import sys
 import logging
+import pathlib
 import platform
 
 import cobald.__about__
@@ -15,7 +16,13 @@ from .config import load
 from .. import runtime
 
 
-def run(configuration: str, level: str, target: str, short_format: bool):
+def run(
+    configuration: pathlib.Path,
+    timeout: float | None,
+    level: str,
+    target: str,
+    short_format: bool,
+):
     """Run the daemon and all its services"""
     initialise_logging(level=level, target=target, short_format=short_format)
     logger = logging.getLogger(__package__)
@@ -30,17 +37,19 @@ def run(configuration: str, level: str, target: str, short_format: bool):
     logger.debug(cobald.__about__.__file__)
     logger.info("Using configuration %s", configuration)
     logger.info("Starting daemon services...")
-    runtime.adopt(_load_services, configuration, flavour=asyncio)
-    runtime.accept()
+    asyncio.run(configured_services(configuration, timeout))
+    logger.info("Stopped daemon services...")
 
 
-async def _load_services(path: str):
+async def configured_services(path: pathlib.Path, timeout: float | None) -> None:
     """
-    Helper to load configured tasks once the runtime is ready and to hold objects alive
+    Asynchronously run configured services
     """
     with load(path):
-        # sleep indefinitely to wait until the runtime is aborted
-        await asyncio.sleep(float("inf"))
+        try:
+            await asyncio.wait_for(runtime.run_services(), timeout)
+        except TimeoutError:
+            return
 
 
 def cli_run():
@@ -48,6 +57,7 @@ def cli_run():
     options = CLI.parse_args()
     run(
         configuration=options.CONFIGURATION,
+        timeout=options.timeout,
         level=options.log_level,
         target=options.log_target,
         short_format=options.log_journal,
