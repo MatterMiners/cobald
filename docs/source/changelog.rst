@@ -11,9 +11,14 @@ Upcoming
 Version [Unreleased] - 2026-11-26
 +++++++++++++++++++++++++++++++++
 
+* **[Added]** Added `SubprocessController` to read demand from a separate program
+
+* **[Changed]** COBalD implementation is purely `asyncio`
+
 * **[Deprecated]** Meta and concurrency runners are deprecated; use concurrency frameworks directly
 * **[Deprecated]** Deprecated various obscure features: ServiceUnit introspection, `guard.exclusive`, `enforce`, ServiceRunner features
-* **[Deprecated]** COBalD services using trio are deprecated
+* **[Deprecated]** COBalD services using trio are deprecated, COBalD only uses `asyncio`
+* **[Deprecated]** Minimal Python version is 3.11, older Python versions are no longer supported
 
 0.14 Series
 ===========

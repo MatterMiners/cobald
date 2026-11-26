@@ -1,0 +1,8 @@
+category: changed
+summary: "COBalD implementation is purely `asyncio`"
+description: |
+  COBalD is now implemented purely as an `asyncio` application. Any `threading`
+  is used only on demand by plugins.
+  This should be largely transparent but changes how services are instantiated.
+pull requests:
+- 175
