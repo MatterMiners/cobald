@@ -1,0 +1,7 @@
+category: added
+summary: "Added `SubprocessController` to read demand from a separate program"
+description: |
+  New controller `SubprocessController` to run an executable to provide demand values.
+  The executable must provide an unbuffered stream of line-separated `float` literals.
+pull requests:
+- 173
