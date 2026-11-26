@@ -1,9 +1,19 @@
-.. Created by log.py at 2023-07-26, command
-   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst --categories Added Changed Fixed Security Deprecated'
+.. Created by log.py at 2026-11-26, command
+   '/Users/maxfischer/code_projects/cobald/venv/lib/python3.12/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst --categories Added Changed Fixed Security Deprecated'
    based on the format of 'https://keepachangelog.com/'
 #########
 ChangeLog
 #########
+
+Upcoming
+========
+
+Version [Unreleased] - 2026-11-26
++++++++++++++++++++++++++++++++++
+
+* **[Deprecated]** Meta and concurrency runners are deprecated; use concurrency frameworks directly
+* **[Deprecated]** Deprecated various obscure features: ServiceUnit introspection, `guard.exclusive`, `enforce`, ServiceRunner features
+* **[Deprecated]** COBalD services using trio are deprecated
 
 0.14 Series
 ===========
