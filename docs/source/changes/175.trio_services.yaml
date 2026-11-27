@@ -1,8 +1,11 @@
 category: deprecated
-summary: "COBalD services using trio are deprecated"
+summary: "COBalD services using trio are deprecated, COBalD only uses `asyncio`"
 description: |
   Support for `@service(flavour=trio)` is deprecated and will be removed in a future version.
   The `asyncio` library has matured enough that the maintenance cost of two async backends
-  is no longer feasible. Services should be switched to `asyncio`.
+  is no longer feasible. Services should be switched to `asyncio` and all builtin `cobald`
+  services have been switched.
 pull requests:
 - 175
+- 170
+version: 0.15.0

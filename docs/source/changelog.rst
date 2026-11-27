@@ -1,9 +1,24 @@
-.. Created by log.py at 2023-07-26, command
-   '/Users/mfischer/PycharmProjects/cobald/venv/lib/python3.9/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst --categories Added Changed Fixed Security Deprecated'
+.. Created by log.py at 2026-11-27, command
+   '/Users/maxfischer/code_projects/cobald/venv/lib/python3.12/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst --categories Added Changed Fixed Security Deprecated'
    based on the format of 'https://keepachangelog.com/'
 #########
 ChangeLog
 #########
+
+0.15 Series
+===========
+
+Version [0.15.0] - 2026-11-27
++++++++++++++++++++++++++++++
+
+* **[Added]** Added `SubprocessController` to read demand from a separate program
+
+* **[Changed]** COBalD implementation is purely `asyncio`
+
+* **[Deprecated]** Meta and concurrency runners are deprecated; use concurrency frameworks directly
+* **[Deprecated]** Deprecated various obscure features: ServiceUnit introspection, `guard.exclusive`, `enforce`, ServiceRunner features
+* **[Deprecated]** COBalD services using trio are deprecated, COBalD only uses `asyncio`
+* **[Deprecated]** Minimal Python version is 3.11, older Python versions are no longer supported
 
 0.14 Series
 ===========
