@@ -1,15 +1,15 @@
-.. Created by log.py at 2026-11-26, command
+.. Created by log.py at 2026-11-27, command
    '/Users/maxfischer/code_projects/cobald/venv/lib/python3.12/site-packages/change/__main__.py log docs/source/changes compile -o docs/source/changelog.rst --categories Added Changed Fixed Security Deprecated'
    based on the format of 'https://keepachangelog.com/'
 #########
 ChangeLog
 #########
 
-Upcoming
-========
+0.15 Series
+===========
 
-Version [Unreleased] - 2026-11-26
-+++++++++++++++++++++++++++++++++
+Version [0.15.0] - 2026-11-27
++++++++++++++++++++++++++++++
 
 * **[Added]** Added `SubprocessController` to read demand from a separate program
 
