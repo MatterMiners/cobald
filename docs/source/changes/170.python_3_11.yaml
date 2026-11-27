@@ -6,3 +6,4 @@ description: |
   and allows COBalD and plugins to drop outdated dependencies and compatibility layers.
 pull requests:
 - 170
+version: 0.15.0

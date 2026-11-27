@@ -6,3 +6,4 @@ description: |
   This should be largely transparent but changes how services are instantiated.
 pull requests:
 - 175
+version: 0.15.0

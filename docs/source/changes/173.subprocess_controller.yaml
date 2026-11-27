@@ -5,3 +5,4 @@ description: |
   The executable must provide an unbuffered stream of line-separated `float` literals.
 pull requests:
 - 173
+version: 0.15.0
