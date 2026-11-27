@@ -56,6 +56,8 @@ class SubprocessController(Controller):
                     raise
             if self.restart_delay is not None:
                 await asyncio.sleep(self.restart_delay)
+            else:
+                raise RuntimeError("subprocess controller subprocess exited")
 
     async def _stream_demand(self):
         proc = await asyncio.create_subprocess_exec(
