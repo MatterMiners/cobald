@@ -7,12 +7,19 @@ import asyncio
 import logging
 import signal
 import os
+import gc
 
 import pytest
 
 from cobald.daemon.runners.service import ServiceRunner, service
 
 logging.getLogger().level = 10
+
+
+@pytest.fixture(autouse=True)
+def reap_services():
+    """Cleanup services leftover from previous tests (needed for pypy)"""
+    gc.collect()
 
 
 def sync_raise(what: BaseException):
